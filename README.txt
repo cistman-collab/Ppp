@@ -1,9 +1,5 @@
-WTI Pro Mobile v0.3
+WTI Pro v3 — iPhone cloud deployment package (research only)
 
-Deploy this folder to an HTTPS static host. On iPhone open the hosted URL in Safari > Share > Add to Home Screen. Offline shell is cached, but market data cannot refresh offline.
+Deploy the CONTENTS of this folder to Vercel, preferably through a private GitHub repository connected to Vercel. Framework preset: Other. Root directory: repository root. The /api/candles Python serverless function fetches public Yahoo CL=F candles. It is NOT a licensed, verified real-time NYMEX CL1! feed and can fail or be delayed. The dashboard MUST remain research-only and block executable signals. No background alerts or push notifications are implemented. Free hosting and external market-data access are subject to provider limits.
 
-Optional feed endpoint must allow CORS from your hosted app and return JSON:
-{ "symbol":"CL1!", "exchange":"NYMEX", "source":"YOUR LICENSED FEED", "delayed":false, "bars":[{"t":"2026-09-25T14:00:00Z","o":92.1,"h":92.3,"l":92.0,"c":92.2,"v":100}, ...] }
-Bars must be consecutive 5m candles (at least 15), timestamped by candle OPEN in UTC, most recent closed candle no more than 12 minutes old. The backend must authenticate to the licensed feed; NEVER expose API keys to the browser. CL1! contract rollover logic belongs on backend.
-
-This version does not include a market-data provider, a server, background push notifications or automatic trade execution. No simulated candles are real trading signals.
+Once deployed, open the HTTPS deployment URL in iPhone Safari, tap Share > Add to Home Screen. Do not publish account credentials or API keys in source code. Before using for live trading, integrate a licensed real-time data feed and separately test alert delivery and risk controls.
