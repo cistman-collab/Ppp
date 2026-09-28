@@ -784,6 +784,1508 @@ canvas{
   </div>
 
 </nav>
+  <script>
+const $=id=>document.getElementById(id), M=60000;
+
+let bars=[];
+let currentTF=15;
+let setup=null;
+
+function ema(a,p){
+  if(!a.length)return[];
+
+  const k=2/(p+1);
+  let v=a[0];
+
+  return a.map((x,i)=>{
+    v=i?v+(x-v)*k:x;
+    return v;
+  });
+}
+
+function aggregate(input,min){
+
+  if(min===5)return input;
+
+  const size=min*M;
+  const out=[];
+
+  for(const b of input){
+
+    const t=Math.floor(b.t/size)*size;
+    let x=out.at(-1);
+
+    if(!x || x.t!==t){
+
+      x={
+        t,
+        o:b.o,
+        h:b.h,
+        l:b.l,
+        c:b.c,
+        n:0
+      };
+
+      out.push(x);
+
+    }else{
+
+      x.h=Math.max(x.h,b.h);
+      x.l=Math.min(x.l,b.l);
+      x.c=b.c;
+    }
+
+    x.n++;
+  }
+
+  return out.filter(x=>x.n===min/5);
+}
+
+function indicators(b){
+
+  if(b.length<35)return null;
+
+  const c=b.map(x=>x.c);
+
+  const fast=ema(c,9).at(-1);
+  const slow=ema(c,21).at(-1);
+
+  const e12=ema(c,12);
+  const e26=ema(c,26);
+
+  const mac=e12.map((x,i)=>x-e26[i]);
+  const sig=ema(mac,9);
+
+  let gain=0;
+  let loss=0;
+
+  for(let i=b.length-14;i<b.length;i++){
+
+    const d=b[i].c-b[i-1].c;
+
+    gain+=Math.max(0,d);
+    loss+=Math.max(0,-d);
+  }
+
+  const rsi=
+    loss===0
+    ?100
+    :100-100/(1+gain/loss);
+
+  return{
+    trend:
+      fast>slow
+      ?'BULLISH'
+      :fast<slow
+      ?'BEARISH'
+      :'NEUTRAL',
+
+    rsi,
+
+    hist:
+      mac.at(-1)
+      -
+      sig.at(-1)
+  };
+}
+
+function atr(b,p=14){
+
+  if(b.length<p+1)return .5;
+
+  const t=[];
+
+  for(let i=1;i<b.length;i++){
+
+    const x=b[i];
+    const q=b[i-1];
+
+    t.push(
+      Math.max(
+        x.h-x.l,
+        Math.abs(x.h-q.c),
+        Math.abs(x.l-q.c)
+      )
+    );
+  }
+
+  return t.slice(-p).reduce((a,b)=>a+b,0)/p;
+}
+
+function trendClass(v){
+  return v==='BULLISH'
+    ?'good'
+    :v==='BEARISH'
+    ?'bad'
+    :'wait';
+}
+
+function trendArrow(v){
+  return v==='BULLISH'
+    ?'↑'
+    :v==='BEARISH'
+    ?'↓'
+    :'→';
+}
+
+function fmt(x){
+  return Number.isFinite(x)
+    ?x.toFixed(2)
+    :'—';
+}
+
+function setTF(id,aid,v){
+
+  $(id).textContent=v;
+  $(id).className='v '+trendClass(v);
+
+  $(aid).textContent=trendArrow(v);
+  $(aid).className='arr '+trendClass(v);
+}
+
+function levels(){
+
+  const r=bars.slice(-30);
+
+  return{
+    res:Math.max(...r.map(x=>x.h)),
+    sup:Math.min(...r.map(x=>x.l)),
+    px:bars.at(-1).c
+  };
+}
+
+function makeSetup(i5,i15,i60){
+
+  const b15=aggregate(bars,15);
+
+  const a=atr(b15);
+  const px=bars.at(-1).c;
+
+  const aligned=
+    i5.trend===i15.trend &&
+    i15.trend===i60.trend;
+
+  if(!aligned){
+    return{
+      direction:'WAIT'
+    };
+  }
+
+  if(i15.trend==='BULLISH'){
+
+    return{
+      direction:'LONG',
+
+      entryLow:px-a*.15,
+      entryHigh:px+a*.10,
+
+      stop:px-a,
+
+      tp1:px+a,
+      tp2:px+a*2,
+
+      rr:2
+    };
+  }
+
+  if(i15.trend==='BEARISH'){
+
+    return{
+      direction:'SHORT',
+
+      entryLow:px-a*.10,
+      entryHigh:px+a*.15,
+
+      stop:px+a,
+
+      tp1:px-a,
+      tp2:px-a*2,
+
+      rr:2
+    };
+  }
+
+  return{
+    direction:'WAIT'
+  };
+}
+
+function render(){
+
+  if(!bars.length)return;
+
+  const b15=aggregate(bars,15);
+  const b60=aggregate(bars,60);
+
+  const i5=indicators(bars);
+  const i15=indicators(b15);
+  const i60=indicators(b60);
+
+  if(!i5 || !i15 || !i60)return;
+
+  setTF('m5','a5',i5.trend);
+  setTF('m15','a15',i15.trend);
+  setTF('h1','a1h',i60.trend);
+
+  const l=levels();
+
+  const prev=
+    bars.at(-2)?.c
+    ??
+    l.px;
+
+  const diff=
+    l.px-prev;
+
+  $('homePrice').textContent=
+    l.px.toFixed(2);
+
+  $('homeChange').textContent=
+    (diff>=0?'+':'')
+    +
+    diff.toFixed(2)
+    +
+    ' ('
+    +
+    (
+      prev
+      ?((diff/prev)*100).toFixed(2)
+      :'0.00'
+    )
+    +
+    '%)';
+
+  $('homeChange').className=
+    'change '
+    +
+    (
+      diff>0
+      ?'good'
+      :diff<0
+      ?'bad'
+      :'wait'
+    );
+
+  const last=
+    new Date(
+      bars.at(-1).t
+      +
+      5*M
+    );
+
+  $('homeUpdated').innerHTML=
+    'Last updated<br>'
+    +
+    last.toLocaleTimeString(
+      [],
+      {
+        hour:'2-digit',
+        minute:'2-digit'
+      }
+    )
+    +
+    '<br>Yahoo CL=F';
+
+  const aligned=
+    i5.trend===i15.trend
+    &&
+    i15.trend===i60.trend;
+
+  let why=[];
+
+  if(aligned && i15.trend==='BULLISH'){
+
+    $('overall').textContent='BULLISH';
+    $('overall').className='signalTitle good';
+
+    $('bigArrow').textContent='↑';
+    $('bigArrow').className='signalIcon good';
+
+    $('message').textContent=
+      'Higher probability for more upside';
+
+    why=[
+      '5m, 15m and 1H are aligned bullish',
+      'Short-term momentum is positive',
+      'No bearish reversal confirmed'
+    ];
+
+  }else if(aligned && i15.trend==='BEARISH'){
+
+    $('overall').textContent='BEARISH';
+    $('overall').className='signalTitle bad';
+
+    $('bigArrow').textContent='↓';
+    $('bigArrow').className='signalIcon bad';
+
+    $('message').textContent=
+      'Higher probability for more downside';
+
+    why=[
+      '5m, 15m and 1H are aligned bearish',
+      'Short-term momentum is negative',
+      'No bullish reversal confirmed'
+    ];
+
+  }else{
+
+    $('overall').textContent='WAIT';
+    $('overall').className='signalTitle wait';
+
+    $('bigArrow').textContent='→';
+    $('bigArrow').className='signalIcon wait';
+
+    $('message').textContent=
+      'Timeframes do not agree yet';
+
+    why=[
+      '5m is '+i5.trend,
+      '15m is '+i15.trend,
+      '1H is '+i60.trend
+    ];
+  }
+
+  $('whyList').innerHTML=
+    why.map(
+      x=>'<li>'+x+'</li>'
+    ).join('');
+
+  setup=
+    makeSetup(
+      i5,
+      i15,
+      i60
+    );
+
+  $('resistance').textContent=
+    l.res.toFixed(2);
+
+  $('support').textContent=
+    l.sup.toFixed(2);
+
+  $('nextTarget').textContent=
+    setup.direction==='WAIT'
+    ?'—'
+    :fmt(setup.tp1);
+
+  $('invalidation').textContent=
+    setup.direction==='WAIT'
+    ?'—'
+    :fmt(setup.stop);
+
+  updateSetup();
+  drawChart();
+}
+
+function updateSetup(){
+
+  const s=setup;
+
+  if(!s || s.direction==='WAIT'){
+
+    $('setupTitle').textContent=
+      'NO CLEAR SETUP';
+
+    $('setupTitle').className=
+      'setupTitle wait';
+
+    $('setupBadge').textContent=
+      'WAIT';
+
+    [
+      'entryZone',
+      'stopLoss',
+      'tp1',
+      'tp2',
+      'rr',
+      'chartEntry',
+      'chartStop',
+      'chartTP1',
+      'chartTP2',
+      'chartRR'
+    ].forEach(
+      id=>
+        $(id).textContent='—'
+    );
+
+    $('setupWhy').textContent=
+      'The timeframes are not aligned enough for a clear research setup.';
+
+    $('confirmation').textContent=
+      'Wait for 5m, 15m and 1H to agree more clearly.';
+
+    $('invalidateText').textContent=
+      'No setup is active.';
+
+    $('chartSetupTitle').textContent=
+      'WAIT';
+
+    $('chartSetupTitle').className=
+      'setupTitle wait';
+
+    return;
+  }
+
+  const long=
+    s.direction==='LONG';
+
+  $('setupTitle').textContent=
+    s.direction+' SETUP';
+
+  $('setupTitle').className=
+    'setupTitle '
+    +
+    (
+      long
+      ?'good'
+      :'bad'
+    );
+
+  $('setupBadge').textContent=
+    'ACTIVE';
+
+  $('entryZone').textContent=
+    fmt(s.entryLow)
+    +
+    ' – '
+    +
+    fmt(s.entryHigh);
+
+  $('stopLoss').textContent=
+    fmt(s.stop);
+
+  $('tp1').textContent=
+    fmt(s.tp1);
+
+  $('tp2').textContent=
+    fmt(s.tp2);
+
+  $('rr').textContent=
+    '1 : '
+    +
+    s.rr.toFixed(1);
+
+  $('setupWhy').textContent=
+    long
+    ?
+    'Price structure and 5m/15m/1H trend are aligned upward.'
+    :
+    'Price structure and 5m/15m/1H trend are aligned downward.';
+
+  $('confirmation').textContent=
+    long
+    ?
+    'Look for completed candles to hold above the entry zone and keep bullish momentum.'
+    :
+    'Look for completed candles to reject the entry zone and keep bearish momentum.';
+
+  $('invalidateText').textContent=
+    (
+      long
+      ?
+      'If price closes below '
+      :
+      'If price closes above '
+    )
+    +
+    fmt(s.stop)
+    +
+    ', the setup is invalidated.';
+
+  $('chartSetupTitle').textContent=
+    s.direction+' SETUP';
+
+  $('chartSetupTitle').className=
+    'setupTitle '
+    +
+    (
+      long
+      ?'good'
+      :'bad'
+    );
+
+  $('chartEntry').textContent=
+    fmt(s.entryLow)
+    +
+    ' – '
+    +
+    fmt(s.entryHigh);
+
+  $('chartStop').textContent=
+    fmt(s.stop);
+
+  $('chartTP1').textContent=
+    fmt(s.tp1);
+
+  $('chartTP2').textContent=
+    fmt(s.tp2);
+
+  $('chartRR').textContent=
+    '1 : '
+    +
+    s.rr.toFixed(1);
+}
+
+function drawChart(){
+
+  if(!bars.length)return;
+
+  const c=$('chart');
+  const r=c.getBoundingClientRect();
+
+  const dpr=
+    devicePixelRatio
+    ||
+    1;
+
+  c.width=
+    r.width*dpr;
+
+  c.height=
+    r.height*dpr;
+
+  const x=
+    c.getContext('2d');
+
+  x.scale(
+    dpr,
+    dpr
+  );
+
+  const w=r.width;
+  const h=r.height;
+
+  const src=
+    currentTF===5
+    ?bars
+    :aggregate(
+      bars,
+      currentTF
+    );
+
+  const data=
+    src.slice(-48);
+
+  if(data.length<5)return;
+
+  const L=12;
+  const R=54;
+  const T=18;
+  const B=28;
+
+  const max0=
+    Math.max(
+      ...data.map(b=>b.h)
+    );
+
+  const min0=
+    Math.min(
+      ...data.map(b=>b.l)
+    );
+
+  const sp=
+    max0-min0
+    ||
+    1;
+
+  const max=
+    max0+sp*.08;
+
+  const min=
+    min0-sp*.08;
+
+  const pW=w-L-R;
+  const pH=h-T-B;
+
+  const Y=
+    p=>
+      T
+      +
+      (max-p)
+      /
+      (max-min)
+      *
+      pH;
+
+  x.clearRect(
+    0,
+    0,
+    w,
+    h
+  );
+
+  x.strokeStyle=
+    '#163047';
+
+  x.lineWidth=1;
+
+  for(let i=0;i<6;i++){
+
+    const yy=
+      T+pH/5*i;
+
+    x.beginPath();
+
+    x.moveTo(
+      L,
+      yy
+    );
+
+    x.lineTo(
+      w-R,
+      yy
+    );
+
+    x.stroke();
+  }
+
+  const cw=
+    pW/data.length;
+
+  const bw=
+    Math.max(
+      2,
+      cw*.55
+    );
+
+  data.forEach(
+    (b,i)=>{
+
+      const xx=
+        L+i*cw+cw/2;
+
+      const up=
+        b.c>=b.o;
+
+      x.strokeStyle=
+        up
+        ?'#27dca5'
+        :'#ff5964';
+
+      x.fillStyle=
+        x.strokeStyle;
+
+      x.beginPath();
+
+      x.moveTo(
+        xx,
+        Y(b.h)
+      );
+
+      x.lineTo(
+        xx,
+        Y(b.l)
+      );
+
+      x.stroke();
+
+      const top=
+        Math.min(
+          Y(b.o),
+          Y(b.c)
+        );
+
+      const bottom=
+        Math.max(
+          Y(b.o),
+          Y(b.c)
+        );
+
+      x.fillRect(
+        xx-bw/2,
+        top,
+        bw,
+        Math.max(
+          2,
+          bottom-top
+        )
+      );
+    }
+  );
+
+  function line(
+    p,
+    color,
+    label
+  ){
+
+    if(!Number.isFinite(p))return;
+
+    const yy=
+      Y(p);
+
+    if(
+      yy<T
+      ||
+      yy>h-B
+    )return;
+
+    x.strokeStyle=
+      color;
+
+    x.setLineDash(
+      [5,4]
+    );
+
+    x.beginPath();
+
+    x.moveTo(
+      L,
+      yy
+    );
+
+    x.lineTo(
+      w-R,
+      yy
+    );
+
+    x.stroke();
+
+    x.setLineDash([]);
+
+    x.fillStyle=
+      color;
+
+    x.font=
+      '11px system-ui';
+
+    x.fillText(
+      label
+      +
+      ' '
+      +
+      p.toFixed(2),
+
+      w-R+3,
+
+      yy+4
+    );
+  }
+
+  const now=
+    data.at(-1).c;
+
+  line(
+    now,
+    '#4b9fff',
+    'NOW'
+  );
+
+  if(
+    setup
+    &&
+    setup.direction!=='WAIT'
+  ){
+
+    line(
+      (
+        setup.entryLow
+        +
+        setup.entryHigh
+      )
+      /2,
+
+      '#ffd05f',
+
+      'ENTRY'
+    );
+
+    line(
+      setup.stop,
+      '#ff5964',
+      'STOP'
+    );
+
+    line(
+      setup.tp1,
+      '#2fe2a4',
+      'TP1'
+    );
+
+    line(
+      setup.tp2,
+      '#57a8ff',
+      'TP2'
+    );
+  }
+}
+
+async function load(){
+
+  try{
+
+    const r=
+      await fetch(
+        '/api/candles',
+        {
+          cache:'no-store'
+        }
+      );
+
+    if(!r.ok)
+      throw Error(
+        'Candle API error'
+      );
+
+    const d=
+      await r.json();
+
+    const now=
+      Date.now();
+
+    bars=
+      (
+        d.bars
+        ||
+        []
+      )
+
+      .map(
+        x=>({
+          t:+x.t,
+          o:+x.o,
+          h:+x.h,
+          l:+x.l,
+          c:+x.c
+        })
+      )
+
+      .filter(
+        x=>
+          [
+            x.t,
+            x.o,
+            x.h,
+            x.l,
+            x.c
+          ]
+          .every(
+            Number.isFinite
+          )
+          &&
+          x.t+5*M<=now
+      )
+
+      .sort(
+        (a,b)=>a.t-b.t
+      );
+
+    render();
+
+  }catch(e){
+
+    $('overall').textContent=
+      'DATA ERROR';
+
+    $('message').textContent=
+      e.message;
+  }
+}
+
+function showPage(n){
+
+  document
+    .querySelectorAll(
+      '.page'
+    )
+    .forEach(
+      p=>
+        p.classList.remove(
+          'active'
+        )
+    );
+
+  $(n+'Page')
+    .classList
+    .add(
+      'active'
+    );
+
+  document
+    .querySelectorAll(
+      '.nav'
+    )
+    .forEach(
+      v=>
+        v.classList.toggle(
+          'active',
+          v.dataset.page===n
+        )
+    );
+
+  if(n==='chart'){
+
+    setTimeout(
+      drawChart,
+      50
+    );
+  }
+
+  scrollTo(
+    0,
+    0
+  );
+}
+
+document
+.querySelectorAll(
+  '.nav'
+)
+.forEach(
+  v=>
+    v.onclick=
+      ()=>
+        showPage(
+          v.dataset.page
+        )
+);
+
+document
+.querySelectorAll(
+  '.chartTabs button'
+)
+.forEach(
+  b=>
+    b.onclick=
+      ()=>{
+
+        currentTF=
+          +b.dataset.tf;
+
+        document
+          .querySelectorAll(
+            '.chartTabs button'
+          )
+          .forEach(
+            x=>
+              x.classList.remove(
+                'active'
+              )
+          );
+
+        b.classList.add(
+          'active'
+        );
+
+        drawChart();
+      }
+);
+
+addEventListener(
+  'resize',
+  ()=>{
+
+    if(
+      $('chartPage')
+      .classList
+      .contains(
+        'active'
+      )
+    ){
+      drawChart();
+    }
+  }
+);
+
+load();
+
+</script>
+</body>
+</html>
+<script>
+const $=id=>document.getElementById(id);
+const M=60000;
+
+let bars=[];
+let currentTF=15;
+let setup=null;
+
+function ema(a,p){
+  if(!a.length)return[];
+
+  const k=2/(p+1);
+  let v=a[0];
+
+  return a.map((x,i)=>{
+    v=i?v+(x-v)*k:x;
+    return v;
+  });
+}
+
+function aggregate(input,min){
+
+  if(min===5)return input;
+
+  const size=min*M;
+  const out=[];
+
+  for(const b of input){
+
+    const t=Math.floor(b.t/size)*size;
+    let x=out.at(-1);
+
+    if(!x || x.t!==t){
+
+      x={
+        t,
+        o:b.o,
+        h:b.h,
+        l:b.l,
+        c:b.c,
+        n:0
+      };
+
+      out.push(x);
+
+    }else{
+
+      x.h=Math.max(x.h,b.h);
+      x.l=Math.min(x.l,b.l);
+      x.c=b.c;
+    }
+
+    x.n++;
+  }
+
+  return out.filter(
+    x=>x.n===min/5
+  );
+}
+
+function indicators(b){
+
+  if(b.length<35)return null;
+
+  const c=b.map(x=>x.c);
+
+  const fast=ema(c,9).at(-1);
+  const slow=ema(c,21).at(-1);
+
+  const e12=ema(c,12);
+  const e26=ema(c,26);
+
+  const mac=e12.map(
+    (x,i)=>x-e26[i]
+  );
+
+  const sig=ema(mac,9);
+
+  let gain=0;
+  let loss=0;
+
+  for(
+    let i=b.length-14;
+    i<b.length;
+    i++
+  ){
+
+    const d=b[i].c-b[i-1].c;
+
+    gain+=Math.max(0,d);
+    loss+=Math.max(0,-d);
+  }
+
+  return{
+    trend:
+      fast>slow
+      ?'BULLISH'
+      :fast<slow
+      ?'BEARISH'
+      :'NEUTRAL',
+
+    rsi:
+      loss===0
+      ?100
+      :100-100/(1+gain/loss),
+
+    hist:
+      mac.at(-1)-sig.at(-1)
+  };
+}
+
+function atr(b,p=14){
+
+  if(b.length<p+1)return .5;
+
+  const values=[];
+
+  for(let i=1;i<b.length;i++){
+
+    const x=b[i];
+    const prev=b[i-1];
+
+    values.push(
+      Math.max(
+        x.h-x.l,
+        Math.abs(x.h-prev.c),
+        Math.abs(x.l-prev.c)
+      )
+    );
+  }
+
+  return values
+    .slice(-p)
+    .reduce((a,b)=>a+b,0)
+    /p;
+}
+
+function trendClass(v){
+
+  if(v==='BULLISH')return'good';
+  if(v==='BEARISH')return'bad';
+
+  return'wait';
+}
+
+function trendArrow(v){
+
+  if(v==='BULLISH')return'↑';
+  if(v==='BEARISH')return'↓';
+
+  return'→';
+}
+
+function fmt(x){
+
+  return Number.isFinite(x)
+    ?x.toFixed(2)
+    :'—';
+}
+
+function setTF(
+  textId,
+  arrowId,
+  value
+){
+
+  $(textId).textContent=value;
+
+  $(textId).className=
+    'v '+trendClass(value);
+
+  $(arrowId).textContent=
+    trendArrow(value);
+
+  $(arrowId).className=
+    'arr '+trendClass(value);
+}
+
+function levels(){
+
+  const recent=
+    bars.slice(-30);
+
+  return{
+    resistance:
+      Math.max(
+        ...recent.map(x=>x.h)
+      ),
+
+    support:
+      Math.min(
+        ...recent.map(x=>x.l)
+      ),
+
+    price:
+      bars.at(-1).c
+  };
+}
+
+function makeSetup(
+  i5,
+  i15,
+  i60
+){
+
+  const b15=
+    aggregate(bars,15);
+
+  const a=
+    atr(b15);
+
+  const px=
+    bars.at(-1).c;
+
+  const aligned=
+    i5.trend===i15.trend
+    &&
+    i15.trend===i60.trend;
+
+  if(!aligned){
+
+    return{
+      direction:'WAIT'
+    };
+  }
+
+  if(i15.trend==='BULLISH'){
+
+    return{
+      direction:'LONG',
+
+      entryLow:
+        px-a*.15,
+
+      entryHigh:
+        px+a*.10,
+
+      stop:
+        px-a,
+
+      tp1:
+        px+a,
+
+      tp2:
+        px+a*2,
+
+      rr:2
+    };
+  }
+
+  if(i15.trend==='BEARISH'){
+
+    return{
+      direction:'SHORT',
+
+      entryLow:
+        px-a*.10,
+
+      entryHigh:
+        px+a*.15,
+
+      stop:
+        px+a,
+
+      tp1:
+        px-a,
+
+      tp2:
+        px-a*2,
+
+      rr:2
+    };
+  }
+
+  return{
+    direction:'WAIT'
+  };
+}
+
+function render(){
+
+  if(!bars.length)return;
+
+  const b15=
+    aggregate(bars,15);
+
+  const b60=
+    aggregate(bars,60);
+
+  const i5=
+    indicators(bars);
+
+  const i15=
+    indicators(b15);
+
+  const i60=
+    indicators(b60);
+
+  if(!i5 || !i15 || !i60)return;
+
+  setTF(
+    'm5',
+    'a5',
+    i5.trend
+  );
+
+  setTF(
+    'm15',
+    'a15',
+    i15.trend
+  );
+
+  setTF(
+    'h1',
+    'a1h',
+    i60.trend
+  );
+
+  const l=
+    levels();
+
+  const previous=
+    bars.at(-2)?.c
+    ??
+    l.price;
+
+  const diff=
+    l.price-previous;
+
+  $('homePrice').textContent=
+    l.price.toFixed(2);
+
+  $('homeChange').textContent=
+    (diff>=0?'+':'')
+    +
+    diff.toFixed(2)
+    +
+    ' ('
+    +
+    (
+      previous
+      ?(diff/previous*100).toFixed(2)
+      :'0.00'
+    )
+    +
+    '%)';
+
+  $('homeChange').className=
+    'change '
+    +
+    (
+      diff>0
+      ?'good'
+      :diff<0
+      ?'bad'
+      :'wait'
+    );
+
+  const last=
+    new Date(
+      bars.at(-1).t+5*M
+    );
+
+  $('homeUpdated').innerHTML=
+    'Last updated<br>'
+    +
+    last.toLocaleTimeString(
+      [],
+      {
+        hour:'2-digit',
+        minute:'2-digit'
+      }
+    )
+    +
+    '<br>Yahoo CL=F';
+
+  const aligned=
+    i5.trend===i15.trend
+    &&
+    i15.trend===i60.trend;
+
+  let reasons=[];
+
+  if(
+    aligned
+    &&
+    i15.trend==='BULLISH'
+  ){
+
+    $('overall').textContent=
+      'BULLISH';
+
+    $('overall').className=
+      'signalTitle good';
+
+    $('bigArrow').textContent=
+      '↑';
+
+    $('bigArrow').className=
+      'signalIcon good';
+
+    $('message').textContent=
+      'Higher probability for more upside';
+
+    reasons=[
+      '5m, 15m and 1H are aligned bullish',
+      'Short-term momentum is positive',
+      'No bearish reversal confirmed'
+    ];
+
+  }else if(
+    aligned
+    &&
+    i15.trend==='BEARISH'
+  ){
+
+    $('overall').textContent=
+      'BEARISH';
+
+    $('overall').className=
+      'signalTitle bad';
+
+    $('bigArrow').textContent=
+      '↓';
+
+    $('bigArrow').className=
+      'signalIcon bad';
+
+    $('message').textContent=
+      'Higher probability for more downside';
+
+    reasons=[
+      '5m, 15m and 1H are aligned bearish',
+      'Short-term momentum is negative',
+      'No bullish reversal confirmed'
+    ];
+
+  }else{
+
+    $('overall').textContent=
+      'WAIT';
+
+    $('overall').className=
+      'signalTitle wait';
+
+    $('bigArrow').textContent=
+      '→';
+
+    $('bigArrow').className=
+      'signalIcon wait';
+
+    $('message').textContent=
+      'Timeframes do not agree yet';
+
+    reasons=[
+      '5m is '+i5.trend,
+      '15m is '+i15.trend,
+      '1H is '+i60.trend
+    ];
+  }
+
+  $('whyList').innerHTML=
+    reasons
+    .map(
+      x=>'<li>'+x+'</li>'
+    )
+    .join('');
+
+  setup=
+    makeSetup(
+      i5,
+      i15,
+      i60
+    );
+
+  $('resistance').textContent=
+    l.resistance.toFixed(2);
+
+  $('support').textContent=
+    l.support.toFixed(2);
+
+  $('nextTarget').textContent=
+    setup.direction==='WAIT'
+    ?'—'
+    :fmt(setup.tp1);
+
+  $('invalidation').textContent=
+    setup.direction==='WAIT'
+    ?'—'
+    :fmt(setup.stop);
+
+  updateSetup();
+  drawChart();
+}
 <script>
 const $ = id => document.getElementById(id);
 const M = 60000;
@@ -1007,7 +2509,8 @@ function makeSetup(i5, i15, i60) {
   return {
     direction: "WAIT"
   };
-}.function render() {
+}
+ function render() {
   if (!bars.length) return;
 
   const bars15 = aggregate(bars, 15);
