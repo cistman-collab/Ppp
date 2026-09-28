@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WTI Pro</title>
+
+<style>
+:root{
+  --bg:#06111f;
+  --panel:#0c1a2a;
+  --line:#203950;
+  --text:#f5f8ff;
+  --muted:#9fb3c8;
+  --green:#2fe0a7;
+  --red:#ff5964;
+  --yellow:#ffd15f;
+  --blue:#4e9fff;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#081827,#06111f);
+  color:var(--text);
+  padding-bottom:82px;
+}
+.app{max-width:440px;margin:auto}
+.page{display:none;padding:18px 15px 30px}
+.page.active{display:block}
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{
+  width:42px;height:42px;border-radius:50%;
+  display:grid;place-items:center;
+  background:#0d2034;border:1px solid #20435f;
+  font-size:23px
+}
+h1{font-size:23px;margin:0}
+small,.muted{color:var(--muted)}
+.mode{
+  background:#0d55b3;border:1px solid #3189ef;
+  padding:9px 13px;border-radius:18px;font-weight:900;font-size:13px
+}
+.card{
+  background:linear-gradient(180deg,#0f2135,#0a1827);
+  border:1px solid var(--line);
+  border-radius:16px;padding:14px;margin:11px 0
+}
+.priceRow{display:flex;justify-content:space-between;align-items:end}
+.price{font-size:42px;font-weight:950;line-height:.95}
+.change{font-weight:900;margin-top:6px}
+.updated{text-align:right;font-size:11px;color:var(--muted);line-height:1.45}
+.signalCard{
+  background:
+    radial-gradient(circle at 85% 20%,rgba(255,70,80,.20),transparent 35%),
+    linear-gradient(180deg,#25151b,#171015);
+  border-color:#7e3039
+}
+.signalRow{display:flex;align-items:center;gap:12px}
+.bigArrow{font-size:56px;line-height:1}
+.eyebrow{font-size:11px;font-weight:900;letter-spacing:.08em;color:#d5a2a8}
+.signalTitle{font-size:34px;font-weight:950;line-height:1;margin:4px 0}
+.signalText{font-size:14px;color:#dce4ee}
+.good{color:var(--green)}
+.bad{color:var(--red)}
+.wait{color:var(--yellow)}
+.blue{color:var(--blue)}
+.tfgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tf{
+  background:#0a1827;border:1px solid #1f3e59;
+  border-radius:13px;padding:12px 6px;text-align:center
+}
+.tf .arrow{font-size:26px;margin:5px 0}
+.tf .value{font-weight:900;font-size:13px}
+.title{font-size:18px;font-weight:900;margin-bottom:9px}
+.list{margin:0;padding-left:20px;line-height:1.55;font-size:14px}
+.row{
+  display:flex;justify-content:space-between;gap:12px;
+  padding:8px 0;border-bottom:1px solid #193048
+}
+.row:last-child{border-bottom:0}
+.row span:first-child{color:#d0dbe6}
+.row strong{text-align:right}
+.primary,.secondary{
+  width:100%;padding:14px;border-radius:12px;
+  color:white;font-size:16px;font-weight:900;margin-top:10px
+}
+.primary{border:1px solid #3f91ff;background:linear-gradient(180deg,#1888ff,#0b5fd8)}
+.secondary{border:1px solid #49627b;background:#17314a}
+.chartTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.chartTabs button{
+  padding:10px;border-radius:11px;
+  background:#0c2034;border:1px solid #23445f;color:#dce7f3;font-weight:850
+}
+.chartTabs button.active{background:#0f61d4;border-color:#338fff}
+.chartbox{
+  background:#06131f;border:1px solid #1e3a54;
+  border-radius:14px;overflow:hidden
+}
+canvas{width:100%;height:400px;display:block}
+.legend{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.pill{
+  border:1px solid #294159;border-radius:999px;
+  padding:5px 8px;font-size:11px;font-weight:900
+}
+.setupCard{background:#1a1116;border-color:#6a2c34}
+.badge{
+  padding:5px 9px;border-radius:999px;
+  background:#702932;font-size:11px;font-weight:900
+}
+.setupTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.setupTitle{font-size:22px;font-weight:950}
+.subcard{
+  margin-top:10px;padding:12px;
+  background:#091827;border:1px solid #1e3952;border-radius:12px
+}
+.subcard h3{margin:0 0 6px;font-size:15px}
+.subcard p{margin:0;color:#dce6f1;line-height:1.5;font-size:13px}
+.newsItem{padding:11px 0;border-bottom:1px solid #193048}
+.newsItem:last-child{border-bottom:0}
+.newsTag{
+  display:inline-block;padding:4px 8px;border-radius:999px;
+  font-size:10px;font-weight:900;margin-bottom:6px
+}
+.aiGrid{display:grid;gap:9px}
+.aiBtn{
+  width:100%;padding:13px;border-radius:12px;
+  background:#10243a;border:1px solid #294962;
+  color:white;text-align:left;font-weight:850
+}
+.aiAnswer{
+  margin-top:10px;padding:13px;min-height:90px;
+  background:#091827;border:1px solid #1e3851;border-radius:12px;
+  line-height:1.5;white-space:pre-wrap
+}
+.bottom{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  display:grid;grid-template-columns:repeat(5,1fr);
+  background:rgba(5,14,24,.98);
+  border-top:1px solid #20364b;
+  padding:8px 5px calc(8px + env(safe-area-inset-bottom))
+}
+.nav{text-align:center;color:#92a7bd;font-size:11px}
+.nav b{display:block;font-size:19px;margin-bottom:2px}
+.nav.active{color:#3f9dff}
+.notice{font-size:11px;color:#8ea7be;line-height:1.45;margin-top:10px}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<section id="homePage" class="page active">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">💧</div>
+      <div>
+        <h1>WTI Pro</h1>
+        <small>Crude Oil Research</small>
+      </div>
+    </div>
+    <div class="mode">Simple</div>
+  </div>
+
+  <div class="priceRow">
+    <div>
+      <div id="homePrice" class="price">—</div>
+      <div id="homeChange" class="change wait">Loading…</div>
+    </div>
+    <div id="updated" class="updated">Last updated<br>—<br>Yahoo CL=F</div>
+  </div>
+
+  <div class="card signalCard">
+    <div class="signalRow">
+      <div id="bigArrow" class="bigArrow wait">→</div>
+      <div>
+        <div class="eyebrow">CURRENT SIGNAL</div>
+        <div id="overall" class="signalTitle wait">WAIT</div>
+        <div id="message" class="signalText">Checking market…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tfgrid">
+    <div class="tf">
+      <div>5m</div>
+      <div id="a5" class="arrow wait">→</div>
+      <div id="m5" class="value wait">WAIT</div>
+    </div>
+    <div class="tf">
+      <div>15m</div>
+      <div id="a15" class="arrow wait">→</div>
+      <div id="m15" class="value wait">WAIT</div>
+    </div>
+    <div class="tf">
+      <div>1H</div>
+      <div id="a1h" class="arrow wait">→</div>
+      <div id="h1" class="value wait">WAIT</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title">💡 Why?</div>
+    <ul id="whyList" class="list">
+      <li>Waiting for data.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="title">🎯 Key Levels</div>
+    <div class="row"><span>Resistance</span><strong id="resistance" class="bad">—</strong></div>
+    <div class="row"><span>Support</span><strong id="support" class="good">—</strong></div>
+    <div class="row"><span>Target</span><strong id="nextTarget" class="blue">—</strong></div>
+    <div class="row"><span>Invalidation</span><strong id="invalidation" class="wait">—</strong></div>
+    <button class="primary" onclick="showPage('signals')">View Trade Setup</button>
+  </div>
+
+  <div class="notice">
+    Research only. Current feed is unofficial Yahoo CL=F and may be delayed or differ from TradingView CL1!.
+  </div>
+</section>
+
+<section id="chartPage" class="page">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">📈</div>
+      <div>
+        <h1>WTI Chart</h1>
+        <small>Candles + levels</small>
+      </div>
+    </div>
+    <div class="mode">Chart</div>
+  </div>
+
+  <div class="card">
+    <div class="chartTabs">
+      <button data-tf="5">5m</button>
+      <button data-tf="15" class="active">15m</button>
+      <button data-tf="60">1H</button>
+    </div>
+
+    <div class="chartbox">
+      <canvas id="chart"></canvas>
+    </div>
+
+    <div class="legend">
+      <span class="pill wait">ENTRY</span>
+      <span class="pill bad">STOP</span>
+      <span class="pill good">TP1</span>
+      <span class="pill blue">TP2</span>
+    </div>
+  </div>
+
+  <div class="card setupCard">
+    <div class="setupTop">
+      <div id="chartSetupTitle" class="setupTitle wait">WAIT</div>
+      <div class="badge">Research</div>
+    </div>
+
+    <div class="row"><span>Entry zone</span><strong id="chartEntry" class="wait">—</strong></div>
+    <div class="row"><span>Stop</span><strong id="chartStop" class="bad">—</strong></div>
+    <div class="row"><span>TP1</span><strong id="chartTP1" class="good">—</strong></div>
+    <div class="row"><span>TP2</span><strong id="chartTP2" class="blue">—</strong></div>
+    <div class="row"><span>Risk : Reward</span><strong id="chartRR">—</strong></div>
+  </div>
+</section>
+
+<section id="signalsPage" class="page">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">🎯</div>
+      <div>
+        <h1>Trade Ideas</h1>
+        <small>Long · Short · Wait</small>
+      </div>
+    </div>
+    <div class="mode">Signals</div>
+  </div>
+
+  <div class="card setupCard">
+    <div class="setupTop">
+      <div id="setupTitle" class="setupTitle wait">NO SETUP</div>
+      <div id="setupBadge" class="badge">WAIT</div>
+    </div>
+
+    <div class="row"><span>Entry zone</span><strong id="entryZone" class="wait">—</strong></div>
+    <div class="row"><span>Stop</span><strong id="stopLoss" class="bad">—</strong></div>
+    <div class="row"><span>TP1</span><strong id="tp1" class="good">—</strong></div>
+    <div class="row"><span>TP2</span><strong id="tp2" class="blue">—</strong></div>
+    <div class="row"><span>Risk : Reward</span><strong id="rr">—</strong></div>
+
+    <div class="subcard">
+      <h3>❓ Why this setup?</h3>
+      <p id="setupWhy">Waiting for data…</p>
+    </div>
+
+    <div class="subcard">
+      <h3>✅ Confirmation</h3>
+      <p id="confirmation">Waiting for data…</p>
+    </div>
+
+    <div class="subcard">
+      <h3>🛑 Invalidation</h3>
+      <p id="invalidateText">Waiting for data…</p>
+    </div>
+  </div>
+</section>
+
+<section id="newsPage" class="page">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">📰</div>
+      <div>
+        <h1>Oil News</h1>
+        <small>Simple impact view</small>
+      </div>
+    </div>
+    <div class="mode">News</div>
+  </div>
+
+  <div id="newsList" class="card">
+    Loading news…
+  </div>
+</section>
+
+<section id="morePage" class="page">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">🤖</div>
+      <div>
+        <h1>WTI Pro AI</h1>
+        <small>Simple assistant</small>
+      </div>
+    </div>
+    <div class="mode">AI</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Ask AI</div>
+    <div class="aiGrid">
+      <button class="aiBtn" onclick="askAI('Explain the current WTI market simply.')">📈 Explain market</button>
+      <button class="aiBtn" onclick="askAI('Explain the current research setup simply.')">🎯 Explain setup</button>
+      <button class="aiBtn" onclick="askAI('Explain the main market risks simply.')">⚠️ Explain risks</button>
+      <button class="aiBtn" onclick="askAI('Explain why oil may be moving using available data and news.')">📰 Why is oil moving?</button>
+    </div>
+
+    <div id="aiAnswer" class="aiAnswer">
+      Choose a question above.
+    </div>
+  </div>
+</section>
+
+</div>
+
+<nav class="bottom">
+  <div class="nav active" data-page="home"><b>⌂</b>Home</div>
+  <div class="nav" data-page="chart"><b>▥</b>Chart</div>
+  <div class="nav" data-page="signals"><b>◎</b>Signals</div>
+  <div class="nav" data-page="news"><b>▤</b>News</div>
+  <div class="nav" data-page="more"><b>•••</b>More</div>
+</nav>
+
+<script>
+const $=id=>document.getElementById(id);
+const M=60000;
+
+let bars=[];
+let currentTF=15;
+let setup=null;
+let newsItems=[];
+
+function ema(a,p){
+  if(!a.length)return[];
+  const k=2/(p+1);
+  let v=a[0];
+  return a.map((x,i)=>v=i?v+(x-v)*k:x);
+}
+
+function aggregate(input,min){
+  if(min===5)return input;
+
+  const size=min*M;
+  const out=[];
+
+  for(const b of input){
+    const t=Math.floor(b.t/size)*size;
+    let x=out.at(-1);
+
+    if(!x||x.t!==t){
+      x={t,o:b.o,h:b.h,l:b.l,c:b.c,n:0};
+      out.push(x);
+    }else{
+      x.h=Math.max(x.h,b.h);
+      x.l=Math.min(x.l,b.l);
+      x.c=b.c;
+    }
+
+    x.n++;
+  }
+
+  return out.filter(x=>x.n===min/5);
+}
+
+function indicators(b){
+  if(b.length<35)return null;
+
+  const c=b.map(x=>x.c);
+  const fast=ema(c,9).at(-1);
+  const slow=ema(c,21).at(-1);
+
+  const e12=ema(c,12);
+  const e26=ema(c,26);
+  const mac=e12.map((x,i)=>x-e26[i]);
+  const sig=ema(mac,9);
+
+  let gain=0;
+  let loss=0;
+
+  for(let i=b.length-14;i<b.length;i++){
+    const d=b[i].c-b[i-1].c;
+    gain+=Math.max(0,d);
+    loss+=Math.max(0,-d);
+  }
+
+  return{
+    trend:fast>slow?'BULLISH':fast<slow?'BEARISH':'NEUTRAL',
+    rsi:loss===0?100:100-100/(1+gain/loss),
+    hist:mac.at(-1)-sig.at(-1)
+  };
+}
+
+function atr(b,p=14){
+  if(b.length<p+1)return .5;
+
+  const vals=[];
+
+  for(let i=1;i<b.length;i++){
+    const x=b[i];
+    const prev=b[i-1];
+
+    vals.push(
+      Math.max(
+        x.h-x.l,
+        Math.abs(x.h-prev.c),
+        Math.abs(x.l-prev.c)
+      )
+    );
+  }
+
+  return vals.slice(-p).reduce((a,b)=>a+b,0)/p;
+}
+
+function trendClass(v){
+  return v==='BULLISH'?'good':v==='BEARISH'?'bad':'wait';
+}
+
+function trendArrow(v){
+  return v==='BULLISH'?'↑':v==='BEARISH'?'↓':'→';
+}
+
+function fmt(x){
+  return Number.isFinite(x)?x.toFixed(2):'—';
+}
+
+function setTF(textId,arrowId,v){
+  $(textId).textContent=v;
+  $(textId).className='value '+trendClass(v);
+
+  $(arrowId).textContent=trendArrow(v);
+  $(arrowId).className='arrow '+trendClass(v);
+}
+
+function getLevels(){
+  const r=bars.slice(-30);
+
+  return{
+    resistance:Math.max(...r.map(x=>x.h)),
+    support:Math.min(...r.map(x=>x.l)),
+    price:bars.at(-1).c
+  };
+}
+
+function makeSetup(i5,i15,i60){
+  const b15=aggregate(bars,15);
+  const a=atr(b15);
+  const px=bars.at(-1).c;
+
+  const aligned=
+    i5.trend===i15.trend &&
+    i15.trend===i60.trend;
+
+  if(!aligned)return{direction:'WAIT'};
+
+  if(i15.trend==='BULLISH'){
+    return{
+      direction:'LONG',
+      entryLow:px-a*.15,
+      entryHigh:px+a*.10,
+      stop:px-a,
+      tp1:px+a,
+      tp2:px+a*2,
+      rr:2
+    };
+  }
+
+  if(i15.trend==='BEARISH'){
+    return{
+      direction:'SHORT',
+      entryLow:px-a*.10,
+      entryHigh:px+a*.15,
+      stop:px+a,
+      tp1:px-a,
+      tp2:px-a*2,
+      rr:2
+    };
+  }
+
+  return{direction:'WAIT'};
+}
+
+function render(){
+  if(!bars.length)return;
+
+  const b15=aggregate(bars,15);
+  const b60=aggregate(bars,60);
+
+  const i5=indicators(bars);
+  const i15=indicators(b15);
+  const i60=indicators(b60);
+
+  if(!i5||!i15||!i60)return;
+
+  setTF('m5','a5',i5.trend);
+  setTF('m15','a15',i15.trend);
+  setTF('h1','a1h',i60.trend);
+
+  const l=getLevels();
+  const prev=bars.at(-2)?.c??l.price;
+  const diff=l.price-prev;
+
+  $('homePrice').textContent=l.price.toFixed(2);
+
+  $('homeChange').textContent=
+    (diff>=0?'+':'')+
+    diff.toFixed(2)+
+    ' ('+
+    (prev?(diff/prev*100).toFixed(2):'0.00')+
+    '%)';
+
+  $('homeChange').className=
+    'change '+
+    (diff>0?'good':diff<0?'bad':'wait');
+
+  const last=new Date(bars.at(-1).t+5*M);
+
+  $('updated').innerHTML=
+    'Last updated<br>'+
+    last.toLocaleTimeString([],{
+      hour:'2-digit',
+      minute:'2-digit'
+    })+
+    '<br>Yahoo CL=F';
+
+  const aligned=
+    i5.trend===i15.trend &&
+    i15.trend===i60.trend;
+
+  let reasons=[];
+
+  if(aligned&&i15.trend==='BULLISH'){
+    $('overall').textContent='BULLISH';
+    $('overall').className='signalTitle good';
+
+    $('bigArrow').textContent='↑';
+    $('bigArrow').className='bigArrow good';
+
+    $('message').textContent='All three timeframes point upward';
+
+    reasons=[
+      '5m, 15m and 1H are bullish',
+      'Momentum is positive',
+      'No bearish reversal confirmed'
+    ];
+
+  }else if(aligned&&i15.trend==='BEARISH'){
+    $('overall').textContent='BEARISH';
+    $('overall').className='signalTitle bad';
+
+    $('bigArrow').textContent='↓';
+    $('bigArrow').className='bigArrow bad';
+
+    $('message').textContent='All three timeframes point downward';
+
+    reasons=[
+      '5m, 15m and 1H are bearish',
+      'Momentum is negative',
+      'No bullish reversal confirmed'
+    ];
+
+  }else{
+    $('overall').textContent='WAIT';
+    $('overall').className='signalTitle wait';
+
+    $('bigArrow').textContent='→';
+    $('bigArrow').className='bigArrow wait';
+
+    $('message').textContent='Timeframes do not agree yet';
+
+    reasons=[
+      '5m is '+i5.trend,
+      '15m is '+i15.trend,
+      '1H is '+i60.trend
+    ];
+  }
+
+  $('whyList').innerHTML=
+    reasons.map(x=>'<li>'+x+'</li>').join('');
+
+  setup=makeSetup(i5,i15,i60);
+
+  $('resistance').textContent=l.resistance.toFixed(2);
+  $('support').textContent=l.support.toFixed(2);
+  $('nextTarget').textContent=setup.direction==='WAIT'?'—':fmt(setup.tp1);
+  $('invalidation').textContent=setup.direction==='WAIT'?'—':fmt(setup.stop);
+
+  updateSetup();
+  drawChart();
+}
+
+function updateSetup(){
+  const s=setup;
+
+  if(!s||s.direction==='WAIT'){
+    $('setupTitle').textContent='NO CLEAR SETUP';
+    $('setupTitle').className='setupTitle wait';
+    $('setupBadge').textContent='WAIT';
+
+    [
+      'entryZone','stopLoss','tp1','tp2','rr',
+      'chartEntry','chartStop','chartTP1','chartTP2','chartRR'
+    ].forEach(id=>$(id).textContent='—');
+
+    $('setupWhy').textContent=
+      'The timeframes are not aligned enough for a clear research setup.';
+
+    $('confirmation').textContent=
+      'Wait for 5m, 15m and 1H to agree more clearly.';
+
+    $('invalidateText').textContent=
+      'No setup is active.';
+
+    $('chartSetupTitle').textContent='WAIT';
+    $('chartSetupTitle').className='setupTitle wait';
+
+    return;
+  }
+
+  const long=s.direction==='LONG';
+
+  $('setupTitle').textContent=s.direction+' SETUP';
+  $('setupTitle').className='setupTitle '+(long?'good':'bad');
+  $('setupBadge').textContent='ACTIVE';
+
+  $('entryZone').textContent=fmt(s.entryLow)+' – '+fmt(s.entryHigh);
+  $('stopLoss').textContent=fmt(s.stop);
+  $('tp1').textContent=fmt(s.tp1);
+  $('tp2').textContent=fmt(s.tp2);
+  $('rr').textContent='1 : '+s.rr.toFixed(1);
+
+  $('setupWhy').textContent=
+    long
+    ?'5m, 15m and 1H are aligned upward.'
+    :'5m, 15m and 1H are aligned downward.';
+
+  $('confirmation').textContent=
+    long
+    ?'Look for completed candles to hold the entry area and remain bullish.'
+    :'Look for completed candles to reject the entry area and remain bearish.';
+
+  $('invalidateText').textContent=
+    (long?'If price closes below ':'If price closes above ')+
+    fmt(s.stop)+
+    ', the setup is invalidated.';
+
+  $('chartSetupTitle').textContent=s.direction+' SETUP';
+  $('chartSetupTitle').className='setupTitle '+(long?'good':'bad');
+
+  $('chartEntry').textContent=fmt(s.entryLow)+' – '+fmt(s.entryHigh);
+  $('chartStop').textContent=fmt(s.stop);
+  $('chartTP1').textContent=fmt(s.tp1);
+  $('chartTP2').textContent=fmt(s.tp2);
+  $('chartRR').textContent='1 : '+s.rr.toFixed(1);
+}
+
+function drawChart(){
+  if(!bars.length)return;
+
+  const canvas=$('chart');
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+
+  canvas.width=rect.width*dpr;
+  canvas.height=rect.height*dpr;
+
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const w=rect.width;
+  const h=rect.height;
+
+  const src=
+    currentTF===5
+    ?bars
+    :aggregate(bars,currentTF);
+
+  const data=src.slice(-48);
+
+  if(data.length<5)return;
+
+  const L=12,R=56,T=18,B=28;
+
+  const max0=Math.max(...data.map(x=>x.h));
+  const min0=Math.min(...data.map(x=>x.l));
+
+  const span=max0-min0||1;
+  const max=max0+span*.08;
+  const min=min0-span*.08;
+
+  const pW=w-L-R;
+  const pH=h-T-B;
+
+  const Y=p=>T+(max-p)/(max-min)*pH;
+
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#163047';
+
+  for(let i=0;i<6;i++){
+    const y=T+pH/5*i;
+    ctx.beginPath();
+    ctx.moveTo(L,y);
+    ctx.lineTo(w-R,y);
+    ctx.stroke();
+  }
+
+  const cw=pW/data.length;
+  const body=Math.max(2,cw*.55);
+
+  data.forEach((b,i)=>{
+    const x=L+i*cw+cw/2;
+    const up=b.c>=b.o;
+
+    ctx.strokeStyle=up?'#2fe0a7':'#ff5964';
+    ctx.fillStyle=ctx.strokeStyle;
+
+    ctx.beginPath();
+    ctx.moveTo(x,Y(b.h));
+    ctx.lineTo(x,Y(b.l));
+    ctx.stroke();
+
+    const top=Math.min(Y(b.o),Y(b.c));
+    const bottom=Math.max(Y(b.o),Y(b.c));
+
+    ctx.fillRect(
+      x-body/2,
+      top,
+      body,
+      Math.max(2,bottom-top)
+    );
+  });
+
+  function line(price,color,label){
+    if(!Number.isFinite(price))return;
+
+    const y=Y(price);
+
+    if(y<T||y>h-B)return;
+
+    ctx.strokeStyle=color;
+    ctx.setLineDash([5,4]);
+
+    ctx.beginPath();
+    ctx.moveTo(L,y);
+    ctx.lineTo(w-R,y);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    ctx.fillStyle=color;
+    ctx.font='11px system-ui';
+
+    ctx.fillText(
+      label+' '+price.toFixed(2),
+      w-R+3,
+      y+4
+    );
+  }
+
+  line(data.at(-1).c,'#4e9fff','NOW');
+
+  if(setup&&setup.direction!=='WAIT'){
+    line((setup.entryLow+setup.entryHigh)/2,'#ffd15f','ENTRY');
+    line(setup.stop,'#ff5964','STOP');
+    line(setup.tp1,'#2fe0a7','TP1');
+    line(setup.tp2,'#4e9fff','TP2');
+  }
+}
+
+async function loadCandles(){
+  try{
+    const r=await fetch('/api/candles',{cache:'no-store'});
+
+    if(!r.ok)throw Error('Candle API error');
+
+    const d=await r.json();
+    const now=Date.now();
+
+    bars=(d.bars||[])
+      .map(x=>({
+        t:+x.t,
+        o:+x.o,
+        h:+x.h,
+        l:+x.l,
+        c:+x.c
+      }))
+      .filter(x=>
+        [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite)
+        &&
+        x.t+5*M<=now
+      )
+      .sort((a,b)=>a.t-b.t);
+
+    render();
+
+  }catch(e){
+    $('overall').textContent='DATA ERROR';
+    $('message').textContent=e.message;
+  }
+}
+
+function newsImpact(title){
+  const t=title.toLowerCase();
+
+  if(
+    t.includes('attack')||
+    t.includes('war')||
+    t.includes('sanction')||
+    t.includes('supply cut')
+  )return['BULLISH','good'];
+
+  if(
+    t.includes('inventory build')||
+    t.includes('output increase')||
+    t.includes('demand concern')
+  )return['BEARISH','bad'];
+
+  return['MIXED','wait'];
+}
+
+async function loadNews(){
+  const box=$('newsList');
+
+  try{
+    const r=await fetch('/api/news',{cache:'no-store'});
+
+    if(!r.ok)throw Error();
+
+    const d=await r.json();
+
+    newsItems=Array.isArray(d.items)?d.items:[];
+
+    if(!newsItems.length)throw Error();
+
+    box.innerHTML=newsItems.slice(0,6).map(n=>{
+      const impact=newsImpact(n.title||'');
+
+      return `
+        <div class="newsItem">
+          <span class="newsTag ${impact[1]}">${impact[0]}</span>
+          <div>
+            <strong>${n.title||'Oil headline'}</strong>
+            <div class="notice">Simple research interpretation only.</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  }catch(e){
+    box.textContent='News unavailable right now.';
+  }
+}
+
+async function askAI(question){
+  const out=$('aiAnswer');
+
+  out.textContent='Thinking…';
+
+  try{
+    const b15=aggregate(bars,15);
+    const b60=aggregate(bars,60);
+
+    const payload={
+      question,
+      market:{
+        indicators:{
+          m5:indicators(bars),
+          m15:indicators(b15),
+          h1:indicators(b60)
+        },
+        bars:bars.slice(-40),
+        headlines:newsItems,
+        marketSchedule:'UNKNOWN',
+        lastCompletedCandleUTC:
+          bars.length
+          ?new Date(bars.at(-1).t+5*M).toISOString()
+          :'unknown'
+      }
+    };
+
+    const r=await fetch('/api/ai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+
+    const d=await r.json();
+
+    if(!r.ok)throw Error(d.error||'AI unavailable');
+
+    out.textContent=d.answer||'No answer returned.';
+
+  }catch(e){
+    out.textContent=e.message;
+  }
+}
+
+function showPage(name){
+  document.querySelectorAll('.page')
+    .forEach(p=>p.classList.remove('active'));
+
+  $(name+'Page').classList.add('active');
+
+  document.querySelectorAll('.nav')
+    .forEach(n=>
+      n.classList.toggle(
+        'active',
+        n.dataset.page===name
+      )
+    );
+
+  if(name==='chart'){
+    setTimeout(drawChart,50);
+  }
+
+  if(name==='news'){
+    loadNews();
+  }
+
+  window.scrollTo(0,0);
+}
+
+document.querySelectorAll('.nav')
+  .forEach(n=>{
+    n.onclick=()=>showPage(n.dataset.page);
+  });
+
+document.querySelectorAll('.chartTabs button')
+  .forEach(btn=>{
+    btn.onclick=()=>{
+      currentTF=+btn.dataset.tf;
+
+      document.querySelectorAll('.chartTabs button')
+        .forEach(x=>x.classList.remove('active'));
+
+      btn.classList.add('active');
+
+      drawChart();
+    };
+  });
+
+window.addEventListener('resize',()=>{
+  if($('chartPage').classList.contains('active')){
+    drawChart();
+  }
+});
+
+loadCandles();
+</script>
+
+</body>
+</html>
