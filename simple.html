@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WTI Pro Simple</title>
+
+<style>
+:root{
+  font-family:system-ui,-apple-system,sans-serif;
+  color:#eef5ff;
+  background:#07111f
+}
+*{box-sizing:border-box}
+
+body{
+  max-width:760px;
+  margin:auto;
+  padding:18px 14px 60px
+}
+
+h1{margin:4px 0;font-size:28px}
+h2{font-size:19px;margin:0 0 10px}
+
+small,.muted{
+  color:#a7bad1
+}
+
+.card{
+  background:#14243a;
+  border:1px solid #3b5775;
+  border-radius:18px;
+  padding:17px;
+  margin:14px 0
+}
+
+.warning{
+  background:#463522;
+  border-left:4px solid #ffc467;
+  border-radius:10px;
+  padding:13px;
+  line-height:1.5
+}
+
+.status{
+  font-size:32px;
+  font-weight:900;
+  margin:8px 0
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+  margin-top:14px
+}
+
+.tf{
+  background:#0d1a2c;
+  border-radius:13px;
+  padding:14px 8px;
+  text-align:center
+}
+
+.tf strong{
+  display:block;
+  font-size:18px;
+  margin-top:7px
+}
+
+.box{
+  background:#0d1a2c;
+  border-radius:13px;
+  padding:14px;
+  line-height:1.55;
+  margin-top:10px
+}
+
+.good{color:#55dfb0}
+.bad{color:#ff8f8f}
+.wait{color:#ffd27a}
+
+button,a.btn{
+  display:block;
+  width:100%;
+  border:1px solid #68809a;
+  border-radius:12px;
+  background:#29435f;
+  color:white;
+  padding:14px;
+  font-size:16px;
+  font-weight:800;
+  text-align:center;
+  text-decoration:none;
+  margin-top:10px
+}
+
+button:disabled{opacity:.5}
+
+#updated{
+  margin-top:10px;
+  font-size:13px;
+  color:#a7bad1
+}
+</style>
+</head>
+
+<body>
+
+<small>WTI FUTURES · SIMPLE RESEARCH MODE</small>
+<h1>WTI Pro <small>v4.2 SIMPLE TEST</small></h1>
+
+<p class="warning">
+<b>Research only.</b><br>
+Uses unofficial Yahoo CL=F historical/public data.
+It may be delayed and may differ from TradingView CL1!.
+</p>
+
+<section class="card">
+  <small>CURRENT MARKET VIEW</small>
+
+  <div id="overall" class="status wait">
+    LOADING…
+  </div>
+
+  <div id="message" class="muted">
+    Checking completed candles.
+  </div>
+
+  <div class="grid">
+    <div class="tf">
+      5m
+      <strong id="m5">—</strong>
+    </div>
+
+    <div class="tf">
+      15m
+      <strong id="m15">—</strong>
+    </div>
+
+    <div class="tf">
+      1H
+      <strong id="h1">—</strong>
+    </div>
+  </div>
+
+  <div id="updated"></div>
+
+  <button id="refresh">
+    Refresh market
+  </button>
+</section>
+
+<section class="card">
+  <h2>💡 What does this mean?</h2>
+
+  <div id="why" class="box">
+    Waiting for data…
+  </div>
+</section>
+
+<section class="card">
+  <h2>🎯 What confirms a change?</h2>
+
+  <div id="confirm" class="box">
+    Waiting for data…
+  </div>
+</section>
+
+<section class="card">
+  <h2>⚠️ Main risk</h2>
+
+  <div id="risk" class="box">
+    Waiting for data…
+  </div>
+</section>
+
+<section class="card">
+  <h2>Advanced tools</h2>
+
+  <p class="muted">
+    Open the full WTI Pro dashboard for chart,
+    RSI, MACD, ATR, news, AI and backtesting.
+  </p>
+
+  <a class="btn" href="/">
+    Open Advanced Mode
+  </a>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+const M = 60000;
+
+let bars = [];
+
+function ema(arr, period){
+  if(!arr.length) return [];
+
+  const k = 2 / (period + 1);
+  let value = arr[0];
+
+  return arr.map((x,i)=>{
+    value = i ? value + (x-value)*k : x;
+    return value;
+  });
+}
+
+function aggregate(input,min){
+  if(min===5) return input;
+
+  const size = min*M;
+  const out = [];
+
+  for(const b of input){
+    const t = Math.floor(b.t/size)*size;
+    let x = out[out.length-1];
+
+    if(!x || x.t!==t){
+      x={
+        t,
+        o:b.o,
+        h:b.h,
+        l:b.l,
+        c:b.c,
+        n:0
+      };
+      out.push(x);
+    }else{
+      x.h=Math.max(x.h,b.h);
+      x.l=Math.min(x.l,b.l);
+      x.c=b.c;
+    }
+
+    x.n++;
+  }
+
+  return out.filter(x=>x.n===min/5);
+}
+
+function indicators(b){
+
+  if(b.length<35) return null;
+
+  const closes=b.map(x=>x.c);
+
+  const fast=ema(closes,9).at(-1);
+  const slow=ema(closes,21).at(-1);
+
+  const e12=ema(closes,12);
+  const e26=ema(closes,26);
+
+  const mac=e12.map((x,i)=>x-e26[i]);
+  const signal=ema(mac,9);
+
+  const hist=
+    mac.at(-1)-signal.at(-1);
+
+  let gain=0;
+  let loss=0;
+
+  for(let i=b.length-14;i<b.length;i++){
+
+    const d=b[i].c-b[i-1].c;
+
+    gain+=Math.max(0,d);
+    loss+=Math.max(0,-d);
+  }
+
+  const rsi=
+    loss===0
+    ?100
+    :100-100/(1+gain/loss);
+
+  return{
+    trend:
+      fast>slow
+      ?'BULLISH'
+      :fast<slow
+      ?'BEARISH'
+      :'NEUTRAL',
+
+    rsi,
+    hist
+  };
+}
+
+function setTrend(el,value){
+
+  el.textContent=value;
+
+  el.className='';
+
+  if(value==='BULLISH')
+    el.classList.add('good');
+
+  else if(value==='BEARISH')
+    el.classList.add('bad');
+
+  else
+    el.classList.add('wait');
+}
+
+function render(){
+
+  if(!bars.length) return;
+
+  const b15=aggregate(bars,15);
+  const b60=aggregate(bars,60);
+
+  const i5=indicators(bars);
+  const i15=indicators(b15);
+  const i60=indicators(b60);
+
+  if(!i5 || !i15 || !i60){
+
+    $('overall').textContent='WAIT';
+
+    $('message').textContent=
+      'Not enough completed candles yet.';
+
+    return;
+  }
+
+  setTrend($('m5'),i5.trend);
+  setTrend($('m15'),i15.trend);
+  setTrend($('h1'),i60.trend);
+
+  const aligned=
+    i5.trend===i15.trend &&
+    i15.trend===i60.trend;
+
+  const overall=$('overall');
+
+  overall.className='status';
+
+  if(aligned && i15.trend==='BULLISH'){
+
+    overall.textContent='BULLISH';
+    overall.classList.add('good');
+
+    $('message').textContent=
+      '5m, 15m and 1H are pointing upward together.';
+
+    $('why').textContent=
+      'The short, medium and hourly trends are aligned bullish. '+
+      '15m RSI is '+i15.rsi.toFixed(0)+
+      ' and momentum is '+
+      (i15.hist>0?'positive.':'weakening.');
+
+    $('confirm').textContent=
+      'A bearish change would become more convincing if 5m turns bearish first, '+
+      'then 15m follows and price stays below recent support.';
+
+    $('risk').textContent=
+      'Main risk: buying after a fast rise or when the lower timeframe becomes overbought.';
+
+  }else if(aligned && i15.trend==='BEARISH'){
+
+    overall.textContent='BEARISH';
+    overall.classList.add('bad');
+
+    $('message').textContent=
+      '5m, 15m and 1H are pointing downward together.';
+
+    $('why').textContent=
+      'The short, medium and hourly trends are aligned bearish. '+
+      '15m RSI is '+i15.rsi.toFixed(0)+
+      ' and momentum is '+
+      (i15.hist<0?'negative.':'trying to improve.');
+
+    $('confirm').textContent=
+      'A bullish change would become more convincing if 5m turns bullish first, '+
+      'then 15m follows and price stays above recent resistance.';
+
+    $('risk').textContent=
+      'Main risk: selling after a large drop when the lower timeframe is already oversold.';
+
+  }else{
+
+    overall.textContent='MIXED / WAIT';
+    overall.classList.add('wait');
+
+    $('message').textContent=
+      'The timeframes do not agree yet.';
+
+    $('why').textContent=
+      '5m is '+i5.trend+
+      ', 15m is '+i15.trend+
+      ', and 1H is '+i60.trend+
+      '. This means momentum is conflicting.';
+
+    $('confirm').textContent=
+      'Wait for 5m and 15m to align with the 1H direction before treating the trend as clearer.';
+
+    $('risk').textContent=
+      'Main risk: mixed timeframes can create false breakouts and quick reversals.';
+  }
+
+  const last=
+    new Date(
+      bars.at(-1).t+5*M
+    ).toLocaleString();
+
+  $('updated').textContent=
+    'Last completed 5m candle: '+last+
+    ' · unverified Yahoo CL=F';
+}
+
+async function load(){
+
+  const btn=$('refresh');
+
+  btn.disabled=true;
+  btn.textContent='Refreshing…';
+
+  try{
+
+    const r=
+      await fetch(
+        '/api/candles',
+        {cache:'no-store'}
+      );
+
+    if(!r.ok)
+      throw Error(
+        'Candle API error'
+      );
+
+    const data=
+      await r.json();
+
+    if(!Array.isArray(data.bars))
+      throw Error(
+        'No candle data'
+      );
+
+    const now=Date.now();
+
+    bars=
+      data.bars
+      .map(x=>({
+        t:+x.t,
+        o:+x.o,
+        h:+x.h,
+        l:+x.l,
+        c:+x.c
+      }))
+      .filter(x=>
+        [x.t,x.o,x.h,x.l,x.c]
+        .every(Number.isFinite)
+        &&
+        x.t+5*M<=now
+      )
+      .sort((a,b)=>a.t-b.t);
+
+    render();
+
+  }catch(e){
+
+    $('overall').textContent=
+      'DATA UNAVAILABLE';
+
+    $('overall').className=
+      'status wait';
+
+    $('message').textContent=
+      'Could not load market data.';
+
+    $('why').textContent=
+      e.message;
+
+    $('confirm').textContent=
+      'Try Refresh again later.';
+
+    $('risk').textContent=
+      'Do not rely on this display when data is unavailable.';
+
+  }finally{
+
+    btn.disabled=false;
+    btn.textContent=
+      'Refresh market';
+  }
+}
+
+$('refresh').onclick=load;
+
+load();
+</script>
+
+</body>
+</html>
