@@ -7,216 +7,515 @@
 
 <style>
 :root{
-  font-family:system-ui,-apple-system,sans-serif;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   color:#eef5ff;
-  background:#07111f
+  background:#06101d;
 }
+
 *{box-sizing:border-box}
 
 body{
-  max-width:760px;
+  margin:0;
+  background:
+    radial-gradient(circle at top,#10233a 0,#07111f 34%,#06101d 100%);
+  min-height:100vh;
+  padding:18px 14px 90px;
+}
+
+.app{
+  max-width:720px;
   margin:auto;
-  padding:18px 14px 60px
 }
 
-h1{margin:4px 0;font-size:28px}
-h2{font-size:19px;margin:0 0 10px}
-
-small,.muted{
-  color:#a7bad1
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
 }
 
-.card{
-  background:#14243a;
-  border:1px solid #3b5775;
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#17253a;
+  font-size:23px;
+}
+
+.brand h1{
+  margin:0;
+  font-size:24px;
+}
+
+.brand small{
+  display:block;
+  color:#9eb1c9;
+  margin-top:2px;
+}
+
+.mode{
+  background:#123f7a;
+  border:1px solid #2f78d7;
+  color:#fff;
   border-radius:18px;
-  padding:17px;
-  margin:14px 0
+  padding:10px 14px;
+  font-weight:800;
 }
 
 .warning{
-  background:#463522;
-  border-left:4px solid #ffc467;
-  border-radius:10px;
-  padding:13px;
-  line-height:1.5
+  background:#463523;
+  border-left:5px solid #ffc760;
+  border-radius:14px;
+  padding:13px 14px;
+  color:#f7f4ef;
+  line-height:1.45;
+  margin-bottom:16px;
 }
 
-.status{
-  font-size:32px;
+.card{
+  background:linear-gradient(180deg,#15263d,#112036);
+  border:1px solid #3a5677;
+  border-radius:20px;
+  padding:17px;
+  margin:14px 0;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+
+.label{
+  color:#9fb2c9;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.06em;
+}
+
+.signal-card{
+  border:1px solid #8a3940;
+  background:
+    radial-gradient(circle at right top,rgba(255,70,70,.13),transparent 45%),
+    linear-gradient(180deg,#26161b,#1a151b);
+}
+
+.signal{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  margin-top:8px;
+}
+
+.arrow{
+  width:62px;
+  height:62px;
+  display:grid;
+  place-items:center;
+  font-size:48px;
   font-weight:900;
-  margin:8px 0
 }
 
-.grid{
+.signal-title{
+  font-size:33px;
+  font-weight:950;
+  line-height:1;
+}
+
+.signal-sub{
+  margin-top:8px;
+  color:#cbd6e4;
+  line-height:1.4;
+}
+
+.good{color:#58e0b4}
+.bad{color:#ff7c7c}
+.wait{color:#ffd36e}
+
+.timeframes{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:9px;
-  margin-top:14px
+  gap:10px;
+  margin-top:14px;
 }
 
 .tf{
-  background:#0d1a2c;
-  border-radius:13px;
+  background:#0d1a2b;
+  border:1px solid #263c57;
+  border-radius:15px;
   padding:14px 8px;
-  text-align:center
+  text-align:center;
+}
+
+.tf span{
+  color:#b8c7d9;
+  font-weight:800;
 }
 
 .tf strong{
   display:block;
-  font-size:18px;
-  margin-top:7px
+  font-size:17px;
+  margin-top:8px;
+}
+
+.tf .tfarrow{
+  font-size:26px;
+  margin-top:4px;
 }
 
 .box{
-  background:#0d1a2c;
-  border-radius:13px;
+  background:#0c192a;
+  border:1px solid #243a54;
+  border-radius:14px;
   padding:14px;
   line-height:1.55;
-  margin-top:10px
 }
 
-.good{color:#55dfb0}
-.bad{color:#ff8f8f}
-.wait{color:#ffd27a}
+.row-title{
+  font-size:19px;
+  font-weight:900;
+  margin-bottom:10px;
+}
 
-button,a.btn{
-  display:block;
+.levels{
+  display:grid;
+  gap:9px;
+}
+
+.level{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  padding-bottom:9px;
+  border-bottom:1px solid #24384f;
+}
+
+.level:last-child{
+  border-bottom:0;
+  padding-bottom:0;
+}
+
+.level span:first-child{
+  color:#c7d4e3;
+}
+
+.level strong{
+  text-align:right;
+}
+
+button,a.button{
   width:100%;
-  border:1px solid #68809a;
-  border-radius:12px;
-  background:#29435f;
+  display:block;
+  border:1px solid #69819c;
+  background:#29445f;
   color:white;
-  padding:14px;
+  border-radius:13px;
+  padding:15px;
   font-size:16px;
-  font-weight:800;
+  font-weight:900;
   text-align:center;
   text-decoration:none;
-  margin-top:10px
+  margin-top:12px;
 }
 
-button:disabled{opacity:.5}
+.primary{
+  background:linear-gradient(180deg,#1571ff,#0c54d6)!important;
+  border-color:#438cff!important;
+}
+
+button:disabled{opacity:.55}
+
+.muted{
+  color:#a5b8cf;
+  line-height:1.5;
+}
 
 #updated{
-  margin-top:10px;
+  margin-top:12px;
+  color:#94aac4;
   font-size:13px;
-  color:#a7bad1
+}
+
+.bottomnav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(5,14,25,.96);
+  backdrop-filter:blur(16px);
+  border-top:1px solid #233850;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  padding:9px 8px calc(9px + env(safe-area-inset-bottom));
+  z-index:20;
+}
+
+.bottomnav a{
+  color:#9fb0c4;
+  text-decoration:none;
+  text-align:center;
+  font-size:12px;
+}
+
+.bottomnav b{
+  display:block;
+  font-size:20px;
+  margin-bottom:2px;
+}
+
+.bottomnav .active{
+  color:#4d9aff;
+}
+
+.pill{
+  display:inline-block;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:900;
+  background:#1b2a3f;
+  color:#b9c8da;
+}
+
+@media(max-width:390px){
+  .signal-title{font-size:29px}
+  .tf strong{font-size:15px}
 }
 </style>
 </head>
 
 <body>
 
-<small>WTI FUTURES · SIMPLE RESEARCH MODE</small>
-<h1>WTI Pro <small>v4.2 SIMPLE TEST</small></h1>
+<div class="app">
 
-<p class="warning">
-<b>Research only.</b><br>
-Uses unofficial Yahoo CL=F historical/public data.
-It may be delayed and may differ from TradingView CL1!.
-</p>
-
-<section class="card">
-  <small>CURRENT MARKET VIEW</small>
-
-  <div id="overall" class="status wait">
-    LOADING…
-  </div>
-
-  <div id="message" class="muted">
-    Checking completed candles.
-  </div>
-
-  <div class="grid">
-    <div class="tf">
-      5m
-      <strong id="m5">—</strong>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">💧</div>
+      <div>
+        <h1>WTI Pro</h1>
+        <small>Crude Oil Research</small>
+      </div>
     </div>
 
-    <div class="tf">
-      15m
-      <strong id="m15">—</strong>
+    <div class="mode">Simple Mode</div>
+  </div>
+
+  <div class="warning">
+    <b>Research only.</b><br>
+    Uses unofficial Yahoo CL=F historical/public candles.
+    Data may be delayed and may differ from TradingView CL1!.
+  </div>
+
+  <section class="card signal-card">
+    <div class="label">CURRENT MARKET VIEW</div>
+
+    <div class="signal">
+      <div id="arrow" class="arrow wait">→</div>
+
+      <div>
+        <div id="overall" class="signal-title wait">
+          LOADING
+        </div>
+
+        <div id="message" class="signal-sub">
+          Checking completed candles…
+        </div>
+      </div>
     </div>
 
-    <div class="tf">
-      1H
-      <strong id="h1">—</strong>
+    <div class="timeframes">
+
+      <div class="tf">
+        <span>5m</span>
+        <div id="a5" class="tfarrow wait">→</div>
+        <strong id="m5">—</strong>
+      </div>
+
+      <div class="tf">
+        <span>15m</span>
+        <div id="a15" class="tfarrow wait">→</div>
+        <strong id="m15">—</strong>
+      </div>
+
+      <div class="tf">
+        <span>1H</span>
+        <div id="a1h" class="tfarrow wait">→</div>
+        <strong id="h1">—</strong>
+      </div>
+
     </div>
-  </div>
 
-  <div id="updated"></div>
+    <div id="updated"></div>
 
-  <button id="refresh">
-    Refresh market
-  </button>
-</section>
+    <button id="refresh">
+      Refresh market
+    </button>
+  </section>
 
-<section class="card">
-  <h2>💡 What does this mean?</h2>
+  <section class="card">
+    <div class="row-title">💡 Why?</div>
 
-  <div id="why" class="box">
-    Waiting for data…
-  </div>
-</section>
+    <div id="why" class="box">
+      Waiting for market data…
+    </div>
+  </section>
 
-<section class="card">
-  <h2>🎯 What confirms a change?</h2>
+  <section class="card">
+    <div class="row-title">👀 What to watch next</div>
 
-  <div id="confirm" class="box">
-    Waiting for data…
-  </div>
-</section>
+    <div id="watch" class="box">
+      Waiting for market data…
+    </div>
+  </section>
 
-<section class="card">
-  <h2>⚠️ Main risk</h2>
+  <section class="card">
+    <div class="row-title">🎯 Key levels</div>
 
-  <div id="risk" class="box">
-    Waiting for data…
-  </div>
-</section>
+    <div class="levels">
 
-<section class="card">
-  <h2>Advanced tools</h2>
+      <div class="level">
+        <span>Resistance</span>
+        <strong id="resistance" class="bad">—</strong>
+      </div>
 
-  <p class="muted">
-    Open the full WTI Pro dashboard for chart,
-    RSI, MACD, ATR, news, AI and backtesting.
-  </p>
+      <div class="level">
+        <span>Support</span>
+        <strong id="support" class="good">—</strong>
+      </div>
 
-  <a class="btn" href="/">
-    Open Advanced Mode
+      <div class="level">
+        <span>Recent price</span>
+        <strong id="price">—</strong>
+      </div>
+
+      <div class="level">
+        <span>15m RSI</span>
+        <strong id="rsi15">—</strong>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="row-title">⚠️ Main risk</div>
+
+    <div id="risk" class="box">
+      Waiting for market data…
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="row-title">🤖 AI research assistant</div>
+
+    <p class="muted">
+      Open the full dashboard to ask the AI about the
+      current trend, risks, indicators and market context.
+    </p>
+
+    <a href="/" class="button primary">
+      Open AI Research
+    </a>
+  </section>
+
+  <section class="card">
+    <div class="row-title">⚙️ Advanced Mode</div>
+
+    <p class="muted">
+      Chart, RSI, MACD, ATR, news, backtesting,
+      risk calculator and other advanced tools.
+    </p>
+
+    <a href="/" class="button">
+      Open Advanced Mode
+    </a>
+  </section>
+
+</div>
+
+<nav class="bottomnav">
+  <a href="#top" class="active">
+    <b>⌂</b>
+    Home
   </a>
-</section>
+
+  <a href="/">
+    <b>📈</b>
+    Chart
+  </a>
+
+  <a href="#watch">
+    <b>🎯</b>
+    Signals
+  </a>
+
+  <a href="/">
+    <b>📰</b>
+    News
+  </a>
+
+  <a href="/">
+    <b>•••</b>
+    More
+  </a>
+</nav>
+
 
 <script>
-const $ = id => document.getElementById(id);
+
+const $ = id =>
+  document.getElementById(id);
+
 const M = 60000;
 
 let bars = [];
 
-function ema(arr, period){
+
+function ema(arr,period){
+
   if(!arr.length) return [];
 
-  const k = 2 / (period + 1);
-  let value = arr[0];
+  const k =
+    2/(period+1);
+
+  let v =
+    arr[0];
 
   return arr.map((x,i)=>{
-    value = i ? value + (x-value)*k : x;
-    return value;
+
+    v =
+      i
+      ? v+(x-v)*k
+      : x;
+
+    return v;
   });
 }
 
-function aggregate(input,min){
-  if(min===5) return input;
 
-  const size = min*M;
-  const out = [];
+function aggregate(input,min){
+
+  if(min===5)
+    return input;
+
+  const size =
+    min*M;
+
+  const out=[];
 
   for(const b of input){
-    const t = Math.floor(b.t/size)*size;
-    let x = out[out.length-1];
+
+    const t =
+      Math.floor(b.t/size)*size;
+
+    let x =
+      out[out.length-1];
 
     if(!x || x.t!==t){
+
       x={
         t,
         o:b.o,
@@ -225,201 +524,457 @@ function aggregate(input,min){
         c:b.c,
         n:0
       };
+
       out.push(x);
+
     }else{
-      x.h=Math.max(x.h,b.h);
-      x.l=Math.min(x.l,b.l);
-      x.c=b.c;
+
+      x.h=
+        Math.max(x.h,b.h);
+
+      x.l=
+        Math.min(x.l,b.l);
+
+      x.c=
+        b.c;
     }
 
     x.n++;
   }
 
-  return out.filter(x=>x.n===min/5);
+  return out.filter(
+    x=>x.n===min/5
+  );
 }
+
 
 function indicators(b){
 
-  if(b.length<35) return null;
+  if(b.length<35)
+    return null;
 
-  const closes=b.map(x=>x.c);
+  const closes =
+    b.map(x=>x.c);
 
-  const fast=ema(closes,9).at(-1);
-  const slow=ema(closes,21).at(-1);
+  const fast =
+    ema(closes,9).at(-1);
 
-  const e12=ema(closes,12);
-  const e26=ema(closes,26);
+  const slow =
+    ema(closes,21).at(-1);
 
-  const mac=e12.map((x,i)=>x-e26[i]);
-  const signal=ema(mac,9);
+  const e12 =
+    ema(closes,12);
 
-  const hist=
-    mac.at(-1)-signal.at(-1);
+  const e26 =
+    ema(closes,26);
+
+  const mac =
+    e12.map(
+      (x,i)=>x-e26[i]
+    );
+
+  const signal =
+    ema(mac,9);
+
+  const hist =
+    mac.at(-1)
+    -
+    signal.at(-1);
 
   let gain=0;
   let loss=0;
 
-  for(let i=b.length-14;i<b.length;i++){
+  for(
+    let i=b.length-14;
+    i<b.length;
+    i++
+  ){
 
-    const d=b[i].c-b[i-1].c;
+    const d =
+      b[i].c
+      -
+      b[i-1].c;
 
-    gain+=Math.max(0,d);
-    loss+=Math.max(0,-d);
+    gain +=
+      Math.max(0,d);
+
+    loss +=
+      Math.max(0,-d);
   }
 
-  const rsi=
+  const rsi =
     loss===0
-    ?100
-    :100-100/(1+gain/loss);
+    ? 100
+    : 100
+      -
+      100/(1+gain/loss);
 
   return{
+
     trend:
       fast>slow
-      ?'BULLISH'
-      :fast<slow
-      ?'BEARISH'
-      :'NEUTRAL',
+      ? 'BULLISH'
+      : fast<slow
+      ? 'BEARISH'
+      : 'NEUTRAL',
 
     rsi,
     hist
   };
 }
 
-function setTrend(el,value){
 
-  el.textContent=value;
+function trendClass(v){
 
-  el.className='';
+  if(v==='BULLISH')
+    return 'good';
 
-  if(value==='BULLISH')
-    el.classList.add('good');
+  if(v==='BEARISH')
+    return 'bad';
 
-  else if(value==='BEARISH')
-    el.classList.add('bad');
-
-  else
-    el.classList.add('wait');
+  return 'wait';
 }
+
+
+function trendArrow(v){
+
+  if(v==='BULLISH')
+    return '↑';
+
+  if(v==='BEARISH')
+    return '↓';
+
+  return '→';
+}
+
+
+function setTrend(
+  textId,
+  arrowId,
+  value
+){
+
+  const txt =
+    $(textId);
+
+  const arr =
+    $(arrowId);
+
+  txt.textContent =
+    value;
+
+  txt.className =
+    trendClass(value);
+
+  arr.textContent =
+    trendArrow(value);
+
+  arr.className =
+    'tfarrow '
+    +
+    trendClass(value);
+}
+
+
+function recentLevels(){
+
+  const recent =
+    bars.slice(-24);
+
+  const highs =
+    recent.map(x=>x.h);
+
+  const lows =
+    recent.map(x=>x.l);
+
+  return{
+
+    resistance:
+      Math.max(...highs),
+
+    support:
+      Math.min(...lows),
+
+    price:
+      bars.at(-1).c
+  };
+}
+
 
 function render(){
 
-  if(!bars.length) return;
+  if(!bars.length)
+    return;
 
-  const b15=aggregate(bars,15);
-  const b60=aggregate(bars,60);
+  const b15 =
+    aggregate(
+      bars,
+      15
+    );
 
-  const i5=indicators(bars);
-  const i15=indicators(b15);
-  const i60=indicators(b60);
+  const b60 =
+    aggregate(
+      bars,
+      60
+    );
 
-  if(!i5 || !i15 || !i60){
+  const i5 =
+    indicators(bars);
 
-    $('overall').textContent='WAIT';
+  const i15 =
+    indicators(b15);
 
-    $('message').textContent=
+  const i60 =
+    indicators(b60);
+
+  if(
+    !i5 ||
+    !i15 ||
+    !i60
+  ){
+
+    $('overall').textContent =
+      'WAIT';
+
+    $('message').textContent =
       'Not enough completed candles yet.';
 
     return;
   }
 
-  setTrend($('m5'),i5.trend);
-  setTrend($('m15'),i15.trend);
-  setTrend($('h1'),i60.trend);
 
-  const aligned=
-    i5.trend===i15.trend &&
+  setTrend(
+    'm5',
+    'a5',
+    i5.trend
+  );
+
+  setTrend(
+    'm15',
+    'a15',
+    i15.trend
+  );
+
+  setTrend(
+    'h1',
+    'a1h',
+    i60.trend
+  );
+
+
+  const aligned =
+    i5.trend===i15.trend
+    &&
     i15.trend===i60.trend;
 
-  const overall=$('overall');
 
-  overall.className='status';
+  const overall =
+    $('overall');
 
-  if(aligned && i15.trend==='BULLISH'){
+  const arrow =
+    $('arrow');
 
-    overall.textContent='BULLISH';
-    overall.classList.add('good');
 
-    $('message').textContent=
-      '5m, 15m and 1H are pointing upward together.';
+  if(
+    aligned
+    &&
+    i15.trend==='BULLISH'
+  ){
 
-    $('why').textContent=
-      'The short, medium and hourly trends are aligned bullish. '+
-      '15m RSI is '+i15.rsi.toFixed(0)+
-      ' and momentum is '+
-      (i15.hist>0?'positive.':'weakening.');
+    overall.textContent =
+      'BULLISH';
 
-    $('confirm').textContent=
-      'A bearish change would become more convincing if 5m turns bearish first, '+
-      'then 15m follows and price stays below recent support.';
+    overall.className =
+      'signal-title good';
 
-    $('risk').textContent=
-      'Main risk: buying after a fast rise or when the lower timeframe becomes overbought.';
+    arrow.textContent =
+      '↑';
 
-  }else if(aligned && i15.trend==='BEARISH'){
+    arrow.className =
+      'arrow good';
 
-    overall.textContent='BEARISH';
-    overall.classList.add('bad');
+    $('message').textContent =
+      '5m, 15m and 1H are aligned upward.';
 
-    $('message').textContent=
-      '5m, 15m and 1H are pointing downward together.';
+    $('why').textContent =
+      'All three timeframes are currently bullish. '
+      +
+      '15m RSI is '
+      +
+      i15.rsi.toFixed(0)
+      +
+      ' and momentum is '
+      +
+      (
+        i15.hist>0
+        ? 'positive.'
+        : 'starting to weaken.'
+      );
 
-    $('why').textContent=
-      'The short, medium and hourly trends are aligned bearish. '+
-      '15m RSI is '+i15.rsi.toFixed(0)+
-      ' and momentum is '+
-      (i15.hist<0?'negative.':'trying to improve.');
+    $('watch').textContent =
+      'Watch whether 5m stays bullish. '
+      +
+      'If 5m weakens first and 15m follows, the bullish picture becomes less clear.';
 
-    $('confirm').textContent=
-      'A bullish change would become more convincing if 5m turns bullish first, '+
-      'then 15m follows and price stays above recent resistance.';
+    $('risk').textContent =
+      'Main risk: the lower timeframe may become overbought after a fast rise, causing a pullback even while 1H remains bullish.';
 
-    $('risk').textContent=
-      'Main risk: selling after a large drop when the lower timeframe is already oversold.';
+
+  }else if(
+    aligned
+    &&
+    i15.trend==='BEARISH'
+  ){
+
+    overall.textContent =
+      'BEARISH';
+
+    overall.className =
+      'signal-title bad';
+
+    arrow.textContent =
+      '↓';
+
+    arrow.className =
+      'arrow bad';
+
+    $('message').textContent =
+      '5m, 15m and 1H are aligned downward.';
+
+    $('why').textContent =
+      'All three timeframes are currently bearish. '
+      +
+      '15m RSI is '
+      +
+      i15.rsi.toFixed(0)
+      +
+      ' and momentum is '
+      +
+      (
+        i15.hist<0
+        ? 'negative.'
+        : 'trying to improve.'
+      );
+
+    $('watch').textContent =
+      'Watch whether 5m stays bearish. '
+      +
+      'If 5m turns bullish and 15m follows, bearish momentum may be weakening.';
+
+    $('risk').textContent =
+      'Main risk: after a large decline the lower timeframe may become oversold, which can produce a sharp bounce.';
+
 
   }else{
 
-    overall.textContent='MIXED / WAIT';
-    overall.classList.add('wait');
+    overall.textContent =
+      'MIXED / WAIT';
 
-    $('message').textContent=
+    overall.className =
+      'signal-title wait';
+
+    arrow.textContent =
+      '→';
+
+    arrow.className =
+      'arrow wait';
+
+    $('message').textContent =
       'The timeframes do not agree yet.';
 
-    $('why').textContent=
-      '5m is '+i5.trend+
-      ', 15m is '+i15.trend+
-      ', and 1H is '+i60.trend+
-      '. This means momentum is conflicting.';
+    $('why').textContent =
+      '5m is '
+      +
+      i5.trend
+      +
+      ', 15m is '
+      +
+      i15.trend
+      +
+      ', and 1H is '
+      +
+      i60.trend
+      +
+      '. Momentum is conflicting.';
 
-    $('confirm').textContent=
-      'Wait for 5m and 15m to align with the 1H direction before treating the trend as clearer.';
+    if(
+      i15.trend===i60.trend
+      &&
+      i5.trend!==i15.trend
+    ){
 
-    $('risk').textContent=
-      'Main risk: mixed timeframes can create false breakouts and quick reversals.';
+      $('watch').textContent =
+        'The 15m and 1H trends agree. '
+        +
+        'Watch whether 5m turns '
+        +
+        i15.trend.toLowerCase()
+        +
+        ' to align with them.';
+
+    }else{
+
+      $('watch').textContent =
+        'Wait for 5m and 15m to begin agreeing with the 1H direction before treating the trend as clearer.';
+    }
+
+    $('risk').textContent =
+      'Main risk: mixed timeframes often create false breakouts, quick reversals and confusing price action.';
   }
 
-  const last=
+
+  const levels =
+    recentLevels();
+
+  $('resistance').textContent =
+    levels.resistance.toFixed(2);
+
+  $('support').textContent =
+    levels.support.toFixed(2);
+
+  $('price').textContent =
+    levels.price.toFixed(2);
+
+  $('rsi15').textContent =
+    i15.rsi.toFixed(0);
+
+
+  const last =
     new Date(
-      bars.at(-1).t+5*M
+      bars.at(-1).t
+      +
+      5*M
     ).toLocaleString();
 
-  $('updated').textContent=
-    'Last completed 5m candle: '+last+
+
+  $('updated').textContent =
+    'Last completed 5m candle: '
+    +
+    last
+    +
     ' · unverified Yahoo CL=F';
 }
 
+
 async function load(){
 
-  const btn=$('refresh');
+  const btn =
+    $('refresh');
 
-  btn.disabled=true;
-  btn.textContent='Refreshing…';
+  btn.disabled =
+    true;
+
+  btn.textContent =
+    'Refreshing…';
 
   try{
 
-    const r=
+    const r =
       await fetch(
         '/api/candles',
-        {cache:'no-store'}
+        {
+          cache:'no-store'
+        }
       );
 
     if(!r.ok)
@@ -427,66 +982,105 @@ async function load(){
         'Candle API error'
       );
 
-    const data=
+
+    const data =
       await r.json();
 
-    if(!Array.isArray(data.bars))
+
+    if(
+      !Array.isArray(
+        data.bars
+      )
+    )
       throw Error(
         'No candle data'
       );
 
-    const now=Date.now();
 
-    bars=
+    const now =
+      Date.now();
+
+
+    bars =
       data.bars
-      .map(x=>({
-        t:+x.t,
-        o:+x.o,
-        h:+x.h,
-        l:+x.l,
-        c:+x.c
-      }))
-      .filter(x=>
-        [x.t,x.o,x.h,x.l,x.c]
-        .every(Number.isFinite)
-        &&
-        x.t+5*M<=now
+
+      .map(
+        x=>({
+          t:+x.t,
+          o:+x.o,
+          h:+x.h,
+          l:+x.l,
+          c:+x.c
+        })
       )
-      .sort((a,b)=>a.t-b.t);
+
+      .filter(
+        x=>
+          [
+            x.t,
+            x.o,
+            x.h,
+            x.l,
+            x.c
+          ]
+          .every(
+            Number.isFinite
+          )
+          &&
+          x.t+5*M<=now
+      )
+
+      .sort(
+        (a,b)=>a.t-b.t
+      );
+
 
     render();
 
+
   }catch(e){
 
-    $('overall').textContent=
+    $('overall').textContent =
       'DATA UNAVAILABLE';
 
-    $('overall').className=
-      'status wait';
+    $('overall').className =
+      'signal-title wait';
 
-    $('message').textContent=
+    $('arrow').textContent =
+      '!';
+
+    $('arrow').className =
+      'arrow wait';
+
+    $('message').textContent =
       'Could not load market data.';
 
-    $('why').textContent=
+    $('why').textContent =
       e.message;
 
-    $('confirm').textContent=
+    $('watch').textContent =
       'Try Refresh again later.';
 
-    $('risk').textContent=
-      'Do not rely on this display when data is unavailable.';
+    $('risk').textContent =
+      'Do not rely on this display while market data is unavailable.';
+
 
   }finally{
 
-    btn.disabled=false;
-    btn.textContent=
+    btn.disabled =
+      false;
+
+    btn.textContent =
       'Refresh market';
   }
 }
 
-$('refresh').onclick=load;
+
+$('refresh').onclick =
+  load;
 
 load();
+
 </script>
 
 </body>
