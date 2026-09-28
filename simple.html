@@ -11,28 +11,31 @@
   color:#eef5ff;
   background:#06101d;
 }
-
 *{box-sizing:border-box}
 
 body{
   margin:0;
-  background:
-    radial-gradient(circle at top,#10233a 0,#07111f 34%,#06101d 100%);
   min-height:100vh;
-  padding:18px 14px 90px;
+  background:
+    radial-gradient(circle at top,#10233a 0,#07111f 35%,#06101d 100%);
+  padding-bottom:90px;
 }
 
 .app{
   max-width:720px;
   margin:auto;
+  padding:18px 14px 30px;
 }
+
+.page{display:none}
+.page.active{display:block}
 
 .topbar{
   display:flex;
-  align-items:center;
   justify-content:space-between;
-  gap:12px;
-  margin-bottom:16px;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
 }
 
 .brand{
@@ -42,202 +45,239 @@ body{
 }
 
 .logo{
-  width:42px;
-  height:42px;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:#14243a;
   display:grid;
   place-items:center;
-  border-radius:50%;
-  background:#17253a;
-  font-size:23px;
-}
-
-.brand h1{
-  margin:0;
   font-size:24px;
 }
 
-.brand small{
-  display:block;
-  color:#9eb1c9;
-  margin-top:2px;
+h1{
+  margin:0;
+  font-size:25px;
+}
+
+small,.muted{
+  color:#9eb2ca;
 }
 
 .mode{
-  background:#123f7a;
-  border:1px solid #2f78d7;
-  color:#fff;
+  background:#0f4d9c;
+  border:1px solid #3182ec;
   border-radius:18px;
   padding:10px 14px;
-  font-weight:800;
+  font-weight:900;
 }
 
 .warning{
-  background:#463523;
-  border-left:5px solid #ffc760;
+  background:#463522;
+  border-left:5px solid #ffca67;
   border-radius:14px;
-  padding:13px 14px;
-  color:#f7f4ef;
+  padding:13px;
   line-height:1.45;
-  margin-bottom:16px;
+  margin:14px 0;
 }
 
 .card{
   background:linear-gradient(180deg,#15263d,#112036);
-  border:1px solid #3a5677;
+  border:1px solid #385675;
   border-radius:20px;
-  padding:17px;
+  padding:16px;
   margin:14px 0;
-  box-shadow:0 10px 28px rgba(0,0,0,.18);
+  box-shadow:0 10px 30px rgba(0,0,0,.16);
+}
+
+.signalCard{
+  background:
+    radial-gradient(circle at right top,rgba(255,70,70,.13),transparent 45%),
+    linear-gradient(180deg,#28171c,#19151c);
+  border-color:#8b3d45;
 }
 
 .label{
-  color:#9fb2c9;
+  color:#9fb3ca;
   font-size:13px;
-  font-weight:800;
+  font-weight:900;
   letter-spacing:.06em;
 }
 
-.signal-card{
-  border:1px solid #8a3940;
-  background:
-    radial-gradient(circle at right top,rgba(255,70,70,.13),transparent 45%),
-    linear-gradient(180deg,#26161b,#1a151b);
-}
-
-.signal{
+.signalRow{
   display:flex;
-  gap:14px;
   align-items:center;
-  margin-top:8px;
+  gap:14px;
+  margin-top:10px;
 }
 
-.arrow{
+.bigArrow{
   width:62px;
-  height:62px;
-  display:grid;
-  place-items:center;
-  font-size:48px;
-  font-weight:900;
+  text-align:center;
+  font-size:52px;
+  font-weight:950;
 }
 
-.signal-title{
-  font-size:33px;
+.bigSignal{
+  font-size:34px;
   font-weight:950;
   line-height:1;
 }
 
-.signal-sub{
-  margin-top:8px;
-  color:#cbd6e4;
-  line-height:1.4;
-}
-
-.good{color:#58e0b4}
-.bad{color:#ff7c7c}
-.wait{color:#ffd36e}
+.good{color:#57e2b5}
+.bad{color:#ff7b7b}
+.wait{color:#ffd16d}
+.blue{color:#58a6ff}
 
 .timeframes{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:14px;
+  gap:9px;
+  margin-top:15px;
 }
 
 .tf{
-  background:#0d1a2b;
-  border:1px solid #263c57;
-  border-radius:15px;
-  padding:14px 8px;
+  background:#0c192a;
+  border:1px solid #27405d;
+  border-radius:14px;
+  padding:12px 7px;
   text-align:center;
 }
 
-.tf span{
-  color:#b8c7d9;
-  font-weight:800;
-}
-
-.tf strong{
+.tf b{
   display:block;
-  font-size:17px;
-  margin-top:8px;
+  margin-top:5px;
 }
 
-.tf .tfarrow{
+.tfArrow{
   font-size:26px;
-  margin-top:4px;
+  margin-top:3px;
 }
 
 .box{
   background:#0c192a;
-  border:1px solid #243a54;
+  border:1px solid #243b56;
   border-radius:14px;
   padding:14px;
   line-height:1.55;
 }
 
-.row-title{
+.title{
   font-size:19px;
   font-weight:900;
   margin-bottom:10px;
 }
 
-.levels{
-  display:grid;
-  gap:9px;
-}
-
 .level{
   display:flex;
   justify-content:space-between;
-  gap:14px;
-  padding-bottom:9px;
-  border-bottom:1px solid #24384f;
+  gap:12px;
+  padding:9px 0;
+  border-bottom:1px solid #243a53;
 }
 
 .level:last-child{
   border-bottom:0;
-  padding-bottom:0;
 }
 
 .level span:first-child{
-  color:#c7d4e3;
+  color:#c8d4e3;
 }
 
-.level strong{
-  text-align:right;
-}
-
-button,a.button{
-  width:100%;
+button,.btn{
   display:block;
-  border:1px solid #69819c;
-  background:#29445f;
-  color:white;
+  width:100%;
+  border:1px solid #68809c;
   border-radius:13px;
-  padding:15px;
+  background:#294660;
+  color:white;
+  padding:14px;
   font-size:16px;
   font-weight:900;
   text-align:center;
   text-decoration:none;
-  margin-top:12px;
+  margin-top:11px;
 }
 
 .primary{
-  background:linear-gradient(180deg,#1571ff,#0c54d6)!important;
-  border-color:#438cff!important;
+  background:linear-gradient(180deg,#1674ff,#0d56d6);
+  border-color:#3d8aff;
 }
 
-button:disabled{opacity:.55}
+button:disabled{opacity:.5}
 
-.muted{
-  color:#a5b8cf;
-  line-height:1.5;
+#chartWrap{
+  background:#081422;
+  border:1px solid #28415f;
+  border-radius:16px;
+  overflow:hidden;
 }
 
-#updated{
+canvas{
+  width:100%;
+  height:430px;
+  display:block;
+}
+
+.tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+
+.tab{
+  background:#102139;
+  border:1px solid #2b4563;
+  border-radius:12px;
+  padding:11px;
+  text-align:center;
+  font-weight:800;
+}
+
+.tab.active{
+  background:#0f58bb;
+  border-color:#4092ff;
+}
+
+.setup{
+  border:1px solid #733a40;
+  background:#20161b;
+  border-radius:16px;
+  padding:14px;
   margin-top:12px;
-  color:#94aac4;
-  font-size:13px;
+}
+
+.setup.goodSetup{
+  border-color:#1d7f63;
+  background:#10251f;
+}
+
+.setup.waitSetup{
+  border-color:#6c613b;
+  background:#242016;
+}
+
+.setupHead{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.badge{
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:900;
+  background:#26374b;
+}
+
+.research{
+  font-size:12px;
+  color:#9fb2c9;
+  line-height:1.45;
+  margin-top:10px;
 }
 
 .bottomnav{
@@ -245,45 +285,61 @@ button:disabled{opacity:.55}
   left:0;
   right:0;
   bottom:0;
-  background:rgba(5,14,25,.96);
-  backdrop-filter:blur(16px);
-  border-top:1px solid #233850;
+  z-index:50;
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  padding:9px 8px calc(9px + env(safe-area-inset-bottom));
-  z-index:20;
+  background:rgba(5,14,25,.97);
+  backdrop-filter:blur(16px);
+  border-top:1px solid #25394f;
+  padding:9px 6px calc(9px + env(safe-area-inset-bottom));
 }
 
-.bottomnav a{
-  color:#9fb0c4;
-  text-decoration:none;
+.navBtn{
   text-align:center;
+  color:#9dafc3;
   font-size:12px;
+  cursor:pointer;
 }
 
-.bottomnav b{
+.navBtn b{
   display:block;
   font-size:20px;
   margin-bottom:2px;
 }
 
-.bottomnav .active{
-  color:#4d9aff;
+.navBtn.active{
+  color:#4c9cff;
 }
 
-.pill{
-  display:inline-block;
-  border-radius:999px;
-  padding:5px 9px;
-  font-size:12px;
-  font-weight:900;
-  background:#1b2a3f;
-  color:#b9c8da;
+#updated{
+  margin-top:10px;
+  font-size:13px;
+  color:#98adc5;
+}
+
+.priceBig{
+  font-size:36px;
+  font-weight:950;
+}
+
+.priceSub{
+  margin-top:2px;
+  font-size:14px;
+}
+
+.aiButtons{
+  display:grid;
+  gap:9px;
+}
+
+.aiButtons button{
+  text-align:left;
+  margin:0;
 }
 
 @media(max-width:390px){
-  .signal-title{font-size:29px}
-  .tf strong{font-size:15px}
+  .bigSignal{font-size:30px}
+  canvas{height:380px}
 }
 </style>
 </head>
@@ -291,6 +347,9 @@ button:disabled{opacity:.55}
 <body>
 
 <div class="app">
+
+<!-- HOME -->
+<section id="homePage" class="page active">
 
   <div class="topbar">
     <div class="brand">
@@ -300,197 +359,358 @@ button:disabled{opacity:.55}
         <small>Crude Oil Research</small>
       </div>
     </div>
-
     <div class="mode">Simple Mode</div>
   </div>
 
   <div class="warning">
     <b>Research only.</b><br>
     Uses unofficial Yahoo CL=F historical/public candles.
-    Data may be delayed and may differ from TradingView CL1!.
+    It may be delayed and may differ from TradingView CL1!.
   </div>
 
-  <section class="card signal-card">
-    <div class="label">CURRENT MARKET VIEW</div>
+  <section class="card">
+    <div class="label">CURRENT PRICE</div>
+    <div id="homePrice" class="priceBig">—</div>
+    <div id="homeChange" class="priceSub muted">Waiting for data…</div>
+  </section>
 
-    <div class="signal">
-      <div id="arrow" class="arrow wait">→</div>
+  <section id="signalCard" class="card signalCard">
+    <div class="label">CURRENT RESEARCH SIGNAL</div>
+
+    <div class="signalRow">
+      <div id="bigArrow" class="bigArrow wait">→</div>
 
       <div>
-        <div id="overall" class="signal-title wait">
-          LOADING
-        </div>
-
-        <div id="message" class="signal-sub">
-          Checking completed candles…
-        </div>
+        <div id="overall" class="bigSignal wait">LOADING</div>
+        <div id="message" class="muted">Checking completed candles…</div>
       </div>
     </div>
 
     <div class="timeframes">
-
       <div class="tf">
         <span>5m</span>
-        <div id="a5" class="tfarrow wait">→</div>
-        <strong id="m5">—</strong>
+        <div id="a5" class="tfArrow wait">→</div>
+        <b id="m5">—</b>
       </div>
 
       <div class="tf">
         <span>15m</span>
-        <div id="a15" class="tfarrow wait">→</div>
-        <strong id="m15">—</strong>
+        <div id="a15" class="tfArrow wait">→</div>
+        <b id="m15">—</b>
       </div>
 
       <div class="tf">
         <span>1H</span>
-        <div id="a1h" class="tfarrow wait">→</div>
-        <strong id="h1">—</strong>
+        <div id="a1h" class="tfArrow wait">→</div>
+        <b id="h1">—</b>
       </div>
-
     </div>
 
     <div id="updated"></div>
 
-    <button id="refresh">
-      Refresh market
+    <button id="refresh">Refresh market</button>
+  </section>
+
+  <section class="card">
+    <div class="title">💡 Why?</div>
+    <div id="why" class="box">Waiting for data…</div>
+  </section>
+
+  <section class="card">
+    <div class="title">👀 What to watch next</div>
+    <div id="watch" class="box">Waiting for data…</div>
+  </section>
+
+  <section class="card">
+    <div class="title">🎯 Key levels</div>
+
+    <div class="level">
+      <span>Resistance</span>
+      <strong id="resistance" class="bad">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Support</span>
+      <strong id="support" class="good">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Recent price</span>
+      <strong id="price">—</strong>
+    </div>
+
+    <div class="level">
+      <span>15m RSI</span>
+      <strong id="rsi15">—</strong>
+    </div>
+
+    <button class="primary" onclick="showPage('chart')">
+      View Candlestick Chart
     </button>
   </section>
 
-  <section class="card">
-    <div class="row-title">💡 Why?</div>
+</section>
 
-    <div id="why" class="box">
-      Waiting for market data…
+
+<!-- CHART -->
+<section id="chartPage" class="page">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">📈</div>
+      <div>
+        <h1>WTI Chart</h1>
+        <small>Candles + research levels</small>
+      </div>
+    </div>
+  </div>
+
+  <section class="card">
+
+    <div class="tabs">
+      <div class="tab" data-tf="5">5m</div>
+      <div class="tab active" data-tf="15">15m</div>
+      <div class="tab" data-tf="60">1H</div>
+    </div>
+
+    <div id="chartWrap">
+      <canvas id="chart"></canvas>
+    </div>
+
+    <div class="research">
+      Lines on this chart are illustrative research levels calculated from the
+      unverified Yahoo CL=F feed. Confirm separately before using real money.
+    </div>
+
+  </section>
+
+  <section class="card">
+    <div class="title">Current setup levels</div>
+
+    <div class="level">
+      <span>Direction</span>
+      <strong id="chartDirection">WAIT</strong>
+    </div>
+
+    <div class="level">
+      <span>Entry zone</span>
+      <strong id="chartEntry" class="wait">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Stop / invalidation</span>
+      <strong id="chartStop" class="bad">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Target 1</span>
+      <strong id="chartTP1" class="good">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Target 2</span>
+      <strong id="chartTP2" class="good">—</strong>
+    </div>
+
+  </section>
+
+</section>
+
+
+<!-- SIGNALS -->
+<section id="signalsPage" class="page">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">🎯</div>
+      <div>
+        <h1>Research Setups</h1>
+        <small>Long · Short · Wait</small>
+      </div>
+    </div>
+  </div>
+
+  <section id="activeSetup" class="card">
+    <div class="title">Current setup</div>
+
+    <div class="setupHead">
+      <strong id="setupTitle">WAIT</strong>
+      <span id="setupBadge" class="badge">Waiting</span>
+    </div>
+
+    <div class="level">
+      <span>Entry zone</span>
+      <strong id="entryZone" class="wait">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Stop / invalidation</span>
+      <strong id="stopLoss" class="bad">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Target 1</span>
+      <strong id="tp1" class="good">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Target 2</span>
+      <strong id="tp2" class="good">—</strong>
+    </div>
+
+    <div class="level">
+      <span>Illustrative R:R</span>
+      <strong id="rr">—</strong>
+    </div>
+
+    <div class="research">
+      This is a research setup, not an instruction to place a trade.
+      Levels are generated from historical/public CL=F candles.
     </div>
   </section>
 
   <section class="card">
-    <div class="row-title">👀 What to watch next</div>
-
-    <div id="watch" class="box">
-      Waiting for market data…
-    </div>
+    <div class="title">❓ Why this setup?</div>
+    <div id="setupWhy" class="box">Waiting for data…</div>
   </section>
 
   <section class="card">
-    <div class="row-title">🎯 Key levels</div>
-
-    <div class="levels">
-
-      <div class="level">
-        <span>Resistance</span>
-        <strong id="resistance" class="bad">—</strong>
-      </div>
-
-      <div class="level">
-        <span>Support</span>
-        <strong id="support" class="good">—</strong>
-      </div>
-
-      <div class="level">
-        <span>Recent price</span>
-        <strong id="price">—</strong>
-      </div>
-
-      <div class="level">
-        <span>15m RSI</span>
-        <strong id="rsi15">—</strong>
-      </div>
-
-    </div>
+    <div class="title">✅ Confirmation needed</div>
+    <div id="confirmation" class="box">Waiting for data…</div>
   </section>
 
-  <section class="card">
-    <div class="row-title">⚠️ Main risk</div>
+</section>
 
-    <div id="risk" class="box">
-      Waiting for market data…
+
+<!-- NEWS -->
+<section id="newsPage" class="page">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">📰</div>
+      <div>
+        <h1>Oil News</h1>
+        <small>Simple market context</small>
+      </div>
     </div>
-  </section>
+  </div>
 
   <section class="card">
-    <div class="row-title">🤖 AI research assistant</div>
+    <div class="title">News is in the full dashboard</div>
 
     <p class="muted">
-      Open the full dashboard to ask the AI about the
-      current trend, risks, indicators and market context.
+      We’ll simplify this next so every headline is labelled
+      Bullish, Bearish or Mixed for crude oil.
     </p>
 
-    <a href="/" class="button primary">
-      Open AI Research
-    </a>
+    <a href="/" class="btn primary">Open Oil News</a>
+  </section>
+
+</section>
+
+
+<!-- MORE -->
+<section id="morePage" class="page">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">🤖</div>
+      <div>
+        <h1>WTI Pro AI</h1>
+        <small>Simple research assistant</small>
+      </div>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="title">Ask AI</div>
+
+    <div class="aiButtons">
+
+      <button onclick="openAI()">
+        📈 Explain the current market
+      </button>
+
+      <button onclick="openAI()">
+        🎯 Explain this setup
+      </button>
+
+      <button onclick="openAI()">
+        ⚠️ Explain the main risks
+      </button>
+
+      <button onclick="openAI()">
+        📰 Why is oil moving?
+      </button>
+
+    </div>
   </section>
 
   <section class="card">
-    <div class="row-title">⚙️ Advanced Mode</div>
+    <div class="title">Advanced tools</div>
 
     <p class="muted">
-      Chart, RSI, MACD, ATR, news, backtesting,
-      risk calculator and other advanced tools.
+      AI, news, backtesting, risk calculator and detailed indicators
+      remain available underneath the simple interface.
     </p>
 
-    <a href="/" class="button">
-      Open Advanced Mode
-    </a>
+    <a href="/" class="btn primary">Open Full Dashboard</a>
   </section>
+
+</section>
 
 </div>
 
+
 <nav class="bottomnav">
-  <a href="#top" class="active">
+
+  <div class="navBtn active" data-page="home">
     <b>⌂</b>
     Home
-  </a>
+  </div>
 
-  <a href="/">
+  <div class="navBtn" data-page="chart">
     <b>📈</b>
     Chart
-  </a>
+  </div>
 
-  <a href="#watch">
+  <div class="navBtn" data-page="signals">
     <b>🎯</b>
     Signals
-  </a>
+  </div>
 
-  <a href="/">
+  <div class="navBtn" data-page="news">
     <b>📰</b>
     News
-  </a>
+  </div>
 
-  <a href="/">
+  <div class="navBtn" data-page="more">
     <b>•••</b>
     More
-  </a>
+  </div>
+
 </nav>
 
 
 <script>
 
-const $ = id =>
-  document.getElementById(id);
-
+const $ = id => document.getElementById(id);
 const M = 60000;
 
 let bars = [];
+let currentTF = 15;
+let currentSetup = null;
 
 
-function ema(arr,period){
+function ema(arr,p){
 
   if(!arr.length) return [];
 
-  const k =
-    2/(period+1);
-
-  let v =
-    arr[0];
+  const k = 2/(p+1);
+  let v = arr[0];
 
   return arr.map((x,i)=>{
-
-    v =
-      i
-      ? v+(x-v)*k
-      : x;
-
+    v = i ? v+(x-v)*k : x;
     return v;
   });
 }
@@ -498,21 +718,15 @@ function ema(arr,period){
 
 function aggregate(input,min){
 
-  if(min===5)
-    return input;
+  if(min===5) return input;
 
-  const size =
-    min*M;
-
+  const size=min*M;
   const out=[];
 
   for(const b of input){
 
-    const t =
-      Math.floor(b.t/size)*size;
-
-    let x =
-      out[out.length-1];
+    const t=Math.floor(b.t/size)*size;
+    let x=out[out.length-1];
 
     if(!x || x.t!==t){
 
@@ -529,108 +743,104 @@ function aggregate(input,min){
 
     }else{
 
-      x.h=
-        Math.max(x.h,b.h);
-
-      x.l=
-        Math.min(x.l,b.l);
-
-      x.c=
-        b.c;
+      x.h=Math.max(x.h,b.h);
+      x.l=Math.min(x.l,b.l);
+      x.c=b.c;
     }
 
     x.n++;
   }
 
-  return out.filter(
-    x=>x.n===min/5
-  );
+  return out.filter(x=>x.n===min/5);
 }
 
 
 function indicators(b){
 
-  if(b.length<35)
-    return null;
+  if(b.length<35) return null;
 
-  const closes =
-    b.map(x=>x.c);
+  const closes=b.map(x=>x.c);
 
-  const fast =
-    ema(closes,9).at(-1);
+  const fast=ema(closes,9).at(-1);
+  const slow=ema(closes,21).at(-1);
 
-  const slow =
-    ema(closes,21).at(-1);
+  const e12=ema(closes,12);
+  const e26=ema(closes,26);
 
-  const e12 =
-    ema(closes,12);
+  const mac=e12.map((x,i)=>x-e26[i]);
+  const sig=ema(mac,9);
 
-  const e26 =
-    ema(closes,26);
-
-  const mac =
-    e12.map(
-      (x,i)=>x-e26[i]
-    );
-
-  const signal =
-    ema(mac,9);
-
-  const hist =
-    mac.at(-1)
-    -
-    signal.at(-1);
+  const hist=mac.at(-1)-sig.at(-1);
 
   let gain=0;
   let loss=0;
 
-  for(
-    let i=b.length-14;
-    i<b.length;
-    i++
-  ){
+  for(let i=b.length-14;i<b.length;i++){
 
-    const d =
-      b[i].c
-      -
-      b[i-1].c;
+    const d=b[i].c-b[i-1].c;
 
-    gain +=
-      Math.max(0,d);
-
-    loss +=
-      Math.max(0,-d);
+    gain+=Math.max(0,d);
+    loss+=Math.max(0,-d);
   }
 
-  const rsi =
+  const rsi=
     loss===0
-    ? 100
-    : 100
-      -
-      100/(1+gain/loss);
+    ?100
+    :100-100/(1+gain/loss);
 
   return{
-
     trend:
       fast>slow
-      ? 'BULLISH'
-      : fast<slow
-      ? 'BEARISH'
-      : 'NEUTRAL',
-
+      ?'BULLISH'
+      :fast<slow
+      ?'BEARISH'
+      :'NEUTRAL',
     rsi,
     hist
   };
 }
 
 
+function atr(b,p=14){
+
+  if(b.length<p+1) return null;
+
+  const trs=[];
+
+  for(let i=1;i<b.length;i++){
+
+    const x=b[i];
+    const prev=b[i-1];
+
+    trs.push(
+      Math.max(
+        x.h-x.l,
+        Math.abs(x.h-prev.c),
+        Math.abs(x.l-prev.c)
+      )
+    );
+  }
+
+  return trs.slice(-p).reduce((a,b)=>a+b,0)/p;
+}
+
+
+function recentLevels(){
+
+  const r=bars.slice(-30);
+
+  return{
+    resistance:Math.max(...r.map(x=>x.h)),
+    support:Math.min(...r.map(x=>x.l)),
+    price:bars.at(-1).c
+  };
+}
+
+
 function trendClass(v){
 
-  if(v==='BULLISH')
-    return 'good';
-
-  if(v==='BEARISH')
-    return 'bad';
+  if(v==='BULLISH') return 'good';
+  if(v==='BEARISH') return 'bad';
 
   return 'wait';
 }
@@ -638,446 +848,612 @@ function trendClass(v){
 
 function trendArrow(v){
 
-  if(v==='BULLISH')
-    return '↑';
-
-  if(v==='BEARISH')
-    return '↓';
+  if(v==='BULLISH') return '↑';
+  if(v==='BEARISH') return '↓';
 
   return '→';
 }
 
 
-function setTrend(
-  textId,
-  arrowId,
-  value
-){
+function setTrend(textId,arrowId,v){
 
-  const txt =
-    $(textId);
+  $(textId).textContent=v;
+  $(textId).className=trendClass(v);
 
-  const arr =
-    $(arrowId);
-
-  txt.textContent =
-    value;
-
-  txt.className =
-    trendClass(value);
-
-  arr.textContent =
-    trendArrow(value);
-
-  arr.className =
-    'tfarrow '
-    +
-    trendClass(value);
+  $(arrowId).textContent=trendArrow(v);
+  $(arrowId).className='tfArrow '+trendClass(v);
 }
 
 
-function recentLevels(){
+function makeSetup(i5,i15,i60){
 
-  const recent =
-    bars.slice(-24);
+  const b15=aggregate(bars,15);
 
-  const highs =
-    recent.map(x=>x.h);
+  const a=atr(b15) || 0.5;
+  const px=bars.at(-1).c;
 
-  const lows =
-    recent.map(x=>x.l);
+  const aligned=
+    i5.trend===i15.trend &&
+    i15.trend===i60.trend;
+
+  if(!aligned){
+
+    return{
+      direction:'WAIT',
+      entryLow:null,
+      entryHigh:null,
+      stop:null,
+      tp1:null,
+      tp2:null,
+      rr:null
+    };
+  }
+
+
+  if(i15.trend==='BULLISH'){
+
+    const entryLow=px-a*0.15;
+    const entryHigh=px+a*0.10;
+    const stop=px-a;
+    const tp1=px+a;
+    const tp2=px+a*2;
+
+    return{
+      direction:'LONG',
+      entryLow,
+      entryHigh,
+      stop,
+      tp1,
+      tp2,
+      rr:2
+    };
+  }
+
+
+  if(i15.trend==='BEARISH'){
+
+    const entryLow=px-a*0.10;
+    const entryHigh=px+a*0.15;
+    const stop=px+a;
+    const tp1=px-a;
+    const tp2=px-a*2;
+
+    return{
+      direction:'SHORT',
+      entryLow,
+      entryHigh,
+      stop,
+      tp1,
+      tp2,
+      rr:2
+    };
+  }
+
 
   return{
-
-    resistance:
-      Math.max(...highs),
-
-    support:
-      Math.min(...lows),
-
-    price:
-      bars.at(-1).c
+    direction:'WAIT'
   };
+}
+
+
+function fmt(x){
+
+  return Number.isFinite(x)
+    ?x.toFixed(2)
+    :'—';
 }
 
 
 function render(){
 
-  if(!bars.length)
-    return;
+  if(!bars.length) return;
 
-  const b15 =
-    aggregate(
-      bars,
-      15
-    );
+  const b15=aggregate(bars,15);
+  const b60=aggregate(bars,60);
 
-  const b60 =
-    aggregate(
-      bars,
-      60
-    );
+  const i5=indicators(bars);
+  const i15=indicators(b15);
+  const i60=indicators(b60);
 
-  const i5 =
-    indicators(bars);
+  if(!i5 || !i15 || !i60) return;
 
-  const i15 =
-    indicators(b15);
+  setTrend('m5','a5',i5.trend);
+  setTrend('m15','a15',i15.trend);
+  setTrend('h1','a1h',i60.trend);
 
-  const i60 =
-    indicators(b60);
+  currentSetup=makeSetup(i5,i15,i60);
 
-  if(
-    !i5 ||
-    !i15 ||
-    !i60
-  ){
+  const levels=recentLevels();
 
-    $('overall').textContent =
-      'WAIT';
+  $('homePrice').textContent=levels.price.toFixed(2);
 
-    $('message').textContent =
-      'Not enough completed candles yet.';
+  const first=bars.at(-2)?.c ?? levels.price;
+  const diff=levels.price-first;
 
-    return;
-  }
+  $('homeChange').textContent=
+    (diff>=0?'+':'')+
+    diff.toFixed(2)+
+    ' from previous completed 5m candle';
 
 
-  setTrend(
-    'm5',
-    'a5',
-    i5.trend
-  );
-
-  setTrend(
-    'm15',
-    'a15',
-    i15.trend
-  );
-
-  setTrend(
-    'h1',
-    'a1h',
-    i60.trend
-  );
+  $('resistance').textContent=levels.resistance.toFixed(2);
+  $('support').textContent=levels.support.toFixed(2);
+  $('price').textContent=levels.price.toFixed(2);
+  $('rsi15').textContent=i15.rsi.toFixed(0);
 
 
-  const aligned =
-    i5.trend===i15.trend
-    &&
+  const aligned=
+    i5.trend===i15.trend &&
     i15.trend===i60.trend;
 
 
-  const overall =
-    $('overall');
+  if(aligned && i15.trend==='BULLISH'){
 
-  const arrow =
-    $('arrow');
+    $('overall').textContent='BULLISH';
+    $('overall').className='bigSignal good';
 
+    $('bigArrow').textContent='↑';
+    $('bigArrow').className='bigArrow good';
 
-  if(
-    aligned
-    &&
-    i15.trend==='BULLISH'
-  ){
+    $('message').textContent=
+      'All three timeframes are aligned upward.';
 
-    overall.textContent =
-      'BULLISH';
+    $('why').textContent=
+      '5m, 15m and 1H are bullish. '+
+      '15m RSI is '+i15.rsi.toFixed(0)+
+      '. Momentum is '+
+      (i15.hist>0?'positive.':'starting to weaken.');
 
-    overall.className =
-      'signal-title good';
-
-    arrow.textContent =
-      '↑';
-
-    arrow.className =
-      'arrow good';
-
-    $('message').textContent =
-      '5m, 15m and 1H are aligned upward.';
-
-    $('why').textContent =
-      'All three timeframes are currently bullish. '
-      +
-      '15m RSI is '
-      +
-      i15.rsi.toFixed(0)
-      +
-      ' and momentum is '
-      +
-      (
-        i15.hist>0
-        ? 'positive.'
-        : 'starting to weaken.'
-      );
-
-    $('watch').textContent =
-      'Watch whether 5m stays bullish. '
-      +
-      'If 5m weakens first and 15m follows, the bullish picture becomes less clear.';
-
-    $('risk').textContent =
-      'Main risk: the lower timeframe may become overbought after a fast rise, causing a pullback even while 1H remains bullish.';
+    $('watch').textContent=
+      'Watch whether 5m remains bullish and whether price can stay above recent support.';
 
 
-  }else if(
-    aligned
-    &&
-    i15.trend==='BEARISH'
-  ){
+  }else if(aligned && i15.trend==='BEARISH'){
 
-    overall.textContent =
-      'BEARISH';
+    $('overall').textContent='BEARISH';
+    $('overall').className='bigSignal bad';
 
-    overall.className =
-      'signal-title bad';
+    $('bigArrow').textContent='↓';
+    $('bigArrow').className='bigArrow bad';
 
-    arrow.textContent =
-      '↓';
+    $('message').textContent=
+      'All three timeframes are aligned downward.';
 
-    arrow.className =
-      'arrow bad';
+    $('why').textContent=
+      '5m, 15m and 1H are bearish. '+
+      '15m RSI is '+i15.rsi.toFixed(0)+
+      '. Momentum is '+
+      (i15.hist<0?'negative.':'trying to improve.');
 
-    $('message').textContent =
-      '5m, 15m and 1H are aligned downward.';
-
-    $('why').textContent =
-      'All three timeframes are currently bearish. '
-      +
-      '15m RSI is '
-      +
-      i15.rsi.toFixed(0)
-      +
-      ' and momentum is '
-      +
-      (
-        i15.hist<0
-        ? 'negative.'
-        : 'trying to improve.'
-      );
-
-    $('watch').textContent =
-      'Watch whether 5m stays bearish. '
-      +
-      'If 5m turns bullish and 15m follows, bearish momentum may be weakening.';
-
-    $('risk').textContent =
-      'Main risk: after a large decline the lower timeframe may become oversold, which can produce a sharp bounce.';
+    $('watch').textContent=
+      'Watch whether 5m remains bearish and whether price stays below recent resistance.';
 
 
   }else{
 
-    overall.textContent =
-      'MIXED / WAIT';
+    $('overall').textContent='MIXED / WAIT';
+    $('overall').className='bigSignal wait';
 
-    overall.className =
-      'signal-title wait';
+    $('bigArrow').textContent='→';
+    $('bigArrow').className='bigArrow wait';
 
-    arrow.textContent =
-      '→';
-
-    arrow.className =
-      'arrow wait';
-
-    $('message').textContent =
+    $('message').textContent=
       'The timeframes do not agree yet.';
 
-    $('why').textContent =
-      '5m is '
-      +
-      i5.trend
-      +
-      ', 15m is '
-      +
-      i15.trend
-      +
-      ', and 1H is '
-      +
-      i60.trend
-      +
+    $('why').textContent=
+      '5m is '+i5.trend+
+      ', 15m is '+i15.trend+
+      ', and 1H is '+i60.trend+
       '. Momentum is conflicting.';
 
-    if(
+    $('watch').textContent=
       i15.trend===i60.trend
-      &&
-      i5.trend!==i15.trend
-    ){
-
-      $('watch').textContent =
-        'The 15m and 1H trends agree. '
-        +
-        'Watch whether 5m turns '
-        +
-        i15.trend.toLowerCase()
-        +
-        ' to align with them.';
-
-    }else{
-
-      $('watch').textContent =
-        'Wait for 5m and 15m to begin agreeing with the 1H direction before treating the trend as clearer.';
-    }
-
-    $('risk').textContent =
-      'Main risk: mixed timeframes often create false breakouts, quick reversals and confusing price action.';
+      ?'15m and 1H agree. Watch whether 5m turns '+i15.trend.toLowerCase()+' too.'
+      :'Wait for 5m and 15m to begin agreeing with the 1H direction.';
   }
 
 
-  const levels =
-    recentLevels();
-
-  $('resistance').textContent =
-    levels.resistance.toFixed(2);
-
-  $('support').textContent =
-    levels.support.toFixed(2);
-
-  $('price').textContent =
-    levels.price.toFixed(2);
-
-  $('rsi15').textContent =
-    i15.rsi.toFixed(0);
+  updateSetup(i5,i15,i60);
 
 
-  const last =
+  const last=
     new Date(
-      bars.at(-1).t
-      +
-      5*M
+      bars.at(-1).t+5*M
     ).toLocaleString();
 
-
-  $('updated').textContent =
-    'Last completed 5m candle: '
-    +
-    last
-    +
+  $('updated').textContent=
+    'Last completed 5m candle: '+
+    last+
     ' · unverified Yahoo CL=F';
+
+
+  drawChart();
+}
+
+
+function updateSetup(i5,i15,i60){
+
+  const s=currentSetup;
+
+  if(!s || s.direction==='WAIT'){
+
+    $('setupTitle').textContent='NO CLEAR SETUP';
+    $('setupBadge').textContent='WAIT';
+
+    $('entryZone').textContent='—';
+    $('stopLoss').textContent='—';
+    $('tp1').textContent='—';
+    $('tp2').textContent='—';
+    $('rr').textContent='—';
+
+    $('setupWhy').textContent=
+      'The timeframes are not aligned enough for a clear research setup.';
+
+    $('confirmation').textContent=
+      'Wait for 5m, 15m and 1H to agree more clearly.';
+
+    $('chartDirection').textContent='WAIT';
+    $('chartEntry').textContent='—';
+    $('chartStop').textContent='—';
+    $('chartTP1').textContent='—';
+    $('chartTP2').textContent='—';
+
+    return;
+  }
+
+
+  $('setupTitle').textContent=s.direction+' RESEARCH SETUP';
+  $('setupBadge').textContent='ACTIVE';
+
+  $('entryZone').textContent=
+    fmt(s.entryLow)+' – '+fmt(s.entryHigh);
+
+  $('stopLoss').textContent=fmt(s.stop);
+  $('tp1').textContent=fmt(s.tp1);
+  $('tp2').textContent=fmt(s.tp2);
+  $('rr').textContent='about 1 : '+s.rr;
+
+
+  if(s.direction==='LONG'){
+
+    $('setupWhy').textContent=
+      '5m, 15m and 1H are aligned bullish. '+
+      'The research idea looks for continuation higher after confirmation.';
+
+    $('confirmation').textContent=
+      'Look for price to hold the entry area and for the next completed candles to remain bullish. '+
+      'The setup is invalidated if price breaks the stop level.';
+
+  }else{
+
+    $('setupWhy').textContent=
+      '5m, 15m and 1H are aligned bearish. '+
+      'The research idea looks for continuation lower after confirmation.';
+
+    $('confirmation').textContent=
+      'Look for price to reject the entry area and for the next completed candles to remain bearish. '+
+      'The setup is invalidated if price breaks the stop level.';
+  }
+
+
+  $('chartDirection').textContent=s.direction;
+  $('chartEntry').textContent=
+    fmt(s.entryLow)+' – '+fmt(s.entryHigh);
+
+  $('chartStop').textContent=fmt(s.stop);
+  $('chartTP1').textContent=fmt(s.tp1);
+  $('chartTP2').textContent=fmt(s.tp2);
+}
+
+
+function drawChart(){
+
+  if(!bars.length) return;
+
+  const canvas=$('chart');
+  const rect=canvas.getBoundingClientRect();
+
+  const dpr=window.devicePixelRatio || 1;
+
+  canvas.width=rect.width*dpr;
+  canvas.height=rect.height*dpr;
+
+  const ctx=canvas.getContext('2d');
+
+  ctx.scale(dpr,dpr);
+
+  const w=rect.width;
+  const h=rect.height;
+
+  ctx.clearRect(0,0,w,h);
+
+  const source=
+    currentTF===5
+    ?bars
+    :aggregate(bars,currentTF);
+
+  const data=source.slice(-60);
+
+  if(data.length<5) return;
+
+  const padL=12;
+  const padR=48;
+  const padT=20;
+  const padB=30;
+
+  const highs=data.map(x=>x.h);
+  const lows=data.map(x=>x.l);
+
+  let max=Math.max(...highs);
+  let min=Math.min(...lows);
+
+  const span=max-min || 1;
+
+  max+=span*.08;
+  min-=span*.08;
+
+  const plotW=w-padL-padR;
+  const plotH=h-padT-padB;
+
+  const y=p=>
+    padT+
+    (max-p)/(max-min)*plotH;
+
+  ctx.strokeStyle='#17314b';
+  ctx.lineWidth=1;
+
+  for(let i=0;i<6;i++){
+
+    const yy=padT+(plotH/5)*i;
+
+    ctx.beginPath();
+    ctx.moveTo(padL,yy);
+    ctx.lineTo(w-padR,yy);
+    ctx.stroke();
+  }
+
+
+  const cw=plotW/data.length;
+  const body=Math.max(2,cw*.55);
+
+  data.forEach((b,i)=>{
+
+    const x=padL+i*cw+cw/2;
+
+    const up=b.c>=b.o;
+
+    ctx.strokeStyle=up?'#38dfae':'#ff626a';
+    ctx.fillStyle=up?'#38dfae':'#ff626a';
+
+    ctx.beginPath();
+    ctx.moveTo(x,y(b.h));
+    ctx.lineTo(x,y(b.l));
+    ctx.stroke();
+
+    const top=Math.min(y(b.o),y(b.c));
+    const bottom=Math.max(y(b.o),y(b.c));
+
+    ctx.fillRect(
+      x-body/2,
+      top,
+      body,
+      Math.max(2,bottom-top)
+    );
+  });
+
+
+  function levelLine(price,color,label){
+
+    if(!Number.isFinite(price)) return;
+
+    const yy=y(price);
+
+    if(yy<padT || yy>h-padB) return;
+
+    ctx.strokeStyle=color;
+    ctx.lineWidth=1.5;
+
+    ctx.setLineDash([6,4]);
+
+    ctx.beginPath();
+    ctx.moveTo(padL,yy);
+    ctx.lineTo(w-padR,yy);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    ctx.fillStyle=color;
+    ctx.font='12px system-ui';
+    ctx.fillText(
+      label+' '+price.toFixed(2),
+      w-padR+4,
+      yy+4
+    );
+  }
+
+
+  if(currentSetup){
+
+    if(currentSetup.entryLow){
+      levelLine(
+        (currentSetup.entryLow+currentSetup.entryHigh)/2,
+        '#ffd15f',
+        'ENTRY'
+      );
+    }
+
+    levelLine(
+      currentSetup.stop,
+      '#ff626a',
+      'STOP'
+    );
+
+    levelLine(
+      currentSetup.tp1,
+      '#41dda8',
+      'TP1'
+    );
+
+    levelLine(
+      currentSetup.tp2,
+      '#35a9ff',
+      'TP2'
+    );
+  }
+
+
+  const latest=data.at(-1).c;
+
+  levelLine(
+    latest,
+    '#64a7ff',
+    'NOW'
+  );
 }
 
 
 async function load(){
 
-  const btn =
-    $('refresh');
+  const btn=$('refresh');
 
-  btn.disabled =
-    true;
-
-  btn.textContent =
-    'Refreshing…';
+  btn.disabled=true;
+  btn.textContent='Refreshing…';
 
   try{
 
-    const r =
+    const r=
       await fetch(
         '/api/candles',
-        {
-          cache:'no-store'
-        }
+        {cache:'no-store'}
       );
 
     if(!r.ok)
-      throw Error(
-        'Candle API error'
-      );
+      throw Error('Candle API error');
 
+    const data=await r.json();
 
-    const data =
-      await r.json();
+    if(!Array.isArray(data.bars))
+      throw Error('No candle data');
 
+    const now=Date.now();
 
-    if(
-      !Array.isArray(
-        data.bars
-      )
-    )
-      throw Error(
-        'No candle data'
-      );
-
-
-    const now =
-      Date.now();
-
-
-    bars =
+    bars=
       data.bars
-
-      .map(
-        x=>({
-          t:+x.t,
-          o:+x.o,
-          h:+x.h,
-          l:+x.l,
-          c:+x.c
-        })
+      .map(x=>({
+        t:+x.t,
+        o:+x.o,
+        h:+x.h,
+        l:+x.l,
+        c:+x.c
+      }))
+      .filter(x=>
+        [x.t,x.o,x.h,x.l,x.c]
+        .every(Number.isFinite)
+        &&
+        x.t+5*M<=now
       )
-
-      .filter(
-        x=>
-          [
-            x.t,
-            x.o,
-            x.h,
-            x.l,
-            x.c
-          ]
-          .every(
-            Number.isFinite
-          )
-          &&
-          x.t+5*M<=now
-      )
-
-      .sort(
-        (a,b)=>a.t-b.t
-      );
-
+      .sort((a,b)=>a.t-b.t);
 
     render();
 
-
   }catch(e){
 
-    $('overall').textContent =
-      'DATA UNAVAILABLE';
+    $('overall').textContent='DATA UNAVAILABLE';
+    $('overall').className='bigSignal wait';
 
-    $('overall').className =
-      'signal-title wait';
-
-    $('arrow').textContent =
-      '!';
-
-    $('arrow').className =
-      'arrow wait';
-
-    $('message').textContent =
+    $('message').textContent=
       'Could not load market data.';
 
-    $('why').textContent =
-      e.message;
-
-    $('watch').textContent =
-      'Try Refresh again later.';
-
-    $('risk').textContent =
-      'Do not rely on this display while market data is unavailable.';
-
+    $('why').textContent=e.message;
 
   }finally{
 
-    btn.disabled =
-      false;
-
-    btn.textContent =
-      'Refresh market';
+    btn.disabled=false;
+    btn.textContent='Refresh market';
   }
 }
 
 
-$('refresh').onclick =
-  load;
+function showPage(name){
+
+  document
+    .querySelectorAll('.page')
+    .forEach(x=>x.classList.remove('active'));
+
+  $(name+'Page')
+    .classList.add('active');
+
+  document
+    .querySelectorAll('.navBtn')
+    .forEach(x=>
+      x.classList.toggle(
+        'active',
+        x.dataset.page===name
+      )
+    );
+
+  if(name==='chart'){
+    setTimeout(drawChart,50);
+  }
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+}
+
+
+document
+.querySelectorAll('.navBtn')
+.forEach(btn=>{
+
+  btn.onclick=()=>
+    showPage(
+      btn.dataset.page
+    );
+});
+
+
+document
+.querySelectorAll('.tab')
+.forEach(tab=>{
+
+  tab.onclick=()=>{
+
+    currentTF=+tab.dataset.tf;
+
+    document
+      .querySelectorAll('.tab')
+      .forEach(x=>
+        x.classList.remove('active')
+      );
+
+    tab.classList.add('active');
+
+    drawChart();
+  };
+});
+
+
+function openAI(){
+  location.href='/';
+}
+
+
+$('refresh').onclick=load;
+
+window.addEventListener(
+  'resize',
+  ()=>{
+    if(
+      $('chartPage')
+      .classList
+      .contains('active')
+    ){
+      drawChart();
+    }
+  }
+);
 
 load();
 
