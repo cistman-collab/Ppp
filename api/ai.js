@@ -83,7 +83,9 @@ Never say the entry is above or below current price unless the supplied numbers 
 Never say the stop is above resistance or below support unless the supplied resistance/support numbers prove it.
 
 Do not use words like favorable, strong trade, confirmed trade, safe entry, high probability or guaranteed.
+Do not interpret low RSI as automatically bearish or high RSI as automatically bullish.
 
+Treat RSI as momentum/overbought/oversold context only and combine it with trend, price structure and other supplied indicators.
 AI REVIEW must be exactly one of:
 VALIDATE
 REJECT
