@@ -493,16 +493,21 @@ function getLevels(){
   };
 }
 
-function makeSetup(i5,i15,i60){
+function makeSetup(i5,i15,i60,i240){
   const b15=aggregate(bars,15);
   const a=atr(b15);
   const px=bars.at(-1).c;
 
-  const aligned=
-    i5.trend===i15.trend &&
-    i15.trend===i60.trend;
+  const shortAligned=
+  i5.trend===i15.trend &&
+  i15.trend===i60.trend;
 
-  if(!aligned)return{direction:'WAIT'};
+const higherConflict=
+  i240 &&
+  i240.trend!=='NEUTRAL' &&
+  i240.trend!==i15.trend;
+
+if(!shortAligned || higherConflict)return{direction:'WAIT'};
 
   if(i15.trend==='BULLISH'){
     return{
@@ -535,17 +540,20 @@ function render(){
   if(!bars.length)return;
 
   const b15=aggregate(bars,15);
-  const b60=aggregate(bars,60);
+const b60=aggregate(bars,60);
+const b240=aggregate(bars,240);
 
-  const i5=indicators(bars);
-  const i15=indicators(b15);
-  const i60=indicators(b60);
+const i5=indicators(bars);
+const i15=indicators(b15);
+const i60=indicators(b60);
+const i240=indicators(b240);
 
-  if(!i5||!i15||!i60)return;
+if(!i5||!i15||!i60||!i240)return;
 
-  setTF('m5','a5',i5.trend);
-  setTF('m15','a15',i15.trend);
-  setTF('h1','a1h',i60.trend);
+setTF('m5','a5',i5.trend);
+setTF('m15','a15',i15.trend);
+setTF('h1','a1h',i60.trend);
+setTF('h4','a4h',i240.trend);
 
   const l=getLevels();
   const prev=bars.at(-2)?.c??l.price;
@@ -574,9 +582,17 @@ function render(){
     })+
     '<br>Yahoo CL=F';
 
-  const aligned=
-    i5.trend===i15.trend &&
-    i15.trend===i60.trend;
+  const shortAligned=
+  i5.trend===i15.trend &&
+  i15.trend===i60.trend;
+
+const higherConflict=
+  i240.trend!=='NEUTRAL' &&
+  i240.trend!==i15.trend;
+
+const aligned=
+  shortAligned &&
+  !higherConflict;
 
   let reasons=[];
 
@@ -587,13 +603,13 @@ function render(){
     $('bigArrow').textContent='↑';
     $('bigArrow').className='bigArrow good';
 
-    $('message').textContent='All three timeframes point upward';
+    $('message').textContent='5m, 15m, 1H and 4H support the bullish setup';
 
     reasons=[
-      '5m, 15m and 1H are bullish',
-      'Momentum is positive',
-      'No bearish reversal confirmed'
-    ];
+  '5m, 15m and 1H are bullish',
+  '4H is '+i240.trend,
+  'Momentum is positive'
+];
 
   }else if(aligned&&i15.trend==='BEARISH'){
     $('overall').textContent='BEARISH';
@@ -602,13 +618,13 @@ function render(){
     $('bigArrow').textContent='↓';
     $('bigArrow').className='bigArrow bad';
 
-    $('message').textContent='All three timeframes point downward';
+    $('message').textContent='5m, 15m, 1H and 4H support the bearish setup';
 
     reasons=[
-      '5m, 15m and 1H are bearish',
-      'Momentum is negative',
-      'No bullish reversal confirmed'
-    ];
+  '5m, 15m and 1H are bearish',
+  '4H is '+i240.trend,
+  'Momentum is negative'
+];
 
   }else{
     $('overall').textContent='WAIT';
@@ -620,16 +636,17 @@ function render(){
     $('message').textContent='Timeframes do not agree yet';
 
     reasons=[
-      '5m is '+i5.trend,
-      '15m is '+i15.trend,
-      '1H is '+i60.trend
-    ];
+  '5m is '+i5.trend,
+  '15m is '+i15.trend,
+  '1H is '+i60.trend,
+  '4H is '+i240.trend
+];
   }
 
   $('whyList').innerHTML=
     reasons.map(x=>'<li>'+x+'</li>').join('');
 
-  setup=makeSetup(i5,i15,i60);
+  setup=makeSetup(i5,i15,i60,i240);
 
   $('resistance').textContent=l.resistance.toFixed(2);
   $('support').textContent=l.support.toFixed(2);
