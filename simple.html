@@ -991,6 +991,16 @@ window.addEventListener('resize',()=>{
 });
 
 loadCandles();
+
+setInterval(() => {
+  loadCandles();
+}, 60000);
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    loadCandles();
+  }
+});
 </script>
 
 </body>
