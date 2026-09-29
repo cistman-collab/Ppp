@@ -966,7 +966,10 @@ async function askAI(question){
 
     out.textContent=d.answer||'No answer returned.';
 
-  
+    }catch(e){
+  out.textContent=e.message;
+}
+}
 
 async function reviewSignalAI(){
   const out=$('signalAIReview');
