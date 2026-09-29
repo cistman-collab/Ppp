@@ -60,12 +60,15 @@ Review:
 
 Use this output format:
 
-AI REVIEW:
+AI REVIEW: VALIDATE / REJECT / WAIT
 DIRECTION:
+CURRENT PRICE:
 ENTRY:
 STOP:
 TP1:
 TP2:
+SUPPORT:
+RESISTANCE:
 WHY:
 CONFIRMATION:
 INVALIDATION:
@@ -73,7 +76,24 @@ DATA NOTE:
 
 Always state that this is research only and that the data feed may be delayed or unverified.
 
-Never claim a guaranteed trade, live execution, or certain profit.` },
+Before writing the answer, compare the current price, entry zone, stop, TP1, TP2, support and resistance numerically.
+
+Never say the entry is above or below current price unless the supplied numbers prove it.
+
+Never say the stop is above resistance or below support unless the supplied resistance/support numbers prove it.
+
+Do not use words like favorable, strong trade, confirmed trade, safe entry, high probability or guaranteed.
+
+AI REVIEW must be exactly one of:
+VALIDATE
+REJECT
+WAIT
+
+VALIDATE means the supplied rule-based setup is internally consistent with the supplied timeframe data.
+REJECT means the supplied rule-based setup conflicts with the supplied timeframe data or levels.
+WAIT means the data is mixed, incomplete, stale, or uncertain.
+
+Do not create new prices. Only repeat supplied numeric levels.` },
             { role: 'user', content: 'Question: ' + question + '\nResearch context (untrusted): ' + JSON.stringify(clean) }
           ]
         })
