@@ -311,11 +311,15 @@ canvas{width:100%;height:400px;display:block}
       <h3>✅ Confirmation</h3>
       <p id="confirmation">Waiting for data…</p>
     </div>
-
+     <div class="subcard">
+  <h3>🛑 Invalidation</h3>
+  <p id="invalidateText">Waiting for data…</p>
+</div>
     <div class="subcard">
-      <h3>🛑 Invalidation</h3>
-      <p id="invalidateText">Waiting for data…</p>
-    </div>
+  <h3>🤖 AI Review</h3>
+  <p id="signalAIReview">Tap the button below for an AI second opinion.</p>
+  <button class="primary" onclick="reviewSignalAI()">Review Setup With AI</button>
+</div>
   </div>
 </section>
 
@@ -962,11 +966,55 @@ async function askAI(question){
 
     out.textContent=d.answer||'No answer returned.';
 
-  }catch(e){
-    out.textContent=e.message;
-  }
-}
+  
 
+async function reviewSignalAI(){
+  const out=$('signalAIReview');
+
+  out.textContent='Thinking…';
+
+  try{
+    const b15=aggregate(bars,15);
+    const b60=aggregate(bars,60);
+    const b240=aggregate(bars,240);
+
+    const payload={
+      question:'Review the current WTI research setup. Return VALIDATE, REJECT or WAIT. Review the supplied direction, entry, stop, TP1, TP2, support, resistance and 5m, 15m, 1H, 4H context. Do not invent new prices.',
+      market:{
+        indicators:{
+          m5:indicators(bars),
+          m15:indicators(b15),
+          h1:indicators(b60),
+          h4:indicators(b240)
+        },
+        ruleBasedSetup:setup,
+        levels:getLevels(),
+        bars:bars.slice(-40),
+        headlines:newsItems,
+        marketSchedule:'UNKNOWN',
+        lastCompletedCandleUTC:
+          bars.length
+          ?new Date(bars.at(-1).t+5*M).toISOString()
+          :'unknown'
+      }
+    };
+
+    const r=await fetch('/api/ai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+
+    const d=await r.json();
+
+    if(!r.ok)throw Error(d.error||'AI unavailable');
+
+    out.textContent=d.answer||'No AI review returned.';
+
+}catch(e){
+  out.textContent=e.message;
+}
+}
 function showPage(name){
   document.querySelectorAll('.page')
     .forEach(p=>p.classList.remove('active'));
