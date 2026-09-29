@@ -72,8 +72,7 @@ small,.muted{color:var(--muted)}
 .bad{color:var(--red)}
 .wait{color:var(--yellow)}
 .blue{color:var(--blue)}
-.tfgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tf{
+.tfgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
   background:#0a1827;border:1px solid #1f3e59;
   border-radius:13px;padding:12px 6px;text-align:center
 }
@@ -199,21 +198,28 @@ canvas{width:100%;height:400px;display:block}
       <div id="a15" class="arrow wait">→</div>
       <div id="m15" class="value wait">WAIT</div>
     </div>
-    <div class="tf">
-      <div>1H</div>
-      <div id="a1h" class="arrow wait">→</div>
-      <div id="h1" class="value wait">WAIT</div>
-    </div>
-  </div>
+     <div class="tf">
+  <div>1H</div>
+  <div id="a1h" class="arrow wait">→</div>
+  <div id="h1" class="value wait">WAIT</div>
+</div>
 
-  <div class="card">
-    <div class="title">💡 Why?</div>
-    <ul id="whyList" class="list">
-      <li>Waiting for data.</li>
-    </ul>
-  </div>
+<div class="tf">
+  <div>4H</div>
+  <div id="a4h" class="arrow wait">→</div>
+  <div id="h4" class="value wait">WAIT</div>
+</div>
 
-  <div class="card">
+</div>
+
+<div class="card">
+  <div class="title">💡 Why?</div>
+  <ul id="whyList" class="list">
+    <li>Waiting for data.</li>
+  </ul>
+</div>
+
+<div class="card">
     <div class="title">🎯 Key Levels</div>
     <div class="row"><span>Resistance</span><strong id="resistance" class="bad">—</strong></div>
     <div class="row"><span>Support</span><strong id="support" class="good">—</strong></div>
