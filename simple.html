@@ -904,6 +904,7 @@ async function askAI(question){
   try{
     const b15=aggregate(bars,15);
     const b60=aggregate(bars,60);
+    const b240=aggregate(bars,240);
 
     const payload={
       question,
@@ -911,8 +912,11 @@ async function askAI(question){
         indicators:{
           m5:indicators(bars),
           m15:indicators(b15),
-          h1:indicators(b60)
+          h1:indicators(b60),
+          h4:indicators(b240)
         },
+        ruleBasedSetup:setup,
+        levels:getLevels(),
         bars:bars.slice(-40),
         headlines:newsItems,
         marketSchedule:'UNKNOWN',
