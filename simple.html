@@ -485,11 +485,18 @@ function indicators(b){
     loss+=Math.max(0,-d);
   }
 
-  return{
-    trend:fast>slow?'BULLISH':fast<slow?'BEARISH':'NEUTRAL',
-    rsi:loss===0?100:100-100/(1+gain/loss),
-    hist:mac.at(-1)-sig.at(-1)
-  };
+  const rsi=loss===0
+  ?100
+  :100-100/(1+gain/loss);
+
+return{
+  trend:fast>slow?'BULLISH':fast<slow?'BEARISH':'NEUTRAL',
+  rsi,
+  rsiBias:rsi>50?'ABOVE 50':rsi<50?'BELOW 50':'NEUTRAL',
+  macd:mac.at(-1),
+  signal:sig.at(-1),
+  hist:mac.at(-1)-sig.at(-1)
+};
 }
 
 function atr(b,p=14){
