@@ -1027,6 +1027,139 @@ if(nearestSup){
     line(setup.tp1,'#2fe0a7','TP1');
     line(setup.tp2,'#4e9fff','TP2');
   }
+  drawMACD(data);
+  drawRSI(data);
+  }
+
+  function emaSeries(values,period){
+  if(!values.length)return[];
+
+  const k=2/(period+1);
+  const out=[values[0]];
+
+  for(let i=1;i<values.length;i++){
+    out.push(values[i]*k+out[i-1]*(1-k));
+  }
+
+  return out;
+}
+
+function drawMACD(data){
+  const canvas=$('macdChart');
+  if(!canvas||data.length<2)return;
+
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+
+  canvas.width=rect.width*dpr;
+  canvas.height=rect.height*dpr;
+
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const w=rect.width;
+  const h=rect.height;
+
+  ctx.clearRect(0,0,w,h);
+
+  const closes=data.map(b=>b.c);
+  const fast=emaSeries(closes,12);
+  const slow=emaSeries(closes,26);
+  const macd=fast.map((v,i)=>v-slow[i]);
+  const signal=emaSeries(macd,9);
+
+  const all=[...macd,...signal];
+  const min=Math.min(...all);
+  const max=Math.max(...all);
+  const range=(max-min)||1;
+
+  const X=i=>i/(macd.length-1)*w;
+  const Y=v=>h-(v-min)/range*h;
+
+  function plot(arr,color){
+    ctx.beginPath();
+    ctx.strokeStyle=color;
+    ctx.lineWidth=1.5;
+
+    arr.forEach((v,i)=>{
+      const x=X(i),y=Y(v);
+      if(i===0)ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    });
+
+    ctx.stroke();
+  }
+
+  plot(macd,'#4e9fff');
+  plot(signal,'#ff9f43');
+}
+
+function drawRSI(data){
+  const canvas=$('rsiChart');
+  if(!canvas||data.length<15)return;
+
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+
+  canvas.width=rect.width*dpr;
+  canvas.height=rect.height*dpr;
+
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const w=rect.width;
+  const h=rect.height;
+
+  ctx.clearRect(0,0,w,h);
+
+  const closes=data.map(b=>b.c);
+  const values=[];
+
+  for(let i=14;i<closes.length;i++){
+    let gains=0;
+    let losses=0;
+
+    for(let j=i-13;j<=i;j++){
+      const change=closes[j]-closes[j-1];
+      if(change>0)gains+=change;
+      else losses-=change;
+    }
+
+    const avgGain=gains/14;
+    const avgLoss=losses/14;
+
+    values.push(
+      avgLoss===0 ? 100 :
+      100-(100/(1+(avgGain/avgLoss)))
+    );
+  }
+
+  const X=i=>i/(values.length-1)*w;
+  const Y=v=>h-(v/100)*h;
+
+  ctx.setLineDash([5,5]);
+  ctx.strokeStyle='#52657a';
+
+  [30,70].forEach(level=>{
+    ctx.beginPath();
+    ctx.moveTo(0,Y(level));
+    ctx.lineTo(w,Y(level));
+    ctx.stroke();
+  });
+
+  ctx.setLineDash([]);
+
+  ctx.beginPath();
+  ctx.strokeStyle='#b56cff';
+  ctx.lineWidth=1.5;
+
+  values.forEach((v,i)=>{
+    const x=X(i),y=Y(v);
+    if(i===0)ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  });
+
+  ctx.stroke();
 }
 
 async function loadCandles(){
