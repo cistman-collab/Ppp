@@ -1027,14 +1027,21 @@ const supportHigh=localLevels.support+zoneSize;
     ctx.strokeRect(L,top,(w-R)-L,height);
 
     ctx.fillStyle='#ffffff';
-    ctx.font='bold 12px system-ui';
-    ctx.textAlign='right';
-    ctx.textBaseline='middle';
-    ctx.fillText(
-      title+' '+low.toFixed(2)+' - '+high.toFixed(2),
-      w-R-6,
-      top+height/2
-    );
+ctx.font='bold 12px system-ui';
+ctx.textAlign='center';
+ctx.textBaseline='middle';
+
+ctx.fillText(
+  title,
+  L+((w-R)-L)/2,
+  top+height/2-7
+);
+
+ctx.fillText(
+  low.toFixed(2)+' - '+high.toFixed(2),
+  L+((w-R)-L)/2,
+  top+height/2+7
+);
     ctx.restore();
   }
 
