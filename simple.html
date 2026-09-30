@@ -852,10 +852,14 @@ function updateSetup(){
     ].forEach(id=>$(id).textContent='—');
 
     $('setupWhy').textContent=
-      'The timeframes are not aligned enough for a clear research setup.';
+  aligned
+  ?'Trend is aligned, but RSI/MACD momentum confirmation is not ready.'
+  :'The timeframes are not aligned enough for a clear research setup.';
 
-    $('confirmation').textContent=
-      'Wait for 5m, 15m and 1H to agree more clearly.';
+$('confirmation').textContent=
+  aligned
+  ?'Wait for 5m and 15m MACD momentum plus RSI direction to confirm.'
+  :'Wait for 5m, 15m and 1H to agree more clearly.';
 
     $('invalidateText').textContent=
       'No setup is active.';
