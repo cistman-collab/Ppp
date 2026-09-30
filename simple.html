@@ -620,32 +620,85 @@ function getMajorLevels(){
 }
 
 function makeSetup(i5,i15,i60,i240){
-  if(dataIsStale())return{direction:'WAIT'};
+  if(dataIsStale()){
+    return{
+      direction:'WAIT',
+      waitReason:'Market data is not fresh enough for a current setup.',
+      waitConfirm:'Wait for fresh completed candles.'
+    };
+  }
+
   const b15=aggregate(bars,15);
   const a=atr(b15);
   const px=bars.at(-1).c;
 
-  const shortAligned=
-  i5.trend===i15.trend &&
-  i15.trend===i60.trend;
+  if(i5.trend!==i15.trend){
+    return{
+      direction:'WAIT',
+      waitReason:'5m is '+i5.trend+' while 15m is '+i15.trend+'.',
+      waitConfirm:'Wait for 5m and 15m trend direction to agree.'
+    };
+  }
 
-const higherConflict=
-  i240 &&
-  i240.trend!=='NEUTRAL' &&
-  i240.trend!==i15.trend;
+  if(i15.trend!==i60.trend){
+    return{
+      direction:'WAIT',
+      waitReason:'15m is '+i15.trend+' while 1H is '+i60.trend+'.',
+      waitConfirm:'Wait for 15m and 1H trend direction to agree.'
+    };
+  }
 
-if(!shortAligned || higherConflict)return{direction:'WAIT'};
+  if(
+    i240 &&
+    i240.trend!=='NEUTRAL' &&
+    i240.trend!==i15.trend
+  ){
+    return{
+      direction:'WAIT',
+      waitReason:'4H '+i240.trend+' conflicts with 15m '+i15.trend+'.',
+      waitConfirm:'Wait for the higher timeframe conflict to clear.'
+    };
+  }
+
   const bullishMomentum=
-  i15.rsi>50 &&
-  i15.hist>0 &&
-  i5.hist>0;
+    i15.rsi>50 &&
+    i15.hist>0 &&
+    i5.hist>0;
 
-const bearishMomentum=
-  i15.rsi<50 &&
-  i15.hist<0 &&
-  i5.hist<0;
+  const bearishMomentum=
+    i15.rsi<50 &&
+    i15.hist<0 &&
+    i5.hist<0;
 
-  if(i15.trend==='BULLISH' && bullishMomentum){
+  if(i15.trend==='BULLISH' && !bullishMomentum){
+    const missing=[];
+
+    if(i15.rsi<=50)missing.push('15m RSI is not above 50');
+    if(i15.hist<=0)missing.push('15m MACD momentum is not positive');
+    if(i5.hist<=0)missing.push('5m MACD momentum is not positive');
+
+    return{
+      direction:'WAIT',
+      waitReason:missing.join(' · '),
+      waitConfirm:'Trend is bullish, but momentum confirmation is incomplete.'
+    };
+  }
+
+  if(i15.trend==='BEARISH' && !bearishMomentum){
+    const missing=[];
+
+    if(i15.rsi>=50)missing.push('15m RSI is not below 50');
+    if(i15.hist>=0)missing.push('15m MACD momentum is not negative');
+    if(i5.hist>=0)missing.push('5m MACD momentum is not negative');
+
+    return{
+      direction:'WAIT',
+      waitReason:missing.join(' · '),
+      waitConfirm:'Trend is bearish, but momentum confirmation is incomplete.'
+    };
+  }
+
+  if(i15.trend==='BULLISH'){
     return{
       direction:'LONG',
       entryLow:px-a*.15,
@@ -657,7 +710,7 @@ const bearishMomentum=
     };
   }
 
-  if(i15.trend==='BEARISH' && bearishMomentum){
+  if(i15.trend==='BEARISH'){
     return{
       direction:'SHORT',
       entryLow:px-a*.10,
@@ -669,7 +722,11 @@ const bearishMomentum=
     };
   }
 
-  return{direction:'WAIT'};
+  return{
+    direction:'WAIT',
+    waitReason:'Trend direction is neutral.',
+    waitConfirm:'Wait for a clearer directional trend.'
+  };
 }
 
 function render(){
@@ -852,14 +909,12 @@ function updateSetup(){
     ].forEach(id=>$(id).textContent='—');
 
     $('setupWhy').textContent=
-  aligned
-  ?'Trend is aligned, but RSI/MACD momentum confirmation is not ready.'
-  :'The timeframes are not aligned enough for a clear research setup.';
+  s?.waitReason||
+  'No clear research setup yet.';
 
 $('confirmation').textContent=
-  aligned
-  ?'Wait for 5m and 15m MACD momentum plus RSI direction to confirm.'
-  :'Wait for 5m, 15m and 1H to agree more clearly.';
+  s?.waitConfirm||
+  'Wait for clearer confirmation.';
 
     $('invalidateText').textContent=
       'No setup is active.';
