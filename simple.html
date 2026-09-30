@@ -1520,6 +1520,11 @@ async function askAI(question){
           h4:indicators(b240)
         },
         ruleBasedSetup:setup,
+        waitContext:{
+          reason:setup?.waitReason||null,
+          confirmation:setup?.waitConfirm||null
+        },
+        
         levels:getLevels(),
         majorLevels:getMajorLevels(),
         dataAgeMinutes:Math.round(dataAgeMinutes()),
@@ -1570,6 +1575,11 @@ async function reviewSignalAI(){
           h4:indicators(b240)
         },
         ruleBasedSetup:setup,
+        waitContext:{
+          reason:setup?.waitReason||null,
+          confirmation:setup?.waitConfirm||null
+        },
+        
         levels:getLevels(),
         majorLevels:getMajorLevels(),
         dataAgeMinutes:Math.round(dataAgeMinutes()),
