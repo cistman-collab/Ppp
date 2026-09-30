@@ -635,8 +635,17 @@ const higherConflict=
   i240.trend!==i15.trend;
 
 if(!shortAligned || higherConflict)return{direction:'WAIT'};
+  const bullishMomentum=
+  i15.rsi>50 &&
+  i15.hist>0 &&
+  i5.hist>0;
 
-  if(i15.trend==='BULLISH'){
+const bearishMomentum=
+  i15.rsi<50 &&
+  i15.hist<0 &&
+  i5.hist<0;
+
+  if(i15.trend==='BULLISH' && bullishMomentum){
     return{
       direction:'LONG',
       entryLow:px-a*.15,
@@ -648,7 +657,7 @@ if(!shortAligned || higherConflict)return{direction:'WAIT'};
     };
   }
 
-  if(i15.trend==='BEARISH'){
+  if(i15.trend==='BEARISH' && bearishMomentum){
     return{
       direction:'SHORT',
       entryLow:px-a*.10,
