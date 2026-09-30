@@ -1004,6 +1004,56 @@ if(major){
   if(major){
   const px=data.at(-1).c;
 
+  const localLevels=getLevels();
+const zoneSize=Math.max(0.10,atr(data,14)*0.25);
+
+const resistanceLow=localLevels.resistance-zoneSize;
+const resistanceHigh=localLevels.resistance+zoneSize;
+
+const supportLow=localLevels.support-zoneSize;
+const supportHigh=localLevels.support+zoneSize;
+
+  function zone(low,high,fill,stroke,title){
+    const yTop=Y(high);
+    const yBottom=Y(low);
+    const top=Math.min(yTop,yBottom);
+    const height=Math.max(18,Math.abs(yBottom-yTop));
+
+    ctx.save();
+    ctx.fillStyle=fill;
+    ctx.strokeStyle=stroke;
+    ctx.lineWidth=1.2;
+    ctx.fillRect(L,top,(w-R)-L,height);
+    ctx.strokeRect(L,top,(w-R)-L,height);
+
+    ctx.fillStyle='#ffffff';
+    ctx.font='bold 12px system-ui';
+    ctx.textAlign='right';
+    ctx.textBaseline='middle';
+    ctx.fillText(
+      title+' '+low.toFixed(2)+' - '+high.toFixed(2),
+      w-R-6,
+      top+height/2
+    );
+    ctx.restore();
+  }
+
+  zone(
+    resistanceLow,
+    resistanceHigh,
+    'rgba(255,59,92,0.22)',
+    'rgba(255,95,120,0.85)',
+    'STRONG RESISTANCE ZONE'
+  );
+
+  zone(
+    supportLow,
+    supportHigh,
+    'rgba(46,224,167,0.22)',
+    'rgba(46,224,167,0.85)',
+    'SUPPORT ZONE'
+  );
+
   const candidates=[
     {name:'R1',price:major.r1,type:'res'},
     {name:'R2',price:major.r2,type:'res'},
@@ -1024,12 +1074,12 @@ if(major){
     .sort((a,b)=>b.price-a.price)[0];
 
   if(nearestRes){
-  line(nearestRes.price,'#ff7b84',nearestRes.name);
-}
+    line(nearestRes.price,'#ff7b84',nearestRes.name);
+  }
 
-if(nearestSup){
-  line(nearestSup.price,'#4be0b0',nearestSup.name);
-}
+  if(nearestSup){
+    line(nearestSup.price,'#4be0b0',nearestSup.name);
+  }
 }
 
   if(setup&&setup.direction!=='WAIT'){
