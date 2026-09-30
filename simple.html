@@ -1,4 +1,4 @@
-<!doctype html>
+I<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -920,10 +920,6 @@ function drawChart(){
 
 if(major){
   line(major.pivot,'#ffd15f','PIVOT');
-  line(major.r1,'#ff5964','R1');
-  line(major.s1,'#2fe0a7','S1');
-  line(major.prevDayHigh,'#ff8a8f','PDH');
-  line(major.prevDayLow,'#62e6bd','PDL');
 }
   if(major){
   const px=data.at(-1).c;
@@ -948,12 +944,12 @@ if(major){
     .sort((a,b)=>b.price-a.price)[0];
 
   if(nearestRes){
-    line(nearestRes.price,'#ff7b84','NEAR R');
-  }
+  line(nearestRes.price,'#ff7b84',nearestRes.name);
+}
 
-  if(nearestSup){
-    line(nearestSup.price,'#4be0b0','NEAR S');
-  }
+if(nearestSup){
+  line(nearestSup.price,'#4be0b0',nearestSup.name);
+}
 }
 
   if(setup&&setup.direction!=='WAIT'){
