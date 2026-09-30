@@ -61,6 +61,7 @@ Review:
 - confirmation
 - invalidation
 - headline risk
+Always include NEWS RISK as LOW, MEDIUM or HIGH with a short explanation based only on the supplied headlines. If no meaningful headline risk is present, say LOW and explain briefly.
 
 Also review the bigger-picture majorLevels when supplied:
 - Daily Pivot
@@ -91,6 +92,7 @@ TP1:
 TP2:
 SUPPORT:
 RESISTANCE:
+NEWS RISK:
 WHY:
 CONFIRMATION:
 INVALIDATION:
