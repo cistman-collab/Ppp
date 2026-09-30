@@ -1147,6 +1147,26 @@ drawArrow(
   Y(supportHigh),
   redColor
 );
+  ctx.save();
+
+ctx.font='bold 11px system-ui';
+ctx.textAlign='left';
+
+ctx.fillStyle=greenColor;
+ctx.fillText(
+  'BULLISH SCENARIO',
+  arrowX-10,
+  Y(resistanceLow)-8
+);
+
+ctx.fillStyle=redColor;
+ctx.fillText(
+  'BEARISH SCENARIO',
+  arrowX-10,
+  Y(supportHigh)+18
+);
+
+ctx.restore();
   }
 
   if(setup&&setup.direction!=='WAIT'){
