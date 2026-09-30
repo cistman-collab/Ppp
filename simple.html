@@ -812,6 +812,7 @@ function updateSetup(){
 }
 
 function drawChart(){
+  drawChart.lastLabelY=-999;
   if(!bars.length)return;
 
   const canvas=$('chart');
@@ -877,17 +878,17 @@ function drawChart(){
     ctx.stroke();
 
     const top=Math.min(Y(b.o),Y(b.c));
-    const bottom=Math.max(Y(b.o),Y(b.c));
+const bottom=Math.max(Y(b.o),Y(b.c));
 
-    ctx.fillRect(
-      x-body/2,
-      top,
-      body,
-      Math.max(2,bottom-top)
-    );
-  });
+ctx.fillRect(
+  x-body/2,
+  top,
+  body,
+  Math.max(2,bottom-top)
+);
+});
 
-  function line(price,color,label){
+function line(price,color,label){
     if(!Number.isFinite(price))return;
 
     const y=Y(price);
@@ -907,11 +908,20 @@ function drawChart(){
     ctx.fillStyle=color;
     ctx.font='11px system-ui';
 
-    ctx.fillText(
-      label+' '+price.toFixed(2),
-      w-R+3,
-      y+4
-    );
+    const lastY=drawChart.lastLabelY??-999;
+let labelY=y+4;
+
+if(Math.abs(labelY-lastY)<16){
+  labelY=lastY+16;
+}
+
+drawChart.lastLabelY=labelY;
+
+ctx.fillText(
+  label+' '+price.toFixed(2),
+  w-R+3,
+  labelY
+);
   }
 
   line(data.at(-1).c,'#4e9fff','NOW');
