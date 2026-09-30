@@ -230,7 +230,20 @@ canvas{width:100%;height:400px;display:block}
     <div class="row"><span>Invalidation</span><strong id="invalidation" class="wait">—</strong></div>
     <button class="primary" onclick="showPage('signals')">View Trade Setup</button>
   </div>
+  <div class="card">
+  <div class="title">🧭 Major Levels</div>
 
+  <div class="row"><span>Daily Pivot</span><strong id="dailyPivot" class="wait">—</strong></div>
+  <div class="row"><span>R1</span><strong id="majorR1" class="bad">—</strong></div>
+  <div class="row"><span>R2</span><strong id="majorR2" class="bad">—</strong></div>
+  <div class="row"><span>S1</span><strong id="majorS1" class="good">—</strong></div>
+  <div class="row"><span>S2</span><strong id="majorS2" class="good">—</strong></div>
+
+  <div class="row"><span>Prev Day High</span><strong id="prevDayHigh">—</strong></div>
+  <div class="row"><span>Prev Day Low</span><strong id="prevDayLow">—</strong></div>
+  <div class="row"><span>Prev Week High</span><strong id="prevWeekHigh">—</strong></div>
+  <div class="row"><span>Prev Week Low</span><strong id="prevWeekLow">—</strong></div>
+</div>
   <div class="notice">
     Research only. Current feed is unofficial Yahoo CL=F and may be delayed or differ from TradingView CL1!.
   </div>
@@ -615,6 +628,8 @@ setTF('h1','a1h',i60.trend);
 setTF('h4','a4h',i240.trend);
 
   const l=getLevels();
+  const major=getMajorLevels();
+
   const prev=bars.at(-2)?.c??l.price;
   const diff=l.price-prev;
 
@@ -711,6 +726,20 @@ const aligned=
   $('support').textContent=l.support.toFixed(2);
   $('nextTarget').textContent=setup.direction==='WAIT'?'—':fmt(setup.tp1);
   $('invalidation').textContent=setup.direction==='WAIT'?'—':fmt(setup.stop);
+
+  if(major){
+  $('dailyPivot').textContent=fmt(major.pivot);
+  $('majorR1').textContent=fmt(major.r1);
+  $('majorR2').textContent=fmt(major.r2);
+  $('majorS1').textContent=fmt(major.s1);
+  $('majorS2').textContent=fmt(major.s2);
+
+  $('prevDayHigh').textContent=fmt(major.prevDayHigh);
+  $('prevDayLow').textContent=fmt(major.prevDayLow);
+  $('prevWeekHigh').textContent=fmt(major.prevWeekHigh);
+  $('prevWeekLow').textContent=fmt(major.prevWeekLow);
+}
+  
 
   updateSetup();
   drawChart();
