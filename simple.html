@@ -915,6 +915,16 @@ function drawChart(){
   }
 
   line(data.at(-1).c,'#4e9fff','NOW');
+  
+  const major=getMajorLevels();
+
+if(major){
+  line(major.pivot,'#ffd15f','PIVOT');
+  line(major.r1,'#ff5964','R1');
+  line(major.s1,'#2fe0a7','S1');
+  line(major.prevDayHigh,'#ff8a8f','PDH');
+  line(major.prevDayLow,'#62e6bd','PDL');
+}
 
   if(setup&&setup.direction!=='WAIT'){
     line((setup.entryLow+setup.entryHigh)/2,'#ffd15f','ENTRY');
