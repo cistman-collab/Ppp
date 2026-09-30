@@ -925,6 +925,36 @@ if(major){
   line(major.prevDayHigh,'#ff8a8f','PDH');
   line(major.prevDayLow,'#62e6bd','PDL');
 }
+  if(major){
+  const px=data.at(-1).c;
+
+  const candidates=[
+    {name:'R1',price:major.r1,type:'res'},
+    {name:'R2',price:major.r2,type:'res'},
+    {name:'PDH',price:major.prevDayHigh,type:'res'},
+    {name:'PWH',price:major.prevWeekHigh,type:'res'},
+    {name:'S1',price:major.s1,type:'sup'},
+    {name:'S2',price:major.s2,type:'sup'},
+    {name:'PDL',price:major.prevDayLow,type:'sup'},
+    {name:'PWL',price:major.prevWeekLow,type:'sup'}
+  ].filter(x=>Number.isFinite(x.price));
+
+  const nearestRes=candidates
+    .filter(x=>x.type==='res' && x.price>px)
+    .sort((a,b)=>a.price-b.price)[0];
+
+  const nearestSup=candidates
+    .filter(x=>x.type==='sup' && x.price<px)
+    .sort((a,b)=>b.price-a.price)[0];
+
+  if(nearestRes){
+    line(nearestRes.price,'#ff7b84','NEAR R');
+  }
+
+  if(nearestSup){
+    line(nearestSup.price,'#4be0b0','NEAR S');
+  }
+}
 
   if(setup&&setup.direction!=='WAIT'){
     line((setup.entryLow+setup.entryHigh)/2,'#ffd15f','ENTRY');
