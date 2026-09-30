@@ -489,14 +489,66 @@ function setTF(textId,arrowId,v){
   $(arrowId).textContent=trendArrow(v);
   $(arrowId).className='arrow '+trendClass(v);
 }
-
-function getLevels(){
+  function getLevels(){
   const r=bars.slice(-30);
 
   return{
     resistance:Math.max(...r.map(x=>x.h)),
     support:Math.min(...r.map(x=>x.l)),
     price:bars.at(-1).c
+  };
+}
+
+function getMajorLevels(){
+  if(!bars.length)return null;
+
+  const day=24*60*M;
+  const week=7*day;
+
+  function groupByPeriod(size){
+    const groups=[];
+
+    for(const b of bars){
+      const t=Math.floor(b.t/size)*size;
+      let g=groups.at(-1);
+
+      if(!g||g.t!==t){
+        g={t,o:b.o,h:b.h,l:b.l,c:b.c};
+        groups.push(g);
+      }else{
+        g.h=Math.max(g.h,b.h);
+        g.l=Math.min(g.l,b.l);
+        g.c=b.c;
+      }
+    }
+
+    return groups;
+  }
+
+  const days=groupByPeriod(day);
+  const weeks=groupByPeriod(week);
+
+  const prevDay=days.at(-2);
+  const prevWeek=weeks.at(-2);
+
+  if(!prevDay)return null;
+
+  const pivot=(prevDay.h+prevDay.l+prevDay.c)/3;
+  const r1=2*pivot-prevDay.l;
+  const s1=2*pivot-prevDay.h;
+  const r2=pivot+(prevDay.h-prevDay.l);
+  const s2=pivot-(prevDay.h-prevDay.l);
+
+  return{
+    pivot,
+    r1,
+    r2,
+    s1,
+    s2,
+    prevDayHigh:prevDay.h,
+    prevDayLow:prevDay.l,
+    prevWeekHigh:prevWeek?.h,
+    prevWeekLow:prevWeek?.l
   };
 }
 
