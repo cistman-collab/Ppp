@@ -1120,12 +1120,24 @@ ctx.fillText(
 
 const arrowX=(w-R)-70;
 
+const dir=setup?.direction||'WAIT';
+
+const greenColor=
+  dir==='LONG'
+  ?'#2fe0a7'
+  :'rgba(47,224,167,0.45)';
+
+const redColor=
+  dir==='SHORT'
+  ?'#ff5964'
+  :'rgba(255,89,100,0.45)';
+
 drawArrow(
   arrowX,
   Y(px),
   arrowX+45,
   Y(resistanceLow),
-  '#2fe0a7'
+  greenColor
 );
 
 drawArrow(
@@ -1133,7 +1145,7 @@ drawArrow(
   Y(px),
   arrowX+45,
   Y(supportHigh),
-  '#ff5964'
+  redColor
 );
   }
 
