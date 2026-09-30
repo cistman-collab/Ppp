@@ -1087,7 +1087,55 @@ ctx.fillText(
   if(nearestSup){
     line(nearestSup.price,'#4be0b0',nearestSup.name);
   }
+
+    function drawArrow(x1,y1,x2,y2,color){
+  const head=10;
+  const angle=Math.atan2(y2-y1,x2-x1);
+
+  ctx.save();
+  ctx.strokeStyle=color;
+  ctx.fillStyle=color;
+  ctx.lineWidth=4;
+
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(
+    x2-head*Math.cos(angle-Math.PI/6),
+    y2-head*Math.sin(angle-Math.PI/6)
+  );
+  ctx.lineTo(
+    x2-head*Math.cos(angle+Math.PI/6),
+    y2-head*Math.sin(angle+Math.PI/6)
+  );
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
 }
+
+const arrowX=(w-R)-70;
+
+drawArrow(
+  arrowX,
+  Y(px),
+  arrowX+45,
+  Y(resistanceLow),
+  '#2fe0a7'
+);
+
+drawArrow(
+  arrowX,
+  Y(px),
+  arrowX+45,
+  Y(supportHigh),
+  '#ff5964'
+);
+  }
 
   if(setup&&setup.direction!=='WAIT'){
     line((setup.entryLow+setup.entryHigh)/2,'#ffd15f','ENTRY');
