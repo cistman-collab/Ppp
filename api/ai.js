@@ -18,6 +18,7 @@ module.exports = async (req, res) => {
       ruleBasedSetup: market.ruleBasedSetup || { direction: 'WAIT' },
       levels: market.levels || {},
       majorLevels: market.majorLevels || {},
+      dataAgeMinutes: Number(market.dataAgeMinutes),
       recentCompleted5mBars: Array.isArray(market.bars) ? market.bars.slice(-80).map(b => ({t:b.t,o:b.o,h:b.h,l:b.l,c:b.c})) : [],
       headlines: Array.isArray(market.headlines) ? market.headlines.slice(0, 8).map(n => ({title:String(n.title||'').slice(0,160),published:String(n.published||'').slice(0,60)})) : [],
       newsFetchedAt: String(market.newsFetchedAt || 'unknown').slice(0, 40)
@@ -46,6 +47,8 @@ Do not invent new numeric entry, stop or target prices.
 If ruleBasedSetup provides entryLow, entryHigh, stop, tp1 and tp2, you may repeat and analyse those exact values.
 
 If the setup direction is WAIT or levels are missing, say there is no clear setup and do not fabricate prices.
+
+If dataAgeMinutes is greater than 15, AI REVIEW must be WAIT and clearly state that the candle data is stale.
 
 Review:
 - direction
