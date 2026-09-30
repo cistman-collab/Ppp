@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
       indicators: market.indicators || {},
       ruleBasedSetup: market.ruleBasedSetup || { direction: 'WAIT' },
       levels: market.levels || {},
+      majorLevels: market.majorLevels || {},
       recentCompleted5mBars: Array.isArray(market.bars) ? market.bars.slice(-80).map(b => ({t:b.t,o:b.o,h:b.h,l:b.l,c:b.c})) : [],
       headlines: Array.isArray(market.headlines) ? market.headlines.slice(0, 8).map(n => ({title:String(n.title||'').slice(0,160),published:String(n.published||'').slice(0,60)})) : [],
       newsFetchedAt: String(market.newsFetchedAt || 'unknown').slice(0, 40)
@@ -57,6 +58,24 @@ Review:
 - confirmation
 - invalidation
 - headline risk
+
+Also review the bigger-picture majorLevels when supplied:
+- Daily Pivot
+- R1 and R2
+- S1 and S2
+- Previous Day High and Low
+- Previous Week High and Low
+
+Use majorLevels as context, not as an automatic trade trigger.
+
+If a LONG setup is running directly into nearby R1/R2, previous-day high, previous-week high, or other major resistance, prefer WAIT or REJECT unless the supplied price structure clearly supports continuation.
+
+If a SHORT setup is running directly into nearby S1/S2, previous-day low, previous-week low, or other major support, prefer WAIT or REJECT unless the supplied price structure clearly supports continuation.
+
+If the short-term setup and the bigger-picture levels agree, that may support VALIDATE.
+
+Never invent a major level. Only use the supplied majorLevels values.
+
 
 Use this output format:
 
