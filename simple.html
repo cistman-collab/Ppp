@@ -1078,6 +1078,10 @@ function drawMACD(data){
   const slow=emaSeries(closes,26);
   const macd=fast.map((v,i)=>v-slow[i]);
   const signal=emaSeries(macd,9);
+  
+  $('macdValue').textContent=
+  macd.at(-1).toFixed(3)+' / '+signal.at(-1).toFixed(3);
+  
 
   const hist=macd.map((v,i)=>v-signal[i]);
   const all=[...macd,...signal,...hist,0];
@@ -1162,7 +1166,10 @@ function drawRSI(data){
       100-(100/(1+(avgGain/avgLoss)))
     );
   }
-
+ 
+  $('rsiValue').textContent=
+  values.at(-1).toFixed(1);
+  
   const X=i=>i/(values.length-1)*w;
   const Y=v=>h-(v/100)*h;
 
