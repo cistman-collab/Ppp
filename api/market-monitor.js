@@ -159,6 +159,72 @@ function makeSetupPrices(direction,b15,bars){
 
   return null;
 }
+ 
+function getLevels(bars){
+  const recent=bars.slice(-30);
+
+  return{
+    resistance:
+      Math.max(
+        ...recent.map(x=>x.h)
+      ),
+
+    support:
+      Math.min(
+        ...recent.map(x=>x.l)
+      ),
+
+    price:
+      bars.at(-1).c
+  };
+}
+
+function makeLevelSetup(bars,b15,i5,i15){
+  const levels=getLevels(bars);
+  const a=atr(b15);
+  const zoneSize=Math.max(0.10,a*.25);
+  const px=levels.price;
+
+  const nearSupport=
+    px<=levels.support+zoneSize;
+
+  const nearResistance=
+    px>=levels.resistance-zoneSize;
+
+  if(
+    nearSupport &&
+    i15.trend==='BULLISH' &&
+    i5.hist>0
+  ){
+    return{
+      type:'SUPPORT RETEST',
+      direction:'LONG',
+      entryLow:levels.support,
+      entryHigh:levels.support+zoneSize,
+      stop:levels.support-a*.5,
+      tp1:px+a,
+      tp2:px+a*2
+    };
+  }
+
+  if(
+    nearResistance &&
+    i15.trend==='BEARISH' &&
+    i5.hist<0
+  ){
+    return{
+      type:'RESISTANCE REJECTION',
+      direction:'SHORT',
+      entryLow:levels.resistance-zoneSize,
+      entryHigh:levels.resistance,
+      stop:levels.resistance+a*.5,
+      tp1:px-a,
+      tp2:px-a*2
+    };
+  }
+
+  return null;
+}
 function makeDirection(
   bars,
   i5,
@@ -384,13 +450,25 @@ export default async function handler(
         i60,
         i240
       );
+   
+    const levelSetup=
+  makeLevelSetup(
+    bars,
+    b15,
+    i5,
+    i15
+  );
+   
+    const activeDirection=
+  levelSetup?.direction||current;
     
     const prices=
-      makeSetupPrices(
-        current,
-        b15,
-        bars
-       );
+  levelSetup||
+  makeSetupPrices(
+    activeDirection,
+    b15,
+    bars
+  );
 
     const previous=
       await readBlob(
@@ -403,7 +481,7 @@ export default async function handler(
     await saveBlob(
       'push/monitor-state.json',
       {
-        direction:current,
+        direction:activeDirection,
         checkedAt:
           new Date()
             .toISOString()
@@ -412,13 +490,13 @@ export default async function handler(
 
     if(
       oldDirection===null ||
-      oldDirection===current
+      oldDirection===activeDirection
     ){
       return res
         .status(200)
         .json({
           ok:true,
-          direction:current,
+          direction:activeDirection,
           prices,
           changed:false
         });
@@ -434,7 +512,7 @@ export default async function handler(
         .status(200)
         .json({
           ok:true,
-          direction:current,
+          direction:activeDirection,
           changed:true,
           push:false
         });
@@ -448,7 +526,7 @@ export default async function handler(
 
     let body='';
 
-    if(current==='LONG'){
+    if(activeDirection==='LONG'){
   body=
     'LONG research setup · Entry '+
     prices.entryLow.toFixed(2)+'–'+
@@ -458,7 +536,7 @@ export default async function handler(
     ' · TP2 '+prices.tp2.toFixed(2);
 }
 
-else if(current==='SHORT'){
+else if(activeDirection==='SHORT'){
   body=
     'SHORT research setup · Entry '+
     prices.entryLow.toFixed(2)+'–'+
@@ -492,7 +570,8 @@ else if(current==='SHORT'){
         previous:
           oldDirection,
         direction:
-          current,
+          activeDirection,
+          prices,
         changed:true,
         push:true
       });
