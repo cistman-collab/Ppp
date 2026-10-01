@@ -459,6 +459,9 @@ export default async function handler(
     i15
   );
    
+    const levels=
+  getLevels(bars);
+   
     const activeDirection=
   levelSetup?.direction||current;
     
@@ -498,6 +501,7 @@ export default async function handler(
           ok:true,
           direction:activeDirection,
           prices,
+          levels,
           changed:false
         });
     }
@@ -513,6 +517,7 @@ export default async function handler(
         .json({
           ok:true,
           direction:activeDirection,
+          levels,
           changed:true,
           push:false
         });
@@ -572,6 +577,7 @@ else if(activeDirection==='SHORT'){
         direction:
           activeDirection,
           prices,
+          levels,
         changed:true,
         push:true
       });
