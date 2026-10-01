@@ -19,11 +19,4 @@
         }
       ]
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/market-monitor",
-      "schedule": "*/5 * * * *"
-    }
   ]
-}
