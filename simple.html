@@ -436,6 +436,65 @@ let currentTF=15;
 let setup=null;
 let newsItems=[];
 
+let previousSetupDirection=null;
+let lastAlertTime=0;
+
+function sendWTIAlert(title,message){
+  const now=Date.now();
+
+  // Prevent duplicate alerts too close together
+  if(now-lastAlertTime<60000)return;
+
+  lastAlertTime=now;
+
+  if(
+    'Notification' in window &&
+    Notification.permission==='granted'
+  ){
+    new Notification(title,{
+      body:message,
+      icon:'/favicon.ico'
+    });
+  }
+}
+
+  function checkSetupAlert(){
+  const current=setup?.direction||'WAIT';
+
+  // First load: remember state, don't alert
+  if(previousSetupDirection===null){
+    previousSetupDirection=current;
+    return;
+  }
+
+  if(current===previousSetupDirection)return;
+
+  const old=previousSetupDirection;
+  previousSetupDirection=current;
+
+  if(current==='LONG'){
+    sendWTIAlert(
+      'WTI Pro · Setup change',
+      'Potential LONG research setup appeared. Open WTI Pro to review confirmation.'
+    );
+  }
+
+  else if(current==='SHORT'){
+    sendWTIAlert(
+      'WTI Pro · Setup change',
+      'Potential SHORT research setup appeared. Open WTI Pro to review confirmation.'
+    );
+  }
+
+  else if(current==='WAIT'){
+    sendWTIAlert(
+      'WTI Pro · Setup changed',
+      'Previous '+old+' setup is no longer active. Current status: WAIT.'
+    );
+  }
+}
+
+
 function ema(a,p){
   if(!a.length)return[];
   const k=2/(p+1);
@@ -1441,6 +1500,7 @@ async function loadCandles(){
       .sort((a,b)=>a.t-b.t);
 
     render();
+    checkSetupAlert();
 
   }catch(e){
     $('overall').textContent='DATA ERROR';
