@@ -195,6 +195,19 @@ distanceToSupport:
   
   }
 
+function getLevelZones(bars,b15){
+  const levels=getLevels(bars);
+  const a=atr(b15);
+  const zoneSize=Math.max(0.10,a*.25);
+
+  return{
+    supportZoneLow:levels.support,
+    supportZoneHigh:levels.support+zoneSize,
+    resistanceZoneLow:levels.resistance-zoneSize,
+    resistanceZoneHigh:levels.resistance
+  };
+}
+
 function makeLevelSetup(bars,b15,i5,i15){
   const levels=getLevels(bars);
   const a=atr(b15);
@@ -477,6 +490,12 @@ export default async function handler(
    
     const levels=
   getLevels(bars);
+
+    const levelZones=
+  getLevelZones(
+    bars,
+    b15
+  );
    
     const activeDirection=
   levelSetup?.direction||current;
@@ -518,6 +537,7 @@ export default async function handler(
           direction:activeDirection,
           prices,
           levels,
+          levelZones,
           changed:false
         });
     }
@@ -534,6 +554,7 @@ export default async function handler(
           ok:true,
           direction:activeDirection,
           levels,
+          levelZones,
           changed:true,
           push:false
         });
@@ -594,6 +615,7 @@ else if(activeDirection==='SHORT'){
           activeDirection,
           prices,
           levels,
+        levelZones,
         changed:true,
         push:true
       });
