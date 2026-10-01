@@ -175,9 +175,25 @@ function getLevels(bars){
       ),
 
     price:
-      bars.at(-1).c
+  bars.at(-1).c,
+
+distanceToResistance:
+  Math.max(
+    0,
+    Math.max(...recent.map(x=>x.h))-
+    bars.at(-1).c
+  ),
+
+distanceToSupport:
+  Math.max(
+    0,
+    bars.at(-1).c-
+    Math.min(...recent.map(x=>x.l))
+  )
+    
   };
-}
+  
+  }
 
 function makeLevelSetup(bars,b15,i5,i15){
   const levels=getLevels(bars);
