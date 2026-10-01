@@ -220,7 +220,7 @@ function makeLevelSetup(bars,b15,i5,i15){
   const nearResistance=
     px>=levels.resistance-zoneSize;
 
-  if(
+    if(
     nearSupport &&
     i15.trend==='BULLISH' &&
     i5.hist>0
@@ -496,6 +496,12 @@ export default async function handler(
     bars,
     b15
   );
+
+    const nearestZone=
+  levels.distanceToResistance<
+  levels.distanceToSupport
+  ?'RESISTANCE'
+  :'SUPPORT';
    
     const activeDirection=
   levelSetup?.direction||current;
@@ -538,6 +544,7 @@ export default async function handler(
           prices,
           levels,
           levelZones,
+          nearestZone,
           changed:false
         });
     }
@@ -555,6 +562,7 @@ export default async function handler(
           direction:activeDirection,
           levels,
           levelZones,
+          nearestZone,
           changed:true,
           push:false
         });
@@ -616,6 +624,7 @@ else if(activeDirection==='SHORT'){
           prices,
           levels,
         levelZones,
+        nearestZone,
         changed:true,
         push:true
       });
