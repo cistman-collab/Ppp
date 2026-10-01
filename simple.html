@@ -1,4 +1,4 @@
-no I<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -489,24 +489,36 @@ let newsItems=[];
 let previousSetupDirection=null;
 let lastAlertTime=0;
 
-function sendWTIAlert(title,message){
+async function sendWTIAlert(title,message){
   const now=Date.now();
 
-  // Prevent duplicate alerts too close together
   if(now-lastAlertTime<60000)return;
 
   lastAlertTime=now;
 
   if(
-    'Notification' in window &&
-    Notification.permission==='granted'
-  ){
-    new Notification(title,{
+    !('Notification' in window) ||
+    Notification.permission!=='granted'
+  )return;
+
+  try{
+    const registration=
+      await navigator.serviceWorker.ready;
+
+    await registration.showNotification(title,{
       body:message,
-      icon:'/favicon.ico'
+      icon:'/icon.svg',
+      badge:'/icon.svg',
+      data:{
+        url:'/simple.html'
+      }
     });
+
+  }catch(e){
+    console.log('WTI alert failed:',e);
   }
 }
+  
 
   function checkSetupAlert(){
   const current=setup?.direction||'WAIT';
