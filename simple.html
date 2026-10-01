@@ -404,6 +404,7 @@ canvas{width:100%;height:400px;display:block}
 
   <div class="card">
     <div class="title">Ask AI</div>
+
     <div class="aiGrid">
       <button class="aiBtn" onclick="askAI('Explain the current WTI market simply.')">📈 Explain market</button>
       <button class="aiBtn" onclick="askAI('Explain the current research setup simply.')">🎯 Explain setup</button>
@@ -413,6 +414,25 @@ canvas{width:100%;height:400px;display:block}
 
     <div id="aiAnswer" class="aiAnswer">
       Choose a question above.
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="title">Alerts</div>
+
+    <button
+      class="primary"
+      onclick="enableAlerts()"
+    >
+      🔔 Enable WTI Alerts
+    </button>
+
+    <div
+      id="alertStatus"
+      class="notice"
+      style="margin-top:10px"
+    >
+      Alerts not enabled yet.
     </div>
   </div>
 </section>
@@ -430,6 +450,36 @@ canvas{width:100%;height:400px;display:block}
 <script>
 const $=id=>document.getElementById(id);
 const M=60000;
+
+async function enableAlerts(){
+  const status=$('alertStatus');
+
+  if(!('Notification' in window)){
+    status.textContent=
+      'Notifications are not supported in this browser.';
+    return;
+  }
+
+  try{
+    const permission=
+      await Notification.requestPermission();
+
+    if(permission==='granted'){
+      status.textContent=
+        '✅ Alerts enabled.';
+    }else if(permission==='denied'){
+      status.textContent=
+        '❌ Alerts blocked. Enable notifications in iPhone settings.';
+    }else{
+      status.textContent=
+        'Alerts permission was not enabled.';
+    }
+  }catch(e){
+    status.textContent=
+      'Could not enable alerts: '+e.message;
+  }
+}
+
 
 let bars=[];
 let currentTF=15;
