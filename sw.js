@@ -1,39 +1,41 @@
-const CACHE='wti-v4-shell-2';
+const CACHE='wti-v5-shell-1';
 
-self.addEventListener('install',e=>{
-  e.waitUntil(
-    caches.open(CACHE).then(c=>
-      c.addAll([
+self.addEventListener('install',event=>{
+  self.skipWaiting();
+
+  event.waitUntil(
+    caches.open(CACHE).then(cache=>
+      cache.addAll([
         '/',
+        '/simple.html',
         '/manifest.webmanifest',
         '/icon.svg'
       ])
     )
   );
-
-  self.skipWaiting();
 });
 
-self.addEventListener('activate',e=>{
-  e.waitUntil(
-    caches.keys().then(ks=>
-      Promise.all(
-        ks
-          .filter(k=>k!==CACHE)
-          .map(k=>caches.delete(k))
-      )
-    )
+self.addEventListener('activate',event=>{
+  event.waitUntil(
+    Promise.all([
+      caches.keys().then(keys=>
+        Promise.all(
+          keys
+            .filter(key=>key!==CACHE)
+            .map(key=>caches.delete(key))
+        )
+      ),
+      self.clients.claim()
+    ])
   );
-
-  self.clients.claim();
 });
 
-self.addEventListener('fetch',e=>{
-  if(e.request.url.includes('/api/'))return;
+self.addEventListener('fetch',event=>{
+  if(event.request.url.includes('/api/'))return;
 
-  e.respondWith(
-    fetch(e.request)
-      .catch(()=>caches.match(e.request))
+  event.respondWith(
+    fetch(event.request)
+      .catch(()=>caches.match(event.request))
   );
 });
 
@@ -46,10 +48,9 @@ self.addEventListener('push',event=>{
       :{};
   }catch(e){
     data={
-      title:'WTI Pro Alert',
       body:event.data
         ?event.data.text()
-        :'WTI market conditions changed.'
+        :'WTI Pro market update'
     };
   }
 
@@ -60,7 +61,7 @@ self.addEventListener('push',event=>{
   const options={
     body:
       data.body||
-      'WTI market conditions changed.',
+      'Market conditions changed. Open WTI Pro to review.',
     icon:'/icon.svg',
     badge:'/icon.svg',
     data:{
@@ -81,7 +82,7 @@ self.addEventListener('push',event=>{
 self.addEventListener('notificationclick',event=>{
   event.notification.close();
 
-  const target=
+  const url=
     event.notification.data?.url||
     '/simple.html';
 
@@ -92,14 +93,12 @@ self.addEventListener('notificationclick',event=>{
     }).then(list=>{
       for(const client of list){
         if('focus' in client){
-          client.navigate(target);
+          client.navigate(url);
           return client.focus();
         }
       }
 
-      if(clients.openWindow){
-        return clients.openWindow(target);
-      }
+      return clients.openWindow(url);
     })
   );
 });
