@@ -107,7 +107,58 @@ function indicators(b){
       mac.at(-1)-sig.at(-1)
   };
 }
+function atr(b,p=14){
+  if(b.length<p+1)return .5;
 
+  const vals=[];
+
+  for(let i=1;i<b.length;i++){
+    const x=b[i];
+    const prev=b[i-1];
+
+    vals.push(
+      Math.max(
+        x.h-x.l,
+        Math.abs(x.h-prev.c),
+        Math.abs(x.l-prev.c)
+      )
+    );
+  }
+
+  return vals
+    .slice(-p)
+    .reduce((a,b)=>a+b,0)/p;
+}
+function makeSetupPrices(direction,b15,bars){
+  if(direction==='WAIT'){
+    return null;
+  }
+
+  const a=atr(b15);
+  const px=bars.at(-1).c;
+
+  if(direction==='LONG'){
+    return{
+      entryLow:px-a*.15,
+      entryHigh:px+a*.10,
+      stop:px-a,
+      tp1:px+a,
+      tp2:px+a*2
+    };
+  }
+
+  if(direction==='SHORT'){
+    return{
+      entryLow:px-a*.10,
+      entryHigh:px+a*.15,
+      stop:px+a,
+      tp1:px-a,
+      tp2:px-a*2
+    };
+  }
+
+  return null;
+}
 function makeDirection(
   bars,
   i5,
@@ -333,6 +384,13 @@ export default async function handler(
         i60,
         i240
       );
+    
+    const prices=
+      makeSetupPrices(
+        current,
+        b15,
+        bars
+       );
 
     const previous=
       await readBlob(
@@ -361,6 +419,7 @@ export default async function handler(
         .json({
           ok:true,
           direction:current,
+          prices,
           changed:false
         });
     }
@@ -390,14 +449,24 @@ export default async function handler(
     let body='';
 
     if(current==='LONG'){
-      body=
-        'Potential LONG research setup appeared. Open WTI Pro to review confirmation.';
-    }
+  body=
+    'LONG research setup · Entry '+
+    prices.entryLow.toFixed(2)+'–'+
+    prices.entryHigh.toFixed(2)+
+    ' · Stop '+prices.stop.toFixed(2)+
+    ' · TP1 '+prices.tp1.toFixed(2)+
+    ' · TP2 '+prices.tp2.toFixed(2);
+}
 
-    else if(current==='SHORT'){
-      body=
-        'Potential SHORT research setup appeared. Open WTI Pro to review confirmation.';
-    }
+else if(current==='SHORT'){
+  body=
+    'SHORT research setup · Entry '+
+    prices.entryLow.toFixed(2)+'–'+
+    prices.entryHigh.toFixed(2)+
+    ' · Stop '+prices.stop.toFixed(2)+
+    ' · TP1 '+prices.tp1.toFixed(2)+
+    ' · TP2 '+prices.tp2.toFixed(2);
+}
 
     else{
       body=
