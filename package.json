@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@vercel/blob": "^2.0.0",
+    "@vercel/blob": "^2.3.0",
     "web-push": "^3.6.7"
   }
 }
