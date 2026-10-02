@@ -573,7 +573,19 @@ export default async function handler(
         'Not enough candle data'
       );
     }
-
+   
+    const confirmation={
+  fiveMinTrend:i5.trend,
+  fiveMinHist:i5.hist,
+  fifteenMinTrend:i15.trend,
+  fifteenMinHist:i15.hist,
+  latestCandle:
+    bars.at(-1).c>bars.at(-1).o
+    ?'BULLISH'
+    :bars.at(-1).c<bars.at(-1).o
+    ?'BEARISH'
+    :'FLAT'
+};
     const current=
       makeDirection(
         bars,
@@ -667,6 +679,7 @@ export default async function handler(
           nearestZone,
           zoneStatus,
           setupType,
+          confirmation,
           changed:false
         });
     }
@@ -687,6 +700,7 @@ export default async function handler(
           nearestZone,
           zoneStatus,
           setupType,
+          confirmation,
           changed:true,
           push:false
         });
@@ -751,6 +765,7 @@ else if(activeDirection==='SHORT'){
         nearestZone,
         zoneStatus,
         setupType,
+        confirmation,
         changed:true,
         push:true
       });
