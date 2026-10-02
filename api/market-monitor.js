@@ -213,12 +213,48 @@ function makeLevelSetup(bars,b15,i5,i15){
   const a=atr(b15);
   const zoneSize=Math.max(0.10,a*.25);
   const px=levels.price;
+  const prev=bars.at(-2).c;
+  const last=bars.at(-1);
 
   const nearSupport=
     px<=levels.support+zoneSize;
 
   const nearResistance=
     px>=levels.resistance-zoneSize;
+    
+  const bullishBreakout=
+  prev<=levels.resistance &&
+  last.c>levels.resistance &&
+  i5.hist>0;
+
+const bearishBreakout=
+  prev>=levels.support &&
+  last.c<levels.support &&
+  i5.hist<0;
+
+   if(bullishBreakout){
+  return{
+    type:'BULLISH BREAKOUT',
+    direction:'LONG',
+    entryLow:levels.resistance,
+    entryHigh:levels.resistance+zoneSize,
+    stop:levels.resistance-a*.5,
+    tp1:px+a,
+    tp2:px+a*2
+  };
+}
+
+if(bearishBreakout){
+  return{
+    type:'BEARISH BREAKOUT',
+    direction:'SHORT',
+    entryLow:levels.support-zoneSize,
+    entryHigh:levels.support,
+    stop:levels.support+a*.5,
+    tp1:px-a,
+    tp2:px-a*2
+  };
+}
 
     if(
     nearSupport &&
@@ -523,6 +559,14 @@ export default async function handler(
     bars
   );
 
+    const setupType=
+  levelSetup?.type||
+  (activeDirection==='LONG'
+    ?'TREND LONG'
+    :activeDirection==='SHORT'
+    ?'TREND SHORT'
+    :'NONE');
+
     const previous=
       await readBlob(
         'push/monitor-state.json'
@@ -555,6 +599,7 @@ export default async function handler(
           levelZones,
           nearestZone,
           zoneStatus,
+          setupType,
           changed:false
         });
     }
@@ -574,6 +619,7 @@ export default async function handler(
           levelZones,
           nearestZone,
           zoneStatus,
+          setupType,
           changed:true,
           push:false
         });
@@ -637,6 +683,7 @@ else if(activeDirection==='SHORT'){
         levelZones,
         nearestZone,
         zoneStatus,
+        setupType,
         changed:true,
         push:true
       });
