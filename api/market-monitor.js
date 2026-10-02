@@ -326,7 +326,7 @@ if(
   i15.trend==='BULLISH' &&
   i5.hist>0 &&
   last.c>prev &&
-  !nearResistance
+  !nearResistance && levels.distanceToResistance>a
 ){
   return{
     type:'BULLISH PULLBACK CONTINUATION',
@@ -343,7 +343,7 @@ if(
   i15.trend==='BEARISH' &&
   i5.hist<0 &&
   last.c<prev &&
-  !nearSupport
+  !nearSupport && levels.distanceToSupport>a
 ){
   return{
     type:'BEARISH PULLBACK CONTINUATION',
