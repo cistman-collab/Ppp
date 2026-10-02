@@ -617,6 +617,15 @@ const levelSetup=
       i15
     )
     :null;
+
+    confirmation.lastCandleClosedAt=
+  new Date(lastCandleClosedAt).toISOString();
+
+confirmation.dataAgeMinutes=
+  Number(dataAgeMinutes.toFixed(2));
+
+confirmation.dataFresh=
+  dataAgeMinutes<=15;
    
     const levels=
   getLevels(bars);
