@@ -599,13 +599,24 @@ export default async function handler(
         i240
       );
    
-    const levelSetup=
-  makeLevelSetup(
-    bars,
-    b15,
-    i5,
-    i15
+    const lastCandleClosedAt=
+  bars.at(-1).t+5*M;
+
+const dataAgeMinutes=
+  Math.max(
+    0,
+    (now-lastCandleClosedAt)/M
   );
+
+const levelSetup=
+  dataAgeMinutes<=15
+    ?makeLevelSetup(
+      bars,
+      b15,
+      i5,
+      i15
+    )
+    :null;
    
     const levels=
   getLevels(bars);
