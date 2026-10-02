@@ -250,6 +250,7 @@ const bearishBreakout=
 if(bearishBreakout){
   return{
     type:'BEARISH BREAKOUT',
+    direction:'SHORT',
     entryLow:breakoutLevels.support-zoneSize,
     entryHigh:breakoutLevels.support,
     stop:breakoutLevels.support+a*.5,
