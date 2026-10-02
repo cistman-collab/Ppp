@@ -540,7 +540,9 @@ export default async function handler(
               b.c
             ].every(Number.isFinite)
             &&
-            b.t+5*M<=now
+           b.t%(5*M)===0
+           &&
+           b.t+5*M<=now
         )
         .slice(-4000);
 
