@@ -737,11 +737,13 @@ else if(activeDirection==='SHORT'){
 }
 
     else{
-      body=
-        'Previous '+
-        oldDirection+
-        ' setup is no longer active. Current status: WAIT.';
-    }
+  body=
+    'WAIT · '+
+    zoneStatus+
+    ' · 5m '+confirmation.fiveMinTrend+
+    ' · 15m '+confirmation.fifteenMinTrend+
+    ' · Candle '+confirmation.latestCandle;
+}
 
     await webpush.sendNotification(
       stored.subscription,
