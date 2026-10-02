@@ -581,6 +581,8 @@ export default async function handler(
   fiveMinHist:i5.hist,
   fifteenMinTrend:i15.trend,
   fifteenMinHist:i15.hist,
+  fiveMinRsi:i5.rsi,
+  fifteenMinRsi:i15.rsi,
   latestCandle:
     bars.at(-1).c>bars.at(-1).o
     ?'BULLISH'
@@ -742,6 +744,8 @@ else if(activeDirection==='SHORT'){
     zoneStatus+
     ' · 5m '+confirmation.fiveMinTrend+
     ' · 15m '+confirmation.fifteenMinTrend+
+    ' · 5m RSI '+confirmation.fiveMinRsi.toFixed(0)+
+    ' · 15m RSI '+confirmation.fifteenMinRsi.toFixed(0)+
     ' · Candle '+confirmation.latestCandle;
 }
 
