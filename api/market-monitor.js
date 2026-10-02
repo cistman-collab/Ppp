@@ -290,7 +290,39 @@ if(bearishBreakout){
       tp2:px-a*2
     };
   }
+  if(
+  i15.trend==='BULLISH' &&
+  i5.hist>0 &&
+  last.c>prev &&
+  !nearResistance
+){
+  return{
+    type:'BULLISH PULLBACK CONTINUATION',
+    direction:'LONG',
+    entryLow:px-a*.15,
+    entryHigh:px+a*.10,
+    stop:px-a,
+    tp1:px+a,
+    tp2:px+a*2
+  };
+}
 
+if(
+  i15.trend==='BEARISH' &&
+  i5.hist<0 &&
+  last.c<prev &&
+  !nearSupport
+){
+  return{
+    type:'BEARISH PULLBACK CONTINUATION',
+    direction:'SHORT',
+    entryLow:px-a*.10,
+    entryHigh:px+a*.15,
+    stop:px+a,
+    tp1:px-a,
+    tp2:px-a*2
+  };
+}
   return null;
 }
 function makeDirection(
