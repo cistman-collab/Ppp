@@ -585,6 +585,8 @@ export default async function handler(
   fifteenMinHist:i15.hist,
   fiveMinRsi:i5.rsi,
   fifteenMinRsi:i15.rsi,
+  oneHourTrend:i60.trend,
+  fourHourTrend:i240.trend,
   latestCandle:
     bars.at(-1).c>bars.at(-1).o
     ?'BULLISH'
