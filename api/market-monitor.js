@@ -718,7 +718,7 @@ export default async function handler(
 
     if(activeDirection==='LONG'){
   body=
-    'LONG research setup · Entry '+
+    'LONG · '+setupType+' · Entry '+
     prices.entryLow.toFixed(2)+'–'+
     prices.entryHigh.toFixed(2)+
     ' · Stop '+prices.stop.toFixed(2)+
@@ -728,7 +728,7 @@ export default async function handler(
 
 else if(activeDirection==='SHORT'){
   body=
-    'SHORT research setup · Entry '+
+    'SHORT · '+setupType+' · Entry '+
     prices.entryLow.toFixed(2)+'–'+
     prices.entryHigh.toFixed(2)+
     ' · Stop '+prices.stop.toFixed(2)+
