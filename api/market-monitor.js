@@ -718,7 +718,7 @@ export default async function handler(
 
     if(activeDirection==='LONG'){
   body=
-    'LONG · '+setupType+' · Entry '+
+   'LONG · '+setupType+' · '+zoneStatus+' · Entry '+
     prices.entryLow.toFixed(2)+'–'+
     prices.entryHigh.toFixed(2)+
     ' · Stop '+prices.stop.toFixed(2)+
@@ -728,7 +728,7 @@ export default async function handler(
 
 else if(activeDirection==='SHORT'){
   body=
-    'SHORT · '+setupType+' · Entry '+
+    'SHORT · '+setupType+' · '+zoneStatus+' · Entry '+
     prices.entryLow.toFixed(2)+'–'+
     prices.entryHigh.toFixed(2)+
     ' · Stop '+prices.stop.toFixed(2)+
