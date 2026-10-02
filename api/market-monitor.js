@@ -324,6 +324,7 @@ if(
 }
   if(
   i15.trend==='BULLISH' &&
+  i15.hist>0 &&
   i5.hist>0 &&
   last.c>prev &&
   !nearResistance && levels.distanceToResistance>a
@@ -341,6 +342,7 @@ if(
 
 if(
   i15.trend==='BEARISH' &&
+  i15.hist<0 &&
   i5.hist<0 &&
   last.c<prev &&
   !nearSupport && levels.distanceToSupport>a
