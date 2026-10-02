@@ -290,6 +290,38 @@ if(bearishBreakout){
       tp2:px-a*2
     };
   }
+
+  if(
+  nearResistance &&
+  last.c<last.o &&
+  i5.hist<0
+){
+  return{
+    type:'RESISTANCE REJECTION SCALP',
+    direction:'SHORT',
+    entryLow:levels.resistance-zoneSize,
+    entryHigh:levels.resistance,
+    stop:levels.resistance+a*.4,
+    tp1:px-a*.75,
+    tp2:px-a*1.5
+  };
+}
+
+if(
+  nearSupport &&
+  last.c>last.o &&
+  i5.hist>0
+){
+  return{
+    type:'SUPPORT BOUNCE SCALP',
+    direction:'LONG',
+    entryLow:levels.support,
+    entryHigh:levels.support+zoneSize,
+    stop:levels.support-a*.4,
+    tp1:px+a*.75,
+    tp2:px+a*1.5
+  };
+}
   if(
   i15.trend==='BULLISH' &&
   i5.hist>0 &&
