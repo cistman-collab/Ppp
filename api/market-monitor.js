@@ -216,6 +216,9 @@ function makeLevelSetup(bars,b15,i5,i15){
   const prev=bars.at(-2).c;
   const last=bars.at(-1);
 
+  const breakoutLevels=
+  getLevels(bars.slice(0,-1));
+
   const nearSupport=
     px<=levels.support+zoneSize;
 
@@ -223,22 +226,22 @@ function makeLevelSetup(bars,b15,i5,i15){
     px>=levels.resistance-zoneSize;
     
   const bullishBreakout=
-  prev<=levels.resistance &&
-  last.c>levels.resistance &&
+  prev<=breakoutLevels.resistance &&
+  last.c>breakoutLevels.resistance &&
   i5.hist>0;
 
 const bearishBreakout=
-  prev>=levels.support &&
-  last.c<levels.support &&
+  prev>=breakoutLevels.support &&
+  last.c<breakoutLevels.support &&
   i5.hist<0;
 
    if(bullishBreakout){
   return{
     type:'BULLISH BREAKOUT',
     direction:'LONG',
-    entryLow:levels.resistance,
-    entryHigh:levels.resistance+zoneSize,
-    stop:levels.resistance-a*.5,
+    entryLow:breakoutLevels.resistance,
+    entryHigh:breakoutLevels.resistance+zoneSize,
+    stop:breakoutLevels.resistance-a*.5,
     tp1:px+a,
     tp2:px+a*2
   };
@@ -247,10 +250,9 @@ const bearishBreakout=
 if(bearishBreakout){
   return{
     type:'BEARISH BREAKOUT',
-    direction:'SHORT',
-    entryLow:levels.support-zoneSize,
-    entryHigh:levels.support,
-    stop:levels.support+a*.5,
+    entryLow:breakoutLevels.support-zoneSize,
+    entryHigh:breakoutLevels.support,
+    stop:breakoutLevels.support+a*.5,
     tp1:px-a,
     tp2:px-a*2
   };
