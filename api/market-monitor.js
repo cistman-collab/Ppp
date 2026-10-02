@@ -502,6 +502,15 @@ export default async function handler(
   levels.distanceToSupport
   ?'RESISTANCE'
   :'SUPPORT';
+
+  const zoneStatus=
+  levels.price>=levelZones.resistanceZoneLow
+  ?'IN RESISTANCE ZONE'
+  :levels.price<=levelZones.supportZoneHigh
+  ?'IN SUPPORT ZONE'
+  :nearestZone==='RESISTANCE'
+  ?'APPROACHING RESISTANCE'
+  :'APPROACHING SUPPORT';
    
     const activeDirection=
   levelSetup?.direction||current;
@@ -545,6 +554,7 @@ export default async function handler(
           levels,
           levelZones,
           nearestZone,
+          zoneStatus,
           changed:false
         });
     }
@@ -563,6 +573,7 @@ export default async function handler(
           levels,
           levelZones,
           nearestZone,
+          zoneStatus,
           changed:true,
           push:false
         });
@@ -625,6 +636,7 @@ else if(activeDirection==='SHORT'){
           levels,
         levelZones,
         nearestZone,
+        zoneStatus,
         changed:true,
         push:true
       });
