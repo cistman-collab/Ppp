@@ -1882,15 +1882,34 @@ function newsImpact(title){
 
   if(
     t.includes('attack')||
+    t.includes('tanker strike')||
     t.includes('war')||
     t.includes('sanction')||
-    t.includes('supply cut')
+    t.includes('supply cut')||
+    t.includes('production cut')||
+    t.includes('output cut')||
+    t.includes('export disruption')||
+    t.includes('supply disruption')||
+    t.includes('hormuz closure')||
+    t.includes('oil prices rise')||
+    t.includes('oil prices jump')||
+    t.includes('crude rises')||
+    t.includes('crude jumps')
   )return['BULLISH','good'];
 
   if(
     t.includes('inventory build')||
     t.includes('output increase')||
-    t.includes('demand concern')
+    t.includes('production increase')||
+    t.includes('demand concern')||
+    t.includes('demand weak')||
+    t.includes('reserve release')||
+    t.includes('release diesel reserves')||
+    t.includes('release oil reserves')||
+    t.includes('oil prices fall')||
+    t.includes('oil prices drop')||
+    t.includes('crude falls')||
+    t.includes('crude drops')
   )return['BEARISH','bad'];
 
   return['MIXED','wait'];
