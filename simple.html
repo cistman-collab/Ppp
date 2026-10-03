@@ -479,6 +479,38 @@ canvas{width:100%;height:400px;display:block}
       Alerts not enabled yet.
     </div>
   </div>
+  <div class="card" style="margin-top:12px">
+  <div class="title">📊 Signal Performance</div>
+
+  <div class="row">
+    <span>Total signals</span>
+    <strong id="journalTotal">0</strong>
+  </div>
+
+  <div class="row">
+    <span>Evaluated</span>
+    <strong id="journalEvaluated">0</strong>
+  </div>
+
+  <div class="row">
+    <span>TP1 hit rate</span>
+    <strong id="journalTP1" class="wait">—</strong>
+  </div>
+
+  <div class="row">
+    <span>TP2 hit rate</span>
+    <strong id="journalTP2" class="wait">—</strong>
+  </div>
+
+  <div class="row">
+    <span>Stop before TP1</span>
+    <strong id="journalStop" class="wait">—</strong>
+  </div>
+
+  <div id="journalRecent" class="notice" style="margin-top:10px">
+    Waiting for signal history…
+  </div>
+</div>
 </section>
 
 </div>
