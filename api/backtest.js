@@ -424,6 +424,94 @@ for(
       bucket.evaluated
     );
 }
+  const bySetupSession={};
+
+for(const signal of signals){
+  const setup=
+    signal.setupType||'UNKNOWN';
+
+  const session=
+    signal.session||'UNKNOWN';
+
+  const key=
+    setup+' · '+session;
+
+  const bucket=
+    bySetupSession[key]||{
+      setupType:setup,
+      session,
+      signals:0,
+      entered:0,
+      evaluated:0,
+      tp1Hits:0,
+      tp2Hits:0,
+      stopsBeforeTp1:0
+    };
+
+  bucket.signals++;
+
+  if(signal.enteredAt!==null){
+    bucket.entered++;
+  }
+
+  if(
+    [
+      'TP2',
+      'STOP',
+      'STOP_AFTER_TP1'
+    ].includes(signal.status)
+  ){
+    bucket.evaluated++;
+  }
+
+  if(
+    signal.status==='TP2' ||
+    signal.status==='STOP_AFTER_TP1'
+  ){
+    bucket.tp1Hits++;
+  }
+
+  if(signal.status==='TP2'){
+    bucket.tp2Hits++;
+  }
+
+  if(signal.status==='STOP'){
+    bucket.stopsBeforeTp1++;
+  }
+
+  bySetupSession[key]=bucket;
+}
+
+for(
+  const bucket of
+  Object.values(bySetupSession)
+){
+  bucket.entryRate=
+    pct(
+      bucket.entered,
+      bucket.signals
+    );
+
+  bucket.tp1HitRate=
+    pct(
+      bucket.tp1Hits,
+      bucket.evaluated
+    );
+
+  bucket.tp2HitRate=
+    pct(
+      bucket.tp2Hits,
+      bucket.evaluated
+    );
+
+  bucket.stopBeforeTp1Rate=
+    pct(
+      bucket.stopsBeforeTp1,
+      bucket.evaluated
+    );
+}
+  const bySetupSession={};
+  
   return{
     totalSignals:signals.length,
     entered:entered.length,
@@ -460,7 +548,8 @@ for(
       evaluated.length
     ),
     bySetup,
-    bySession
+    bySession,
+    bySetupSession
   };
 }
 
