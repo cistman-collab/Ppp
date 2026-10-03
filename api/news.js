@@ -109,6 +109,44 @@ module.exports = async (req, res) => {
       .slice(0, limit);
   }
 
+  function isWTIRelevant(item) {
+  const t=String(item?.title||'').toLowerCase();
+
+  const strongTerms=[
+    'wti',
+    'crude oil',
+    'crude prices',
+    'oil prices',
+    'oil price',
+    'oil futures',
+    'opec',
+    'eia',
+    'oil inventory',
+    'oil inventories',
+    'crude inventory',
+    'crude inventories',
+    'oil production',
+    'oil output',
+    'oil supply',
+    'oil demand',
+    'oil exports',
+    'oil sanctions',
+    'oil tanker',
+    'tanker',
+    'strait of hormuz',
+    'hormuz',
+    'red sea',
+    'refinery',
+    'refining',
+    'barrels of oil'
+  ];
+
+  const marketMove=
+    /\boil\b.*\b(rise|rises|rising|fall|falls|falling|jump|jumps|drop|drops|gain|gains|slide|slides|climb|climbs)\b/.test(t);
+
+  return strongTerms.some(x=>t.includes(x)) || marketMove;
+}
+
   function maritimeRisk(items) {
     const text = items
       .map(x => x.title.toLowerCase())
@@ -161,13 +199,15 @@ module.exports = async (req, res) => {
     );
 
     const oilItems = uniqueNewest(
-      oilResults.flatMap(r =>
-        r.status === 'fulfilled'
-          ? r.value
-          : []
-      ),
-      12
-    );
+  oilResults
+    .flatMap(r =>
+      r.status === 'fulfilled'
+        ? r.value
+        : []
+    )
+    .filter(isWTIRelevant),
+  12
+);
 
     const maritimeItems = uniqueNewest(
       maritimeResults.flatMap(r =>
