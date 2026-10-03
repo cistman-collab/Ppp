@@ -946,7 +946,7 @@ function makeSetup(i5,i15,i60,i240){
   };
 }
 
-function render(){
+async function render(){
   if(!bars.length)return;
 
   const b15=aggregate(bars,15);
@@ -1087,7 +1087,110 @@ const bearishMomentum=
   $('whyList').innerHTML=
     reasons.map(x=>'<li>'+x+'</li>').join('');
 
-  setup=makeSetup(i5,i15,i60,i240);
+    setup={
+    direction:'WAIT',
+    waitReason:'Checking the monitor setup.',
+    waitConfirm:'Wait for the check to finish.'
+  };
+  updateSetup();
+
+  try{
+    const response=await fetch(
+      '/api/market-monitor?view=1',
+      {cache:'no-store'}
+    );
+
+    if(!response.ok){
+      throw Error('Monitor request failed');
+    }
+
+    const result=await response.json();
+    const c=result.confirmation;
+    const closedAt=Date.parse(c?.lastCandleClosedAt||'');
+    const age=(Date.now()-closedAt)/M;
+
+    if(!result.ok || !c ||
+       !['LONG','SHORT','WAIT'].includes(result.direction)){
+      throw Error('Invalid monitor response');
+    }
+
+    const fresh=
+      c.dataFresh===true &&
+      Number.isFinite(age) &&
+      age>=0 &&
+      age<=15;
+
+    if(!fresh || result.direction==='WAIT'){
+      setup={
+        direction:'WAIT',
+        waitReason:!fresh
+          ?'Monitor candle data is too old for a current setup.'
+          :'The monitor has no active setup.',
+        waitConfirm:'Wait for fresh candles and a confirmed monitor setup.',
+        monitorConfirmation:c
+      };
+    }else{
+      const p=result.prices;
+
+      if(!p || ![
+        p.entryLow,p.entryHigh,p.stop,p.tp1,p.tp2
+      ].every(Number.isFinite)){
+        throw Error('Monitor setup prices are missing');
+      }
+
+      const long=result.direction==='LONG';
+      const ordered=
+        p.entryLow<=p.entryHigh &&
+        (long
+          ?p.stop<p.entryLow &&
+           p.tp1>p.entryHigh && p.tp2>p.tp1
+          :p.stop>p.entryHigh &&
+           p.tp1<p.entryLow && p.tp2<p.tp1);
+
+      if(!ordered){
+        throw Error('Monitor setup prices need checking');
+      }
+
+      const entry=(p.entryLow+p.entryHigh)/2;
+
+      setup={
+        ...p,
+        direction:result.direction,
+        setupType:result.setupType,
+        rr:Math.abs(p.tp2-entry)/Math.abs(entry-p.stop),
+        monitorConfirmation:c
+      };
+    }
+  }catch(e){
+    setup={
+      direction:'WAIT',
+      waitReason:e.message,
+      waitConfirm:'Wait for a successful monitor check.'
+    };
+  }
+
+  const monitorLong=setup.direction==='LONG';
+  const monitorWait=setup.direction==='WAIT';
+  const monitorClass=monitorWait
+    ?'wait'
+    :monitorLong?'good':'bad';
+
+  $('overall').textContent=setup.direction;
+  $('overall').className='signalTitle '+monitorClass;
+  $('bigArrow').textContent=monitorWait
+    ?'→'
+    :monitorLong?'↑':'↓';
+  $('bigArrow').className='bigArrow '+monitorClass;
+
+  $('message').textContent=monitorWait
+    ?setup.waitReason
+    :setup.setupType+' · Monitor setup';
+
+  const reason=document.createElement('li');
+  reason.textContent=monitorWait
+    ?setup.waitReason
+    :setup.setupType+' — using the background monitor’s setup rules.';
+  $('whyList').replaceChildren(reason);
 
   $('resistance').textContent=l.resistance.toFixed(2);
   $('support').textContent=l.support.toFixed(2);
@@ -1154,10 +1257,10 @@ $('confirmation').textContent=
   $('tp2').textContent=fmt(s.tp2);
   $('rr').textContent='1 : '+s.rr.toFixed(1);
 
-  $('setupWhy').textContent=
-    long
-    ?'5m, 15m and 1H are aligned upward.'
-    :'5m, 15m and 1H are aligned downward.';
+    $('setupWhy').textContent=
+    (s.setupType||s.direction+' SETUP')+
+    ' · From the background monitor. '+
+    'Risk : Reward uses the entry-zone midpoint and TP2.';
 
   $('confirmation').textContent=
     long
@@ -1657,8 +1760,7 @@ async function loadCandles(){
       )
       .sort((a,b)=>a.t-b.t);
 
-    render();
-    checkSetupAlert();
+        await render();
 
   }catch(e){
     $('overall').textContent='DATA ERROR';
