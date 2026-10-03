@@ -1445,23 +1445,27 @@ confirmation.dataFresh=
   :'APPROACHING SUPPORT';
    
     const activeDirection=
-  levelSetup?.direction||current;
-    
-    const prices=
-  levelSetup||
-  makeSetupPrices(
-    activeDirection,
-    b15,
-    bars
-  );
+  dataAgeMinutes<=15
+    ?(levelSetup?.direction||current)
+    :'WAIT';
 
-    const setupType=
-  levelSetup?.type||
-  (activeDirection==='LONG'
-    ?'TREND LONG'
-    :activeDirection==='SHORT'
-    ?'TREND SHORT'
-    :'NONE');
+const prices=
+  activeDirection==='WAIT'
+    ?null
+    :(levelSetup||
+      makeSetupPrices(
+        activeDirection,
+        b15,
+        bars
+      ));
+
+const setupType=
+  activeDirection==='WAIT'
+    ?'NONE'
+    :(levelSetup?.type||
+      (activeDirection==='LONG'
+        ?'TREND LONG'
+        :'TREND SHORT'));
 
         // Let the app read the setup without changing alert state.
     if(req.query?.view==='1'){
