@@ -674,6 +674,21 @@ confirmation.dataFresh=
     ?'TREND SHORT'
     :'NONE');
 
+        // Let the app read the setup without changing alert state.
+    if(req.query?.view==='1'){
+      return res.status(200).json({
+        ok:true,
+        direction:activeDirection,
+        prices,
+        levels,
+        levelZones,
+        nearestZone,
+        zoneStatus,
+        setupType,
+        confirmation
+      });
+    }
+
     const previous=
       await readBlob(
         'push/monitor-state.json'
