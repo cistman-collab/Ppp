@@ -1548,6 +1548,7 @@ confirmation.dataFresh=
           nearestZone,
           zoneStatus,
           setupType,
+          formingPattern,
           confirmation,
           changed:true,
           push:false
