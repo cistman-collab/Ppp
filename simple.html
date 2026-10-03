@@ -400,9 +400,22 @@ canvas{width:100%;height:400px;display:block}
     <div class="mode">News</div>
   </div>
 
-  <div id="newsList" class="card">
-    Loading news…
+  <div class="card">
+  <div class="title">🚢 Maritime Risk</div>
+
+  <div class="row">
+    <span>Hormuz / tanker / Red Sea</span>
+    <strong id="maritimeRisk" class="wait">Checking…</strong>
   </div>
+
+  <div id="maritimeHeadline" class="notice">
+    Waiting for maritime news…
+  </div>
+</div>
+
+<div id="newsList" class="card">
+  Loading news…
+</div>
 </section>
 
 <section id="morePage" class="page">
@@ -1891,10 +1904,36 @@ async function loadNews(){
     if(!r.ok)throw Error('News request failed');
 
     const d=await r.json();
-    newsItems=Array.isArray(d.items)?d.items:[];
-    if(!newsItems.length)throw Error('No headlines');
 
-    box.replaceChildren();
+newsItems=Array.isArray(d.items)?d.items:[];
+
+const maritime=d.maritime||{};
+const risk=String(maritime.risk||'UNKNOWN');
+
+$('maritimeRisk').textContent=risk;
+
+$('maritimeRisk').className=
+  risk==='HIGH'
+  ?'bad'
+  :risk==='ELEVATED'
+  ?'wait'
+  :risk.startsWith('NORMAL')
+  ?'good'
+  :'wait';
+
+const maritimeItems=
+  Array.isArray(maritime.items)
+  ?maritime.items
+  :[];
+
+$('maritimeHeadline').textContent=
+  maritimeItems.length
+  ?'Latest: '+String(maritimeItems[0].title||'Maritime headline')
+  :'No maritime headlines available.';
+
+if(!newsItems.length)throw Error('No headlines');
+
+box.replaceChildren();
 
     for(const n of newsItems.slice(0,6)){
       const title=String(n.title||'Oil headline');
