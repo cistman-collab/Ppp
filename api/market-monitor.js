@@ -805,6 +805,165 @@ function detectContinuationPattern(bars,b15,i5,i15){
   return null;
 }
 
+ function detectFormingPattern(bars,b15,i5,i15){
+  if(bars.length<40 || b15.length<24)return null;
+
+  const a=atr(b15);
+  const px=bars.at(-1).c;
+  const buffer=Math.max(0.03,a*.05);
+
+  const shape=b15.slice(-19,-1);
+  const half=Math.floor(shape.length/2);
+  const first=shape.slice(0,half);
+  const second=shape.slice(half);
+
+  const fH=Math.max(...first.map(x=>x.h));
+  const fL=Math.min(...first.map(x=>x.l));
+  const sH=Math.max(...second.map(x=>x.h));
+  const sL=Math.min(...second.map(x=>x.l));
+
+  const compressing=
+    (sH-sL)<(fH-fL)*.90;
+
+  const highDelta=sH-fH;
+  const lowDelta=sL-fL;
+
+  const flatHigh=
+    Math.abs(highDelta)<=a*.25;
+
+  const flatLow=
+    Math.abs(lowDelta)<=a*.25;
+
+  if(
+    compressing &&
+    flatHigh &&
+    lowDelta>a*.10 &&
+    px<=sH+buffer
+  ){
+    return{
+      type:'ASCENDING TRIANGLE',
+      bias:'LONG',
+      waitingFor:
+        'WAIT FOR BREAKOUT ABOVE '+sH.toFixed(2)
+    };
+  }
+
+  if(
+    compressing &&
+    flatLow &&
+    highDelta<-a*.10 &&
+    px>=sL-buffer
+  ){
+    return{
+      type:'DESCENDING TRIANGLE',
+      bias:'SHORT',
+      waitingFor:
+        'WAIT FOR BREAKDOWN BELOW '+sL.toFixed(2)
+    };
+  }
+
+  if(
+    compressing &&
+    highDelta<-a*.10 &&
+    lowDelta>a*.10 &&
+    px>=sL-buffer &&
+    px<=sH+buffer
+  ){
+    return{
+      type:'SYMMETRICAL TRIANGLE',
+      bias:'WAIT',
+      waitingFor:
+        'WAIT FOR BREAKOUT ABOVE '+
+        sH.toFixed(2)+
+        ' OR BELOW '+
+        sL.toFixed(2)
+    };
+  }
+
+  if(
+    compressing &&
+    highDelta>a*.10 &&
+    lowDelta>a*.10 &&
+    px>=sL-buffer
+  ){
+    return{
+      type:'RISING WEDGE',
+      bias:'SHORT',
+      waitingFor:
+        'WAIT FOR BREAKDOWN BELOW '+sL.toFixed(2)
+    };
+  }
+
+  if(
+    compressing &&
+    highDelta<-a*.10 &&
+    lowDelta<-a*.10 &&
+    px<=sH+buffer
+  ){
+    return{
+      type:'FALLING WEDGE',
+      bias:'LONG',
+      waitingFor:
+        'WAIT FOR BREAKOUT ABOVE '+sH.toFixed(2)
+    };
+  }
+
+  const pole=b15.slice(-14,-7);
+  const flag=b15.slice(-7,-1);
+
+  const poleMove=
+    pole.at(-1).c-pole[0].o;
+
+  const flagHigh=
+    Math.max(...flag.map(x=>x.h));
+
+  const flagLow=
+    Math.min(...flag.map(x=>x.l));
+
+  const tightFlag=
+    flagHigh-flagLow<=
+    Math.max(
+      a*1.5,
+      Math.abs(poleMove)*.55
+    );
+
+  if(
+    Math.abs(poleMove)>=a*2.2 &&
+    tightFlag &&
+    poleMove>0 &&
+    i15.trend==='BULLISH' &&
+    px<=flagHigh+buffer
+  ){
+    return{
+      type:'BULL FLAG / PENNANT',
+      bias:'LONG',
+      waitingFor:
+        'WAIT FOR BREAKOUT ABOVE '+
+        flagHigh.toFixed(2)+
+        ' + POSITIVE 5m MOMENTUM'
+    };
+  }
+
+  if(
+    Math.abs(poleMove)>=a*2.2 &&
+    tightFlag &&
+    poleMove<0 &&
+    i15.trend==='BEARISH' &&
+    px>=flagLow-buffer
+  ){
+    return{
+      type:'BEAR FLAG / PENNANT',
+      bias:'SHORT',
+      waitingFor:
+        'WAIT FOR BREAKDOWN BELOW '+
+        flagLow.toFixed(2)+
+        ' + NEGATIVE 5m MOMENTUM'
+    };
+  }
+
+  return null;
+}
+
   function makeLevelSetup(bars,b15,i5,i15){
  const reversalPattern=
   detectReversalPattern(
@@ -1241,6 +1400,17 @@ const levelSetup=
     )
     :null;
 
+    const formingPattern=
+  dataAgeMinutes<=15 &&
+  !levelSetup
+    ?detectFormingPattern(
+      bars,
+      b15,
+      i5,
+      i15
+    )
+    :null;
+
     confirmation.lastCandleClosedAt=
   new Date(lastCandleClosedAt).toISOString();
 
@@ -1304,6 +1474,7 @@ confirmation.dataFresh=
         nearestZone,
         zoneStatus,
         setupType,
+        formingPattern,
         confirmation
       });
     }
@@ -1346,9 +1517,7 @@ confirmation.dataFresh=
   )
 )
     ){
-      return res
-        .status(200)
-        .json({
+      return res.status(200).json({
           ok:true,
           direction:activeDirection,
           prices,
@@ -1357,6 +1526,7 @@ confirmation.dataFresh=
           nearestZone,
           zoneStatus,
           setupType,
+          formingPattern,
           confirmation,
           changed:false
         });
@@ -1456,6 +1626,7 @@ else if(activeDirection==='SHORT'){
         nearestZone,
         zoneStatus,
         setupType,
+        formingPattern,
         confirmation,
         changed:true,
         push:true
