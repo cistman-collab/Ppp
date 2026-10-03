@@ -1690,29 +1690,71 @@ async function loadNews(){
 
   try{
     const r=await fetch('/api/news',{cache:'no-store'});
-
-    if(!r.ok)throw Error();
+    if(!r.ok)throw Error('News request failed');
 
     const d=await r.json();
-
     newsItems=Array.isArray(d.items)?d.items:[];
+    if(!newsItems.length)throw Error('No headlines');
 
-    if(!newsItems.length)throw Error();
+    box.replaceChildren();
 
-    box.innerHTML=newsItems.slice(0,6).map(n=>{
-      const impact=newsImpact(n.title||'');
+    for(const n of newsItems.slice(0,6)){
+      const title=String(n.title||'Oil headline');
+      const impact=newsImpact(title);
 
-      return `
-        <div class="newsItem">
-          <span class="newsTag ${impact[1]}">${impact[0]}</span>
-          <div>
-            <strong>${n.title||'Oil headline'}</strong>
-            <div class="notice">Simple research interpretation only.</div>
-          </div>
-        </div>
-      `;
-    }).join('');
+      const item=document.createElement('div');
+      item.className='newsItem';
 
+      const tag=document.createElement('span');
+      tag.className='newsTag '+impact[1];
+      tag.textContent=impact[0];
+
+      const heading=document.createElement('strong');
+      heading.style.display='block';
+      heading.textContent=title;
+
+      const published=document.createElement('div');
+      published.className='notice';
+
+      const timestamp=Date.parse(n.published||'');
+
+      published.textContent=Number.isFinite(timestamp)
+        ?'Published: '+new Date(timestamp).toLocaleString(
+          'en-GB',{
+            timeZone:'Europe/Vilnius',
+            day:'2-digit',
+            month:'short',
+            year:'numeric',
+            hour:'2-digit',
+            minute:'2-digit'
+          }
+        )+' · Lithuania time'
+        :'Publication time unavailable';
+
+      item.append(tag,heading,published);
+
+      try{
+        const url=new URL(n.link);
+        if(url.protocol==='https:'||url.protocol==='http:'){
+          const link=document.createElement('a');
+          link.href=url.href;
+          link.target='_blank';
+          link.rel='noopener noreferrer';
+          link.className='notice blue';
+          link.style.display='inline-block';
+          link.textContent='Open source article ↗';
+          item.append(link);
+        }
+      }catch{}
+
+      const note=document.createElement('div');
+      note.className='notice';
+      note.textContent=
+        'Headline-based interpretation only. Report not independently verified.';
+
+      item.append(note);
+      box.append(item);
+    }
   }catch(e){
     box.textContent='News unavailable right now.';
   }
