@@ -682,16 +682,25 @@ confirmation.dataFresh=
     const oldDirection=
       previous?.direction??null;
 
-    await saveBlob(
-      'push/monitor-state.json',
-      {
-        direction:activeDirection,
-        setupType,
-        checkedAt:
-          new Date()
-            .toISOString()
-      }
-    );
+        if(
+      oldDirection===null ||
+      (
+        oldDirection===activeDirection &&
+        (
+          previous?.setupType==null ||
+          previous.setupType===setupType
+        )
+      )
+    ){
+      await saveBlob(
+        'push/monitor-state.json',
+        {
+          direction:activeDirection,
+          setupType,
+          checkedAt:new Date().toISOString()
+        }
+      );
+    }
 
     if(
       oldDirection===null ||
@@ -790,6 +799,15 @@ else if(activeDirection==='SHORT'){
       })
     );
 
+        await saveBlob(
+      'push/monitor-state.json',
+      {
+        direction:activeDirection,
+        setupType,
+        checkedAt:new Date().toISOString()
+      }
+    );
+    
     return res
       .status(200)
       .json({
