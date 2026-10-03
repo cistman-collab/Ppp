@@ -510,8 +510,7 @@ for(
       bucket.evaluated
     );
 }
-  const bySetupSession={};
-  
+
   return{
     totalSignals:signals.length,
     entered:entered.length,
