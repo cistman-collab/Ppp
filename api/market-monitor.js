@@ -1649,6 +1649,8 @@ confirmation.newsRecent=
 
 confirmation.newsConflict=
   newsConflict;
+confirmation.technicalDirection=
+  technicalDirection;
 
 const prices=
   activeDirection==='WAIT'
