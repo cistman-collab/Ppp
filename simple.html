@@ -359,7 +359,16 @@ canvas{width:100%;height:400px;display:block}
   <span>Status</span>
   <strong id="patternStatus" class="wait">WAIT</strong>
 </div>
-    
+
+<div class="row">
+  <span>News bias</span>
+  <strong id="signalNewsBias" class="wait">UNKNOWN</strong>
+</div>
+
+<div class="row">
+  <span>Maritime risk</span>
+  <strong id="signalMaritimeRisk" class="wait">UNKNOWN</strong>
+</div>
 
     <div class="row"><span>Entry zone</span><strong id="entryZone" class="wait">—</strong></div>
     <div class="row"><span>Stop</span><strong id="stopLoss" class="bad">—</strong></div>
@@ -1260,6 +1269,33 @@ function updateSetup(){
   const s=setup;
 
     const c=s?.monitorConfirmation;
+
+   $('signalNewsBias').textContent=
+  c?.newsAvailable
+  ?c.newsBias||'UNKNOWN'
+  :'UNKNOWN';
+
+$('signalNewsBias').className=
+  c?.newsBias==='BULLISH'
+  ?'good'
+  :c?.newsBias==='BEARISH'
+  ?'bad'
+  :'wait';
+
+const maritimeRisk=
+  c?.maritimeRisk||'UNKNOWN';
+
+$('signalMaritimeRisk').textContent=
+  maritimeRisk;
+
+$('signalMaritimeRisk').className=
+  maritimeRisk==='HIGH'
+  ?'bad'
+  :maritimeRisk==='ELEVATED'
+  ?'wait'
+  :maritimeRisk.startsWith('NORMAL')
+  ?'good'
+  :'wait';
 
   if(c){
     $('signalTrend').textContent=
