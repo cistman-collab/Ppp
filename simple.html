@@ -1243,8 +1243,24 @@ function updateSetup(){
       ' · 1H '+c.oneHourTrend+
       ' · 4H '+c.fourHourTrend;
 
-    $('signalTrend').className=
-      trendClass(c.fifteenMinTrend);
+    const allBullish=
+  c.fiveMinTrend==='BULLISH' &&
+  c.fifteenMinTrend==='BULLISH' &&
+  c.oneHourTrend==='BULLISH' &&
+  c.fourHourTrend==='BULLISH';
+
+const allBearish=
+  c.fiveMinTrend==='BEARISH' &&
+  c.fifteenMinTrend==='BEARISH' &&
+  c.oneHourTrend==='BEARISH' &&
+  c.fourHourTrend==='BEARISH';
+
+$('signalTrend').className=
+  allBullish
+  ?'good'
+  :allBearish
+  ?'bad'
+  :'wait';
   }else{
     $('signalTrend').textContent='—';
     $('signalTrend').className='wait';
