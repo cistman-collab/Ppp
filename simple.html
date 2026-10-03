@@ -2286,6 +2286,97 @@ async function loadJournal(){
       'Journal unavailable: '+e.message;
   }
 }
+
+let backtestLoaded=false;
+
+async function loadBacktest(){
+  if(backtestLoaded)return;
+
+  try{
+    const response=
+      await fetch('/api/backtest');
+
+    const data=
+      await response.json();
+
+    if(!response.ok){
+      throw new Error(
+        data.error||'Backtest unavailable'
+      );
+    }
+
+    const stats=
+      data.stats||{};
+
+    $('backtestSignals').textContent=
+      stats.totalSignals??0;
+
+    $('backtestEvaluated').textContent=
+      stats.evaluated??0;
+
+    $('backtestTP1').textContent=
+      stats.tp1HitRate==null
+        ?'—'
+        :stats.tp1HitRate+'%';
+
+    $('backtestTP2').textContent=
+      stats.tp2HitRate==null
+        ?'—'
+        :stats.tp2HitRate+'%';
+
+    $('backtestStop').textContent=
+      stats.stopBeforeTp1Rate==null
+        ?'—'
+        :stats.stopBeforeTp1Rate+'%';
+
+    const minSample=30;
+
+    const qualified=
+      Object.entries(
+        stats.bySetup||{}
+      )
+      .map(([name,s])=>({
+        name,
+        ...s
+      }))
+      .filter(
+        x=>(x.evaluated??0)>=minSample
+      )
+      .sort(
+        (a,b)=>
+          (b.tp1HitRate??-1)-
+          (a.tp1HitRate??-1)
+      );
+
+    if(qualified.length){
+      const best=qualified[0];
+
+      $('backtestBest').textContent=
+        'Minimum sample: '+
+        minSample+
+        ' evaluated · Highest TP1 rate: '+
+        best.name+
+        ' · TP1 '+
+        best.tp1HitRate+
+        '% · TP2 '+
+        best.tp2HitRate+
+        '% · '+
+        best.evaluated+
+        ' evaluated';
+    }else{
+      $('backtestBest').textContent=
+        'No setup has at least '+
+        minSample+
+        ' evaluated trades yet.';
+    }
+
+    backtestLoaded=true;
+
+  }catch(e){
+    $('backtestBest').textContent=
+      'Backtest unavailable: '+e.message;
+  }
+}
 function showPage(name){
   document.querySelectorAll('.page')
     .forEach(p=>p.classList.remove('active'));
@@ -2309,7 +2400,8 @@ function showPage(name){
   }
 
   if(name==='more'){
-   loadJournal();
+  loadJournal();
+  loadBacktest();
 }
   window.scrollTo(0,0);
 }
