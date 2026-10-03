@@ -345,6 +345,21 @@ canvas{width:100%;height:400px;display:block}
       <div id="setupTitle" class="setupTitle wait">NO SETUP</div>
       <div id="setupBadge" class="badge">WAIT</div>
     </div>
+<div class="row">
+  <span>Market trend</span>
+  <strong id="signalTrend" class="wait">—</strong>
+</div>
+
+<div class="row">
+  <span>Detected setup / pattern</span>
+  <strong id="signalPattern" class="wait">NONE</strong>
+</div>
+
+<div class="row">
+  <span>Status</span>
+  <strong id="patternStatus" class="wait">WAIT</strong>
+</div>
+    
 
     <div class="row"><span>Entry zone</span><strong id="entryZone" class="wait">—</strong></div>
     <div class="row"><span>Stop</span><strong id="stopLoss" class="bad">—</strong></div>
@@ -1218,6 +1233,48 @@ const bearishMomentum=
 
 function updateSetup(){
   const s=setup;
+
+    const c=s?.monitorConfirmation;
+
+  if(c){
+    $('signalTrend').textContent=
+      '5m '+c.fiveMinTrend+
+      ' · 15m '+c.fifteenMinTrend+
+      ' · 1H '+c.oneHourTrend+
+      ' · 4H '+c.fourHourTrend;
+
+    $('signalTrend').className=
+      trendClass(c.fifteenMinTrend);
+  }else{
+    $('signalTrend').textContent='—';
+    $('signalTrend').className='wait';
+  }
+
+  $('signalPattern').textContent=
+    s?.setupType||'NONE';
+
+  $('signalPattern').className=
+    s?.direction==='LONG'
+    ?'good'
+    :s?.direction==='SHORT'
+    ?'bad'
+    :'wait';
+
+  const stale=
+    c?.dataFresh===false;
+
+  $('patternStatus').textContent=
+    stale
+    ?'DATA STALE'
+    :s?.direction==='LONG' ||
+     s?.direction==='SHORT'
+    ?'CONFIRMED'
+    :'NO CONFIRMED SETUP';
+
+  $('patternStatus').className=
+    stale || s?.direction==='WAIT'
+    ?'wait'
+    :'blue';
 
   if(!s||s.direction==='WAIT'){
     $('setupTitle').textContent='NO CLEAR SETUP';
