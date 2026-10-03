@@ -1162,10 +1162,13 @@ const bearishMomentum=
     direction:'WAIT',
 
     waitReason:!fresh
-      ?'Monitor candle data is too old for a current setup.'
-      :result.formingPattern
-      ?result.formingPattern.type+' forming — not confirmed.'
-      :'The monitor has no active setup.',
+  ?'Monitor candle data is too old for a current setup.'
+  :c.newsConflict
+  ?'Technical '+c.technicalDirection+
+   ' blocked by '+c.newsBias+' news risk.'
+  :result.formingPattern
+  ?result.formingPattern.type+' forming — not confirmed.'
+  :'The monitor has no active setup.',
 
     waitConfirm:!fresh
       ?'Wait for fresh candles and a confirmed monitor setup.'
