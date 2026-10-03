@@ -1693,7 +1693,28 @@ const setupType=
 
     const oldDirection=
       previous?.direction??null;
+     
+    const oldSetupType=
+  previous?.setupType??null;
 
+const isNewSignal=
+  (
+    activeDirection==='LONG' ||
+    activeDirection==='SHORT'
+  ) &&
+  (
+    oldDirection!==activeDirection ||
+    oldSetupType!==setupType
+  );
+
+await updateSignalJournal({
+  bars,
+  direction:activeDirection,
+  setupType,
+  prices,
+  confirmation,
+  isNewSignal
+});
         if(
       oldDirection===null ||
       (
