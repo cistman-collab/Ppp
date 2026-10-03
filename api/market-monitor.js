@@ -566,6 +566,245 @@ function detectReversalPattern(bars,b15,i5){
   return null;
 }
 
+function detectContinuationPattern(bars,b15,i5,i15){
+  if(bars.length<40 || b15.length<24)return null;
+
+  const a=atr(b15);
+  const px=bars.at(-1).c;
+  const last=bars.at(-1);
+  const prev=bars.at(-2);
+  const zone=Math.max(0.10,a*.25);
+  const buffer=Math.max(0.03,a*.05);
+
+  const make=(type,direction,entryLow,entryHigh,stop,tp1,tp2)=>({
+    type,direction,entryLow,entryHigh,stop,tp1,tp2
+  });
+
+  const prior5=bars.slice(-22,-2);
+  const priorHigh=Math.max(...prior5.map(x=>x.h));
+  const priorLow=Math.min(...prior5.map(x=>x.l));
+
+  if(
+    prev.h>priorHigh+buffer &&
+    prev.c<priorHigh &&
+    last.c<prev.c &&
+    i5.hist<0
+  ){
+    return make(
+      'FAILED BULL BREAKOUT',
+      'SHORT',
+      priorHigh-zone,
+      priorHigh,
+      prev.h+a*.25,
+      px-a*.75,
+      px-a*1.5
+    );
+  }
+
+  if(
+    prev.l<priorLow-buffer &&
+    prev.c>priorLow &&
+    last.c>prev.c &&
+    i5.hist>0
+  ){
+    return make(
+      'FAILED BEAR BREAKDOWN',
+      'LONG',
+      priorLow,
+      priorLow+zone,
+      prev.l-a*.25,
+      px+a*.75,
+      px+a*1.5
+    );
+  }
+
+  const shape=b15.slice(-19,-1);
+  const half=Math.floor(shape.length/2);
+  const first=shape.slice(0,half);
+  const second=shape.slice(half);
+
+  const fH=Math.max(...first.map(x=>x.h));
+  const fL=Math.min(...first.map(x=>x.l));
+  const sH=Math.max(...second.map(x=>x.h));
+  const sL=Math.min(...second.map(x=>x.l));
+
+  const compressing=
+    (sH-sL)<(fH-fL)*.90;
+
+  const highDelta=sH-fH;
+  const lowDelta=sL-fL;
+
+  const breakUp=
+    px>sH+buffer &&
+    prev.c<=sH &&
+    i5.hist>0;
+
+  const breakDown=
+    px<sL-buffer &&
+    prev.c>=sL &&
+    i5.hist<0;
+
+  const flatHigh=
+    Math.abs(highDelta)<=a*.25;
+
+  const flatLow=
+    Math.abs(lowDelta)<=a*.25;
+
+  if(
+    compressing &&
+    flatHigh &&
+    lowDelta>a*.10 &&
+    breakUp
+  ){
+    return make(
+      'ASCENDING TRIANGLE BREAKOUT',
+      'LONG',
+      sH,
+      sH+zone,
+      sL-a*.25,
+      px+a,
+      px+a*2
+    );
+  }
+
+  if(
+    compressing &&
+    flatLow &&
+    highDelta<-a*.10 &&
+    breakDown
+  ){
+    return make(
+      'DESCENDING TRIANGLE BREAKDOWN',
+      'SHORT',
+      sL-zone,
+      sL,
+      sH+a*.25,
+      px-a,
+      px-a*2
+    );
+  }
+
+  if(
+    compressing &&
+    highDelta<-a*.10 &&
+    lowDelta>a*.10
+  ){
+    if(breakUp){
+      return make(
+        'SYMMETRICAL TRIANGLE BREAKOUT',
+        'LONG',
+        sH,
+        sH+zone,
+        sL-a*.25,
+        px+a,
+        px+a*2
+      );
+    }
+
+    if(breakDown){
+      return make(
+        'SYMMETRICAL TRIANGLE BREAKDOWN',
+        'SHORT',
+        sL-zone,
+        sL,
+        sH+a*.25,
+        px-a,
+        px-a*2
+      );
+    }
+  }
+
+  if(
+    compressing &&
+    highDelta>a*.10 &&
+    lowDelta>a*.10 &&
+    breakDown
+  ){
+    return make(
+      'RISING WEDGE BREAKDOWN',
+      'SHORT',
+      sL-zone,
+      sL,
+      sH+a*.25,
+      px-a,
+      px-a*2
+    );
+  }
+
+  if(
+    compressing &&
+    highDelta<-a*.10 &&
+    lowDelta<-a*.10 &&
+    breakUp
+  ){
+    return make(
+      'FALLING WEDGE BREAKOUT',
+      'LONG',
+      sH,
+      sH+zone,
+      sL-a*.25,
+      px+a,
+      px+a*2
+    );
+  }
+
+  const pole=b15.slice(-14,-7);
+  const flag=b15.slice(-7,-1);
+
+  const poleMove=
+    pole.at(-1).c-pole[0].o;
+
+  const flagHigh=
+    Math.max(...flag.map(x=>x.h));
+
+  const flagLow=
+    Math.min(...flag.map(x=>x.l));
+
+  const tightFlag=
+    flagHigh-flagLow<=
+    Math.max(a*1.5,Math.abs(poleMove)*.55);
+
+  if(
+    Math.abs(poleMove)>=a*2.2 &&
+    tightFlag &&
+    poleMove>0 &&
+    i15.trend==='BULLISH' &&
+    px>flagHigh+buffer &&
+    i5.hist>0
+  ){
+    return make(
+      'BULL FLAG / PENNANT BREAKOUT',
+      'LONG',
+      flagHigh,
+      flagHigh+zone,
+      flagLow-a*.25,
+      px+a,
+      px+a*2
+    );
+  }
+
+  if(
+    Math.abs(poleMove)>=a*2.2 &&
+    tightFlag &&
+    poleMove<0 &&
+    i15.trend==='BEARISH' &&
+    px<flagLow-buffer &&
+    i5.hist<0
+  ){
+    return make(
+      'BEAR FLAG / PENNANT BREAKDOWN',
+      'SHORT',
+      flagLow-zone,
+      flagLow,
+      flagHigh+a*.25,
+      px-a,
+      px-a*2
+    );
+  }
+
+  return null;
+}
+
   function makeLevelSetup(bars,b15,i5,i15){
  const reversalPattern=
   detectReversalPattern(
@@ -577,7 +816,18 @@ function detectReversalPattern(bars,b15,i5){
   if(reversalPattern){
     return reversalPattern;
   }
-    
+  const continuationPattern=
+  detectContinuationPattern(
+    bars,
+    b15,
+    i5,
+    i15
+  );
+
+if(continuationPattern){
+  return continuationPattern;
+}
+  
   const levels=getLevels(bars);
   const a=atr(b15);
   const zoneSize=Math.max(0.10,a*.25);
