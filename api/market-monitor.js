@@ -208,6 +208,375 @@ function getLevelZones(bars,b15){
   };
 }
 
+function detectReversalPattern(bars,b15,i5){
+  if(bars.length<10 || b15.length<12)return null;
+
+  const a=atr(b15);
+  const px=bars.at(-1).c;
+  const last=bars.at(-1);
+  const prev=bars.at(-2);
+  const base=getLevels(bars.slice(0,-1));
+
+  const zone=Math.max(0.10,a*.25);
+  const tol=Math.max(0.12,a*.35);
+  const buffer=Math.max(0.03,a*.05);
+
+  const make=(
+    type,direction,
+    entryLow,entryHigh,
+    stop,tp1,tp2
+  )=>({
+    type,
+    direction,
+    entryLow,
+    entryHigh,
+    stop,
+    tp1,
+    tp2
+  });
+
+  const nearSupport=
+    last.l<=base.support+zone &&
+    last.c>=base.support-zone*.35;
+
+  const nearResistance=
+    last.h>=base.resistance-zone &&
+    last.c<=base.resistance+zone*.35;
+
+  const prevBody=Math.abs(prev.c-prev.o);
+  const body=Math.abs(last.c-last.o);
+  const range=Math.max(.0001,last.h-last.l);
+
+  const upper=
+    last.h-Math.max(last.o,last.c);
+
+  const lower=
+    Math.min(last.o,last.c)-last.l;
+
+  const bullEngulf=
+    prev.c<prev.o &&
+    last.c>last.o &&
+    last.o<=prev.c &&
+    last.c>=prev.o &&
+    body>=prevBody*.9;
+
+  const bearEngulf=
+    prev.c>prev.o &&
+    last.c<last.o &&
+    last.o>=prev.c &&
+    last.c<=prev.o &&
+    body>=prevBody*.9;
+
+  const hammer=
+    last.c>last.o &&
+    body<=range*.40 &&
+    lower>=Math.max(body*2,range*.45) &&
+    upper<=range*.25;
+
+  const shootingStar=
+    last.c<last.o &&
+    body<=range*.40 &&
+    upper>=Math.max(body*2,range*.45) &&
+    lower<=range*.25;
+
+  const recent=b15.slice(-30);
+
+  const highs=[];
+  const lows=[];
+
+  for(let i=1;i<recent.length-1;i++){
+
+    if(
+      recent[i].h>=recent[i-1].h &&
+      recent[i].h>=recent[i+1].h
+    ){
+      highs.push({
+        i,
+        price:recent[i].h
+      });
+    }
+
+    if(
+      recent[i].l<=recent[i-1].l &&
+      recent[i].l<=recent[i+1].l
+    ){
+      lows.push({
+        i,
+        price:recent[i].l
+      });
+    }
+  }
+
+  if(highs.length>=3){
+
+    const [lft,head,rgt]=
+      highs.slice(-3);
+
+    const spaced=
+      head.i-lft.i>=2 &&
+      rgt.i-head.i>=2;
+
+    const shoulders=
+      Math.abs(
+        lft.price-rgt.price
+      )<=tol*1.25;
+
+    const headHigher=
+      head.price>lft.price+tol*.5 &&
+      head.price>rgt.price+tol*.5;
+
+    if(
+      spaced &&
+      shoulders &&
+      headHigher
+    ){
+
+      const n1=Math.min(
+        ...recent
+          .slice(lft.i,head.i+1)
+          .map(x=>x.l)
+      );
+
+      const n2=Math.min(
+        ...recent
+          .slice(head.i,rgt.i+1)
+          .map(x=>x.l)
+      );
+
+      const neckline=(n1+n2)/2;
+
+      if(
+        px<Math.min(n1,n2)-buffer &&
+        i5.hist<0
+      ){
+        return make(
+          'HEAD AND SHOULDERS BREAKDOWN',
+          'SHORT',
+          neckline-zone,
+          neckline,
+          rgt.price+a*.25,
+          px-a,
+          px-a*2
+        );
+      }
+    }
+  }
+
+  if(lows.length>=3){
+
+    const [lft,head,rgt]=
+      lows.slice(-3);
+
+    const spaced=
+      head.i-lft.i>=2 &&
+      rgt.i-head.i>=2;
+
+    const shoulders=
+      Math.abs(
+        lft.price-rgt.price
+      )<=tol*1.25;
+
+    const headLower=
+      head.price<lft.price-tol*.5 &&
+      head.price<rgt.price-tol*.5;
+
+    if(
+      spaced &&
+      shoulders &&
+      headLower
+    ){
+
+      const n1=Math.max(
+        ...recent
+          .slice(lft.i,head.i+1)
+          .map(x=>x.h)
+      );
+
+      const n2=Math.max(
+        ...recent
+          .slice(head.i,rgt.i+1)
+          .map(x=>x.h)
+      );
+
+      const neckline=(n1+n2)/2;
+
+      if(
+        px>Math.max(n1,n2)+buffer &&
+        i5.hist>0
+      ){
+        return make(
+          'INVERSE HEAD AND SHOULDERS BREAKOUT',
+          'LONG',
+          neckline,
+          neckline+zone,
+          rgt.price-a*.25,
+          px+a,
+          px+a*2
+        );
+      }
+    }
+  }
+
+  if(highs.length>=2){
+
+    const p1=highs.at(-2);
+    const p2=highs.at(-1);
+
+    if(
+      p2.i-p1.i>=3 &&
+      Math.abs(
+        p1.price-p2.price
+      )<=tol
+    ){
+
+      const neckline=Math.min(
+        ...recent
+          .slice(p1.i,p2.i+1)
+          .map(x=>x.l)
+      );
+
+      if(
+        px<neckline-buffer &&
+        i5.hist<0
+      ){
+        return make(
+          'DOUBLE TOP BREAKDOWN',
+          'SHORT',
+          neckline-zone,
+          neckline,
+          Math.max(
+            p1.price,
+            p2.price
+          )+a*.25,
+          px-a,
+          px-a*2
+        );
+      }
+    }
+  }
+
+  if(lows.length>=2){
+
+    const p1=lows.at(-2);
+    const p2=lows.at(-1);
+
+    if(
+      p2.i-p1.i>=3 &&
+      Math.abs(
+        p1.price-p2.price
+      )<=tol
+    ){
+
+      const neckline=Math.max(
+        ...recent
+          .slice(p1.i,p2.i+1)
+          .map(x=>x.h)
+      );
+
+      if(
+        px>neckline+buffer &&
+        i5.hist>0
+      ){
+        return make(
+          'DOUBLE BOTTOM BREAKOUT',
+          'LONG',
+          neckline,
+          neckline+zone,
+          Math.min(
+            p1.price,
+            p2.price
+          )-a*.25,
+          px+a,
+          px+a*2
+        );
+      }
+    }
+  }
+
+  if(
+    nearSupport &&
+    bullEngulf &&
+    i5.hist>0
+  ){
+    return make(
+      'BULLISH ENGULFING SCALP',
+      'LONG',
+      base.support,
+      base.support+zone,
+      Math.min(
+        last.l,
+        base.support
+      )-a*.35,
+      px+a*.75,
+      px+a*1.5
+    );
+  }
+
+  if(
+    nearResistance &&
+    bearEngulf &&
+    i5.hist<0
+  ){
+    return make(
+      'BEARISH ENGULFING SCALP',
+      'SHORT',
+      base.resistance-zone,
+      base.resistance,
+      Math.max(
+        last.h,
+        base.resistance
+      )+a*.35,
+      px-a*.75,
+      px-a*1.5
+    );
+  }
+
+  if(
+    nearSupport &&
+    hammer &&
+    i5.hist>0
+  ){
+    return make(
+      'HAMMER / PIN BAR SCALP',
+      'LONG',
+      base.support,
+      base.support+zone,
+      last.l-a*.25,
+      px+a*.75,
+      px+a*1.5
+    );
+  }
+
+  if(
+    nearResistance &&
+    shootingStar &&
+    i5.hist<0
+  ){
+    return make(
+      'SHOOTING STAR / PIN BAR SCALP',
+      'SHORT',
+      base.resistance-zone,
+      base.resistance,
+      last.h+a*.25,
+      px-a*.75,
+      px-a*1.5
+    );
+  }
+
+  return null;
+}
+
+  const reversalPattern=
+    detectReversalPattern(
+      bars,
+      b15,
+      i5
+    );
+
+  if(reversalPattern){
+    return reversalPattern;
+  }
+
 function makeLevelSetup(bars,b15,i5,i15){
   const levels=getLevels(bars);
   const a=atr(b15);
