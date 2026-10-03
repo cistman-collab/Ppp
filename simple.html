@@ -538,7 +538,20 @@ canvas{width:100%;height:400px;display:block}
     <span>Stop before TP1</span>
     <strong id="backtestStop" class="wait">—</strong>
   </div>
+<div class="row">
+  <span>US session TP1</span>
+  <strong id="backtestUS" class="wait">—</strong>
+</div>
 
+<div class="row">
+  <span>London session TP1</span>
+  <strong id="backtestLondon" class="wait">—</strong>
+</div>
+
+<div class="row">
+  <span>Overnight TP1</span>
+  <strong id="backtestOvernight" class="wait">—</strong>
+</div>
   <div id="backtestBest" class="notice" style="margin-top:10px">
     Waiting for historical test…
   </div>
@@ -2328,6 +2341,36 @@ async function loadBacktest(){
       stats.stopBeforeTp1Rate==null
         ?'—'
         :stats.stopBeforeTp1Rate+'%';
+
+    const sessions=
+  stats.bySession||{};
+
+const us=
+  sessions.US||{};
+
+const london=
+  sessions.LONDON||{};
+
+const overnight=
+  sessions.OVERNIGHT||{};
+
+$('backtestUS').textContent=
+  us.tp1HitRate==null
+    ?'—'
+    :us.tp1HitRate+'% ('+
+      (us.evaluated??0)+')';
+
+$('backtestLondon').textContent=
+  london.tp1HitRate==null
+    ?'—'
+    :london.tp1HitRate+'% ('+
+      (london.evaluated??0)+')';
+
+$('backtestOvernight').textContent=
+  overnight.tp1HitRate==null
+    ?'—'
+    :overnight.tp1HitRate+'% ('+
+      (overnight.evaluated??0)+')';
 
     const minSample=30;
 
