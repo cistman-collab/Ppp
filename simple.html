@@ -2196,6 +2196,64 @@ async function reviewSignalAI(){
   out.textContent=e.message;
 }
 }
+
+async function loadJournal(){
+  try{
+    const response=
+      await fetch('/api/signal-journal');
+
+    const data=
+      await response.json();
+
+    if(!response.ok){
+      throw new Error(
+        data.error||'Journal unavailable'
+      );
+    }
+
+    const stats=
+      data.stats||{};
+
+    $('journalTotal').textContent=
+      stats.totalSignals??0;
+
+    $('journalEvaluated').textContent=
+      stats.evaluated??0;
+
+    $('journalTP1').textContent=
+      stats.tp1HitRate==null
+        ?'—'
+        :stats.tp1HitRate+'%';
+
+    $('journalTP2').textContent=
+      stats.tp2HitRate==null
+        ?'—'
+        :stats.tp2HitRate+'%';
+
+    $('journalStop').textContent=
+      stats.stopBeforeTp1Rate==null
+        ?'—'
+        :stats.stopBeforeTp1Rate+'%';
+
+    const recent=
+      Array.isArray(data.recent)
+        ?data.recent
+        :[];
+
+    $('journalRecent').textContent=
+      recent.length
+        ?'Latest: '+
+          recent[0].direction+
+          ' · '+
+          recent[0].setupType+
+          ' · '+
+          recent[0].status
+        :'No tracked signals yet.';
+  }catch(e){
+    $('journalRecent').textContent=
+      'Journal unavailable: '+e.message;
+  }
+}
 function showPage(name){
   document.querySelectorAll('.page')
     .forEach(p=>p.classList.remove('active'));
@@ -2218,6 +2276,9 @@ function showPage(name){
     loadNews();
   }
 
+  if(name==='more'){
+   loadJournal();
+}
   window.scrollTo(0,0);
 }
 
