@@ -185,6 +185,57 @@ function pct(n,d){
     :null;
 }
 
+function localMinutes(ts,timeZone){
+  const parts=
+    Object.fromEntries(
+      new Intl.DateTimeFormat(
+        'en-US',
+        {
+          timeZone,
+          hour:'2-digit',
+          minute:'2-digit',
+          hourCycle:'h23'
+        }
+      )
+      .formatToParts(new Date(ts))
+      .map(p=>[p.type,p.value])
+    );
+
+  return(
+    Number(parts.hour)*60+
+    Number(parts.minute)
+  );
+}
+
+function getTradingSession(ts){
+  const ny=
+    localMinutes(
+      ts,
+      'America/New_York'
+    );
+
+  const london=
+    localMinutes(
+      ts,
+      'Europe/London'
+    );
+
+  if(
+    ny>=8*60 &&
+    ny<17*60
+  ){
+    return 'US';
+  }
+
+  if(
+    london>=8*60 &&
+    london<13*60
+  ){
+    return 'LONDON';
+  }
+
+  return 'OVERNIGHT';
+}
 function buildStats(signals){
   const evaluated=signals.filter(x=>
     [
@@ -295,6 +346,84 @@ function buildStats(signals){
     );
   }
 
+  const bySession={};
+
+for(const signal of signals){
+  const key=
+    signal.session||'UNKNOWN';
+
+  const bucket=
+    bySession[key]||{
+      signals:0,
+      entered:0,
+      evaluated:0,
+      tp1Hits:0,
+      tp2Hits:0,
+      stopsBeforeTp1:0
+    };
+
+  bucket.signals++;
+
+  if(signal.enteredAt!==null){
+    bucket.entered++;
+  }
+
+  if(
+    [
+      'TP2',
+      'STOP',
+      'STOP_AFTER_TP1'
+    ].includes(signal.status)
+  ){
+    bucket.evaluated++;
+  }
+
+  if(
+    signal.status==='TP2' ||
+    signal.status==='STOP_AFTER_TP1'
+  ){
+    bucket.tp1Hits++;
+  }
+
+  if(signal.status==='TP2'){
+    bucket.tp2Hits++;
+  }
+
+  if(signal.status==='STOP'){
+    bucket.stopsBeforeTp1++;
+  }
+
+  bySession[key]=bucket;
+}
+
+for(
+  const bucket of
+  Object.values(bySession)
+){
+  bucket.entryRate=
+    pct(
+      bucket.entered,
+      bucket.signals
+    );
+
+  bucket.tp1HitRate=
+    pct(
+      bucket.tp1Hits,
+      bucket.evaluated
+    );
+
+  bucket.tp2HitRate=
+    pct(
+      bucket.tp2Hits,
+      bucket.evaluated
+    );
+
+  bucket.stopBeforeTp1Rate=
+    pct(
+      bucket.stopsBeforeTp1,
+      bucket.evaluated
+    );
+}
   return{
     totalSignals:signals.length,
     entered:entered.length,
@@ -330,7 +459,8 @@ function buildStats(signals){
       stopsBeforeTp1,
       evaluated.length
     ),
-    bySetup
+    bySetup,
+    bySession
   };
 }
 
@@ -506,6 +636,7 @@ export default async function handler(req,res){
         const baseSignal={
           direction,
           setupType,
+          session:getTradingSession(candleClosedAt),
           signalAt:new Date(
             candleClosedAt
           ).toISOString(),
