@@ -1253,6 +1253,163 @@ async function saveBlob(
   );
 }
 
+async function getNewsContext(req){
+  const fallback={
+    available:false,
+    bias:'UNKNOWN',
+    maritimeRisk:'UNKNOWN',
+    bullish:0,
+    bearish:0,
+    recent:0
+  };
+
+  const host=
+    req.headers['x-forwarded-host']||
+    req.headers.host;
+
+  if(!host)return fallback;
+
+  const controller=
+    new AbortController();
+
+  const timer=
+    setTimeout(
+      ()=>controller.abort(),
+      5000
+    );
+
+  try{
+    const proto=
+      String(
+        req.headers['x-forwarded-proto']||
+        'https'
+      )
+      .split(',')[0]
+      .trim();
+
+    const response=
+      await fetch(
+        proto+'://'+host+'/api/news',
+        {
+          signal:controller.signal,
+          headers:{
+            Accept:'application/json'
+          }
+        }
+      );
+
+    if(!response.ok){
+      return fallback;
+    }
+
+    const data=
+      await response.json();
+
+    const now=Date.now();
+
+    const items=
+      (Array.isArray(data.items)
+        ?data.items
+        :[]
+      ).filter(item=>{
+        const published=
+          Date.parse(
+            item.published||''
+          );
+
+        return(
+          Number.isFinite(published) &&
+          published<=now &&
+          now-published<=12*60*M
+        );
+      });
+
+    const bullishWords=[
+      'attack',
+      'tanker strike',
+      'war',
+      'sanction',
+      'supply cut',
+      'production cut',
+      'output cut',
+      'export disruption',
+      'supply disruption',
+      'hormuz closure',
+      'oil prices rise',
+      'oil prices jump',
+      'crude rises',
+      'crude jumps'
+    ];
+
+    const bearishWords=[
+      'inventory build',
+      'output increase',
+      'production increase',
+      'demand concern',
+      'demand weak',
+      'reserve release',
+      'release diesel reserves',
+      'release oil reserves',
+      'oil prices fall',
+      'oil prices drop',
+      'crude falls',
+      'crude drops'
+    ];
+
+    let bullish=0;
+    let bearish=0;
+
+    for(const item of items){
+      const title=
+        String(
+          item.title||''
+        ).toLowerCase();
+
+      if(
+        bullishWords.some(
+          x=>title.includes(x)
+        )
+      ){
+        bullish++;
+      }else if(
+        bearishWords.some(
+          x=>title.includes(x)
+        )
+      ){
+        bearish++;
+      }
+    }
+
+    const bias=
+      bullish>=bearish+2
+      ?'BULLISH'
+      :bearish>=bullish+2
+      ?'BEARISH'
+      :'MIXED';
+
+    return{
+      available:true,
+      bias,
+      maritimeRisk:
+        String(
+          data.maritime?.risk||
+          'UNKNOWN'
+        ),
+      bullish,
+      bearish,
+      recent:items.length,
+      fetchedAt:
+        data.fetchedAt||null
+    };
+
+  }catch{
+    return fallback;
+
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
 export default async function handler(
   req,
   res
@@ -1444,10 +1601,54 @@ confirmation.dataFresh=
   ?'APPROACHING RESISTANCE'
   :'APPROACHING SUPPORT';
    
-    const activeDirection=
+    const technicalDirection=
   dataAgeMinutes<=15
     ?(levelSetup?.direction||current)
     :'WAIT';
+
+const newsContext=
+  await getNewsContext(req);
+
+const newsConflict=
+  technicalDirection!=='WAIT' &&
+  newsContext.available &&
+  newsContext.recent>=2 &&
+  (
+    (
+      technicalDirection==='LONG' &&
+      newsContext.bias==='BEARISH'
+    ) ||
+    (
+      technicalDirection==='SHORT' &&
+      newsContext.bias==='BULLISH'
+    )
+  );
+
+const activeDirection=
+  newsConflict
+    ?'WAIT'
+    :technicalDirection;
+
+    confirmation.newsAvailable=
+  newsContext.available;
+
+confirmation.newsBias=
+  newsContext.bias;
+
+confirmation.maritimeRisk=
+  newsContext.maritimeRisk;
+
+confirmation.newsBullish=
+  newsContext.bullish;
+
+confirmation.newsBearish=
+  newsContext.bearish;
+
+confirmation.newsRecent=
+  newsContext.recent;
+
+confirmation.newsConflict=
+  newsConflict;
 
 const prices=
   activeDirection==='WAIT'
