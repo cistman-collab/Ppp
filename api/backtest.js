@@ -1,0 +1,608 @@
+import {
+  aggregate,
+  indicators,
+  makeSetupPrices,
+  makeLevelSetup,
+  makeDirection
+} from './market-monitor.js';
+
+const M=60000;
+const ENTRY_EXPIRY_MINUTES=90;
+const ACTIVE_TIMEOUT_MINUTES=8*60;
+
+function upperBoundCompleted(series,now,minutes){
+  let lo=0;
+  let hi=series.length;
+  const size=minutes*M;
+
+  while(lo<hi){
+    const mid=(lo+hi)>>1;
+
+    if(series[mid].t+size<=now){
+      lo=mid+1;
+    }else{
+      hi=mid;
+    }
+  }
+
+  return lo;
+}
+
+function recentCompleted(series,now,minutes,limit=240){
+  const end=upperBoundCompleted(
+    series,
+    now,
+    minutes
+  );
+
+  return series.slice(
+    Math.max(0,end-limit),
+    end
+  );
+}
+
+function priceZoneTouched(bar,low,high){
+  return bar.l<=high && bar.h>=low;
+}
+
+function levelHits(bar,signal){
+  if(signal.direction==='LONG'){
+    return{
+      stop:bar.l<=signal.stop,
+      tp1:bar.h>=signal.tp1,
+      tp2:bar.h>=signal.tp2
+    };
+  }
+
+  return{
+    stop:bar.h>=signal.stop,
+    tp1:bar.l<=signal.tp1,
+    tp2:bar.l<=signal.tp2
+  };
+}
+
+function evaluateSignal(signal,bars,startIndex){
+  const signalClosedAt=signal.candleClosedAt;
+  const entryDeadline=
+    signalClosedAt+
+    ENTRY_EXPIRY_MINUTES*M;
+
+  let enteredAt=null;
+  let tp1HitAt=null;
+
+  for(
+    let i=startIndex+1;
+    i<bars.length;
+    i++
+  ){
+    const bar=bars[i];
+    const closedAt=bar.t+5*M;
+
+    if(enteredAt===null){
+      if(closedAt>entryDeadline){
+        return{
+          status:'EXPIRED',
+          enteredAt:null,
+          tp1HitAt:null,
+          closedAt
+        };
+      }
+
+      if(
+        !priceZoneTouched(
+          bar,
+          signal.entryLow,
+          signal.entryHigh
+        )
+      ){
+        continue;
+      }
+
+      enteredAt=closedAt;
+      const first=levelHits(bar,signal);
+
+      if(
+        first.stop ||
+        first.tp1 ||
+        first.tp2
+      ){
+        return{
+          status:'AMBIGUOUS',
+          enteredAt,
+          tp1HitAt:null,
+          closedAt,
+          note:'Entry and exit level touched inside the same 5m candle.'
+        };
+      }
+
+      continue;
+    }
+
+    const hit=levelHits(bar,signal);
+
+    if(
+      hit.stop &&
+      (hit.tp1||hit.tp2)
+    ){
+      return{
+        status:'AMBIGUOUS',
+        enteredAt,
+        tp1HitAt,
+        closedAt,
+        note:'Stop and target touched inside the same 5m candle.'
+      };
+    }
+
+    if(hit.tp2){
+      return{
+        status:'TP2',
+        enteredAt,
+        tp1HitAt:tp1HitAt||closedAt,
+        closedAt
+      };
+    }
+
+    if(hit.tp1 && tp1HitAt===null){
+      tp1HitAt=closedAt;
+    }
+
+    if(hit.stop){
+      return{
+        status:
+          tp1HitAt===null
+            ?'STOP'
+            :'STOP_AFTER_TP1',
+        enteredAt,
+        tp1HitAt,
+        closedAt
+      };
+    }
+
+    if(
+      closedAt-enteredAt>
+      ACTIVE_TIMEOUT_MINUTES*M
+    ){
+      return{
+        status:'TIMEOUT',
+        enteredAt,
+        tp1HitAt,
+        closedAt
+      };
+    }
+  }
+
+  return{
+    status:'OPEN_END',
+    enteredAt,
+    tp1HitAt,
+    closedAt:null
+  };
+}
+
+function pct(n,d){
+  return d
+    ?Number((n/d*100).toFixed(1))
+    :null;
+}
+
+function buildStats(signals){
+  const evaluated=signals.filter(x=>
+    [
+      'TP2',
+      'STOP',
+      'STOP_AFTER_TP1'
+    ].includes(x.status)
+  );
+
+  const entered=signals.filter(x=>
+    x.enteredAt!==null
+  );
+
+  const tp1Hits=evaluated.filter(x=>
+    x.status==='TP2' ||
+    x.status==='STOP_AFTER_TP1'
+  ).length;
+
+  const tp2Hits=evaluated.filter(
+    x=>x.status==='TP2'
+  ).length;
+
+  const stopsBeforeTp1=evaluated.filter(
+    x=>x.status==='STOP'
+  ).length;
+
+  const bySetup={};
+
+  for(const signal of signals){
+    const key=signal.setupType||'UNKNOWN';
+    const bucket=bySetup[key]||{
+      signals:0,
+      entered:0,
+      evaluated:0,
+      tp1Hits:0,
+      tp2Hits:0,
+      stopsBeforeTp1:0,
+      expired:0,
+      ambiguous:0,
+      timeout:0
+    };
+
+    bucket.signals++;
+
+    if(signal.enteredAt!==null){
+      bucket.entered++;
+    }
+
+    if(
+      [
+        'TP2',
+        'STOP',
+        'STOP_AFTER_TP1'
+      ].includes(signal.status)
+    ){
+      bucket.evaluated++;
+    }
+
+    if(
+      signal.status==='TP2' ||
+      signal.status==='STOP_AFTER_TP1'
+    ){
+      bucket.tp1Hits++;
+    }
+
+    if(signal.status==='TP2'){
+      bucket.tp2Hits++;
+    }
+
+    if(signal.status==='STOP'){
+      bucket.stopsBeforeTp1++;
+    }
+
+    if(signal.status==='EXPIRED'){
+      bucket.expired++;
+    }
+
+    if(signal.status==='AMBIGUOUS'){
+      bucket.ambiguous++;
+    }
+
+    if(signal.status==='TIMEOUT'){
+      bucket.timeout++;
+    }
+
+    bySetup[key]=bucket;
+  }
+
+  for(const bucket of Object.values(bySetup)){
+    bucket.entryRate=pct(
+      bucket.entered,
+      bucket.signals
+    );
+
+    bucket.tp1HitRate=pct(
+      bucket.tp1Hits,
+      bucket.evaluated
+    );
+
+    bucket.tp2HitRate=pct(
+      bucket.tp2Hits,
+      bucket.evaluated
+    );
+
+    bucket.stopBeforeTp1Rate=pct(
+      bucket.stopsBeforeTp1,
+      bucket.evaluated
+    );
+  }
+
+  return{
+    totalSignals:signals.length,
+    entered:entered.length,
+    evaluated:evaluated.length,
+    expired:signals.filter(
+      x=>x.status==='EXPIRED'
+    ).length,
+    ambiguous:signals.filter(
+      x=>x.status==='AMBIGUOUS'
+    ).length,
+    timeout:signals.filter(
+      x=>x.status==='TIMEOUT'
+    ).length,
+    openEnd:signals.filter(
+      x=>x.status==='OPEN_END'
+    ).length,
+    tp1Hits,
+    tp2Hits,
+    stopsBeforeTp1,
+    entryRate:pct(
+      entered.length,
+      signals.length
+    ),
+    tp1HitRate:pct(
+      tp1Hits,
+      evaluated.length
+    ),
+    tp2HitRate:pct(
+      tp2Hits,
+      evaluated.length
+    ),
+    stopBeforeTp1Rate:pct(
+      stopsBeforeTp1,
+      evaluated.length
+    ),
+    bySetup
+  };
+}
+
+export default async function handler(req,res){
+  if(req.method!=='GET'){
+    return res.status(405).json({
+      error:'GET only'
+    });
+  }
+
+  try{
+    const response=await fetch(
+      'https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?interval=5m&range=30d',
+      {
+        headers:{
+          'User-Agent':'Mozilla/5.0',
+          'Accept':'application/json'
+        }
+      }
+    );
+
+    if(!response.ok){
+      throw new Error(
+        'WTI history HTTP '+
+        response.status
+      );
+    }
+
+    const data=await response.json();
+    const result=data.chart?.result?.[0];
+    const quote=result
+      ?.indicators
+      ?.quote?.[0];
+
+    if(!result?.timestamp || !quote){
+      throw new Error(
+        'No WTI historical candle data'
+      );
+    }
+
+    const now=Date.now();
+
+    const bars=result.timestamp
+      .map((t,i)=>({
+        t:t*1000,
+        o:quote.open[i],
+        h:quote.high[i],
+        l:quote.low[i],
+        c:quote.close[i]
+      }))
+      .filter(b=>
+        [
+          b.o,
+          b.h,
+          b.l,
+          b.c
+        ].every(Number.isFinite) &&
+        b.t%(5*M)===0 &&
+        b.t+5*M<=now
+      );
+
+    if(bars.length<1800){
+      throw new Error(
+        'Not enough 5m history for backtest'
+      );
+    }
+
+    const all15=aggregate(bars,15);
+    const all60=aggregate(bars,60);
+    const all240=aggregate(bars,240);
+
+    const signals=[];
+    let previousDirection='WAIT';
+    let previousSetupType='NONE';
+
+    for(
+      let i=400;
+      i<bars.length;
+      i++
+    ){
+      const candleClosedAt=
+        bars[i].t+5*M;
+
+      const hist5=bars.slice(
+        Math.max(0,i-599),
+        i+1
+      );
+
+      const b15=recentCompleted(
+        all15,
+        candleClosedAt,
+        15,
+        240
+      );
+
+      const b60=recentCompleted(
+        all60,
+        candleClosedAt,
+        60,
+        160
+      );
+
+      const b240=recentCompleted(
+        all240,
+        candleClosedAt,
+        240,
+        100
+      );
+
+      const i5=indicators(hist5);
+      const i15=indicators(b15);
+      const i60=indicators(b60);
+      const i240=indicators(b240);
+
+      if(
+        !i5 ||
+        !i15 ||
+        !i60 ||
+        !i240
+      ){
+        continue;
+      }
+
+      const levelSetup=makeLevelSetup(
+        hist5,
+        b15,
+        i5,
+        i15
+      );
+
+      const trendDirection=makeDirection(
+        hist5,
+        i5,
+        i15,
+        i60,
+        i240,
+        candleClosedAt
+      );
+
+      const direction=
+        levelSetup?.direction||
+        trendDirection;
+
+      const prices=
+        direction==='WAIT'
+          ?null
+          :(levelSetup||
+            makeSetupPrices(
+              direction,
+              b15,
+              hist5
+            ));
+
+      const setupType=
+        direction==='WAIT'
+          ?'NONE'
+          :(levelSetup?.type||
+            (direction==='LONG'
+              ?'TREND LONG'
+              :'TREND SHORT'));
+
+      const isNewSignal=
+        (
+          direction==='LONG' ||
+          direction==='SHORT'
+        ) &&
+        (
+          direction!==previousDirection ||
+          setupType!==previousSetupType
+        );
+
+      if(isNewSignal && prices){
+        const baseSignal={
+          direction,
+          setupType,
+          signalAt:new Date(
+            candleClosedAt
+          ).toISOString(),
+          candleClosedAt,
+          entryLow:prices.entryLow,
+          entryHigh:prices.entryHigh,
+          stop:prices.stop,
+          tp1:prices.tp1,
+          tp2:prices.tp2,
+          context:{
+            fiveMinTrend:i5.trend,
+            fifteenMinTrend:i15.trend,
+            oneHourTrend:i60.trend,
+            fourHourTrend:i240.trend,
+            fiveMinRsi:Number(
+              i5.rsi.toFixed(2)
+            ),
+            fifteenMinRsi:Number(
+              i15.rsi.toFixed(2)
+            )
+          }
+        };
+
+        const outcome=evaluateSignal(
+          baseSignal,
+          bars,
+          i
+        );
+
+        signals.push({
+          ...baseSignal,
+          ...outcome,
+          enteredAt:
+            outcome.enteredAt
+              ?new Date(
+                outcome.enteredAt
+              ).toISOString()
+              :null,
+          tp1HitAt:
+            outcome.tp1HitAt
+              ?new Date(
+                outcome.tp1HitAt
+              ).toISOString()
+              :null,
+          closedAt:
+            outcome.closedAt
+              ?new Date(
+                outcome.closedAt
+              ).toISOString()
+              :null
+        });
+      }
+
+      previousDirection=direction;
+      previousSetupType=setupType;
+    }
+
+    return res.status(200).json({
+      ok:true,
+      mode:'TECHNICAL_ONLY_REPLAY',
+      source:
+        'Yahoo CL=F 5m historical data (unofficial/unverified)',
+      range:{
+        first:new Date(
+          bars[0].t
+        ).toISOString(),
+        last:new Date(
+          bars.at(-1).t+5*M
+        ).toISOString(),
+        candles:bars.length
+      },
+      assumptions:{
+        entryExpiryMinutes:
+          ENTRY_EXPIRY_MINUTES,
+        activeTimeoutMinutes:
+          ACTIVE_TIMEOUT_MINUTES,
+        historicalNewsIncluded:false,
+        maritimeHistoryIncluded:false,
+        feesIncluded:false,
+        slippageIncluded:false,
+        note:
+          'Replay uses the current technical rules. Same-candle entry/exit or stop/target conflicts are marked AMBIGUOUS.'
+      },
+      stats:buildStats(signals),
+      recent:signals
+        .slice(-30)
+        .reverse()
+    });
+
+  }catch(e){
+    console.error(
+      'WTI backtest failed:',
+      e
+    );
+
+    return res.status(500).json({
+      error:e.message
+    });
+  }
+}
