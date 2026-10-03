@@ -1142,6 +1142,8 @@ const bearishMomentum=
           ?'Monitor candle data is too old for a current setup.'
           :'The monitor has no active setup.',
         waitConfirm:'Wait for fresh candles and a confirmed monitor setup.',
+        setupType:result.setupType,
+        formingPattern:result.formingPattern,
         monitorConfirmation:c
       };
     }else{
@@ -1172,6 +1174,7 @@ const bearishMomentum=
         ...p,
         direction:result.direction,
         setupType:result.setupType,
+        formingPattern:result.formingPattern,
         rr:Math.abs(p.tp2-entry)/Math.abs(entry-p.stop),
         monitorConfirmation:c
       };
@@ -1266,26 +1269,36 @@ $('signalTrend').className=
     $('signalTrend').className='wait';
   }
 
-  $('signalPattern').textContent=
-    s?.setupType||'NONE';
+  const shownPattern=
+  s?.setupType && s.setupType!=='NONE'
+  ?s.setupType
+  :s?.formingPattern?.type||'NONE';
 
-  $('signalPattern').className=
-    s?.direction==='LONG'
-    ?'good'
-    :s?.direction==='SHORT'
-    ?'bad'
-    :'wait';
+$('signalPattern').textContent=
+  shownPattern;
 
-  const stale=
-    c?.dataFresh===false;
+const patternBias=
+  s?.formingPattern?.bias;
 
-  $('patternStatus').textContent=
-    stale
-    ?'DATA STALE'
-    :s?.direction==='LONG' ||
-     s?.direction==='SHORT'
-    ?'CONFIRMED'
-    :'NO CONFIRMED SETUP';
+$('signalPattern').className=
+  s?.direction==='LONG' || patternBias==='LONG'
+  ?'good'
+  :s?.direction==='SHORT' || patternBias==='SHORT'
+  ?'bad'
+  :'wait';
+
+const stale=
+  c?.dataFresh===false;
+
+$('patternStatus').textContent=
+  stale
+  ?'DATA STALE'
+  :s?.direction==='LONG' ||
+   s?.direction==='SHORT'
+  ?'CONFIRMED'
+  :s?.formingPattern
+  ?'FORMING · '+s.formingPattern.waitingFor
+  :'NO CONFIRMED SETUP';
 
   $('patternStatus').className=
     stale || s?.direction==='WAIT'
