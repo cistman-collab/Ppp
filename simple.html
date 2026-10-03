@@ -1719,7 +1719,7 @@ async function loadNews(){
       const timestamp=Date.parse(n.published||'');
 
       published.textContent=Number.isFinite(timestamp)
-        ?'Published: '+new Date(timestamp).toLocaleString(
+        ?'Feed timestamp: '+new Date(timestamp).toLocaleString(
           'en-GB',{
             timeZone:'Europe/Vilnius',
             day:'2-digit',
@@ -1729,7 +1729,7 @@ async function loadNews(){
             minute:'2-digit'
           }
         )+' · Lithuania time'
-        :'Publication time unavailable';
+        :'Feed timestamp unavailable';
 
       item.append(tag,heading,published);
 
