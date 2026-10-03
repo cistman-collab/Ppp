@@ -1,6 +1,6 @@
 import { get, put } from '@vercel/blob';
 import webpush from 'web-push';
-
+import { updateSignalJournal } from './signal-journal.js';
 const M=60000;
 
 function ema(a,p){
