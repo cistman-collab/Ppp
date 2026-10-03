@@ -1875,3 +1875,12 @@ else if(activeDirection==='SHORT'){
       });
   }
 }
+
+export {
+  aggregate,
+  indicators,
+  atr,
+  makeSetupPrices,
+  makeLevelSetup,
+  makeDirection
+};
