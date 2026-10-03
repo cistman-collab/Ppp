@@ -566,18 +566,18 @@ function detectReversalPattern(bars,b15,i5){
   return null;
 }
 
-  const reversalPattern=
-    detectReversalPattern(
-      bars,
-      b15,
-      i5
-    );
+  function makeLevelSetup(bars,b15,i5,i15){
+ const reversalPattern=
+  detectReversalPattern(
+    bars,
+    b15,
+    i5
+  );
 
   if(reversalPattern){
     return reversalPattern;
   }
-
-function makeLevelSetup(bars,b15,i5,i15){
+    
   const levels=getLevels(bars);
   const a=atr(b15);
   const zoneSize=Math.max(0.10,a*.25);
