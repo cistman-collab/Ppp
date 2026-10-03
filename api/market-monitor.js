@@ -1142,7 +1142,8 @@ function makeDirection(
   i5,
   i15,
   i60,
-  i240
+  i240,
+  now=Date.now()
 ){
   const completedAt=
     bars.at(-1).t+5*M;
@@ -1150,7 +1151,7 @@ function makeDirection(
   const ageMinutes=
     Math.max(
       0,
-      (Date.now()-completedAt)/M
+      (now-completedAt)/M
     );
 
   if(ageMinutes>15){
