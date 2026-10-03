@@ -686,6 +686,7 @@ confirmation.dataFresh=
       'push/monitor-state.json',
       {
         direction:activeDirection,
+        setupType,
         checkedAt:
           new Date()
             .toISOString()
@@ -694,7 +695,13 @@ confirmation.dataFresh=
 
     if(
       oldDirection===null ||
-      oldDirection===activeDirection
+      (
+  oldDirection===activeDirection &&
+  (
+    previous?.setupType==null ||
+    previous.setupType===setupType
+  )
+)
     ){
       return res
         .status(200)
