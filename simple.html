@@ -1136,16 +1136,25 @@ const bearishMomentum=
       age<=15;
 
     if(!fresh || result.direction==='WAIT'){
-      setup={
-        direction:'WAIT',
-        waitReason:!fresh
-          ?'Monitor candle data is too old for a current setup.'
-          :'The monitor has no active setup.',
-        waitConfirm:'Wait for fresh candles and a confirmed monitor setup.',
-        setupType:result.setupType,
-        formingPattern:result.formingPattern,
-        monitorConfirmation:c
-      };
+  setup={
+    direction:'WAIT',
+
+    waitReason:!fresh
+      ?'Monitor candle data is too old for a current setup.'
+      :result.formingPattern
+      ?result.formingPattern.type+' forming — not confirmed.'
+      :'The monitor has no active setup.',
+
+    waitConfirm:!fresh
+      ?'Wait for fresh candles and a confirmed monitor setup.'
+      :result.formingPattern?.waitingFor||
+       'Wait for a confirmed monitor setup.',
+
+    setupType:result.setupType,
+    formingPattern:result.formingPattern,
+    monitorConfirmation:c
+  };
+  
     }else{
       const p=result.prices;
 
