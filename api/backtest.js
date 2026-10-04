@@ -552,6 +552,90 @@ for(
   };
 }
 
+function buildSetupValidation(
+  development,
+  validation
+){
+  const names=
+    new Set([
+      ...Object.keys(
+        development.bySetup||{}
+      ),
+      ...Object.keys(
+        validation.bySetup||{}
+      )
+    ]);
+
+  const result={};
+
+  for(const name of names){
+    const dev=
+      development.bySetup?.[name]||{};
+
+    const val=
+      validation.bySetup?.[name]||{};
+
+    const devEvaluated=
+      dev.evaluated??0;
+
+    const valEvaluated=
+      val.evaluated??0;
+
+    const devTP1=
+      dev.tp1HitRate??null;
+
+    const valTP1=
+      val.tp1HitRate??null;
+
+    let rating=
+      'INSUFFICIENT DATA';
+
+    if(
+      devEvaluated>=20 &&
+      valEvaluated>=20 &&
+      devTP1!==null &&
+      valTP1!==null
+    ){
+      if(
+        devTP1>=55 &&
+        valTP1>=55
+      ){
+        rating='VALIDATED';
+      }else if(
+        devTP1<45 &&
+        valTP1<45
+      ){
+        rating='WEAK';
+      }else{
+        rating='MIXED';
+      }
+    }
+
+    result[name]={
+      rating,
+      totalEvaluated:
+        devEvaluated+
+        valEvaluated,
+
+      development:{
+        evaluated:devEvaluated,
+        tp1HitRate:devTP1,
+        tp2HitRate:
+          dev.tp2HitRate??null
+      },
+
+      validation:{
+        evaluated:valEvaluated,
+        tp1HitRate:valTP1,
+        tp2HitRate:
+          val.tp2HitRate??null
+      }
+    };
+  }
+
+  return result;
+}
+
 export default async function handler(req,res){
   if(req.method!=='GET'){
     return res.status(405).json({
@@ -815,6 +899,12 @@ const walkForward={
     )
 };
 
+    walkForward.setupValidation=
+  buildSetupValidation(
+    walkForward.development,
+    walkForward.validation
+  );
+   
     return res.status(200).json({
       ok:true,
       mode:'TECHNICAL_ONLY_REPLAY',
