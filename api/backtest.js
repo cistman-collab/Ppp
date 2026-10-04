@@ -782,6 +782,39 @@ export default async function handler(req,res){
       previousSetupType=setupType;
     }
 
+    const splitAt=
+  bars[
+    Math.floor(
+      bars.length/2
+    )
+  ].t+5*M;
+
+const developmentSignals=
+  signals.filter(
+    s=>s.candleClosedAt<splitAt
+  );
+
+const validationSignals=
+  signals.filter(
+    s=>s.candleClosedAt>=splitAt
+  );
+
+const walkForward={
+  splitAt:
+    new Date(splitAt)
+      .toISOString(),
+
+  development:
+    buildStats(
+      developmentSignals
+    ),
+
+  validation:
+    buildStats(
+      validationSignals
+    )
+};
+
     return res.status(200).json({
       ok:true,
       mode:'TECHNICAL_ONLY_REPLAY',
@@ -796,6 +829,9 @@ export default async function handler(req,res){
         ).toISOString(),
         candles:bars.length
       },
+      
+      walkForward,
+      
       assumptions:{
         entryExpiryMinutes:
           ENTRY_EXPIRY_MINUTES,
