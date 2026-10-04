@@ -1578,6 +1578,7 @@ $('confirmation').textContent=
   $('chartRR').textContent='1 : '+s.rr.toFixed(1);
 }
 let setupHistoryCache=null;
+let setupValidationCache=null;
 
 function historySession(ts){
   const minutes=(timeZone)=>{
@@ -1677,10 +1678,23 @@ async function loadSetupHistory(){
       setupHistoryCache=
         data.stats
           ?.bySetupSession||{};
+      
+      setupValidationCache=
+         data.walkForward
+           ?.setupValidation||{};
+      
     }
 
     const stats=
       setupHistoryCache[key];
+
+    const validation=
+      setupValidationCache
+      ?.[s.setupType];
+
+    const rating=
+      validation?.rating||
+      'INSUFFICIENT DATA';
 
     if(
       !stats ||
@@ -1693,14 +1707,15 @@ async function loadSetupHistory(){
     }
 
     out.textContent=
-      key+
-      ' · TP1 '+
-      (stats.tp1HitRate??'—')+
-      '% · TP2 '+
-      (stats.tp2HitRate??'—')+
-      '% · '+
-      stats.evaluated+
-      ' evaluated';
+  key+
+  ' · '+rating+
+  ' · TP1 '+
+  (stats.tp1HitRate??'—')+
+  '% · TP2 '+
+  (stats.tp2HitRate??'—')+
+  '% · '+
+  stats.evaluated+
+  ' evaluated';
 
   }catch(e){
     out.textContent=
