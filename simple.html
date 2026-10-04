@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>WTI Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
 :root{
@@ -290,8 +291,8 @@ canvas{width:100%;height:400px;display:block}
     </div>
 
     <div class="chartbox">
-      <canvas id="chart"></canvas>
-    </div>
+  <div id="chart" style="height:400px"></div>
+</div>
     <div class="indicatorBox">
   <div class="indicatorTitle">
   MACD (12,26,9) · <span id="macdValue">—</span>
@@ -1724,7 +1725,252 @@ async function loadSetupHistory(){
   }
 }
 function drawChart(){
+  {
+  if(!bars.length)return;
+
+  const container=$('chart');
+
+  if(
+    !container ||
+    container.clientWidth<50
+  )return;
+
+  if(typeof LightweightCharts==='undefined'){
+    container.textContent=
+      'Professional chart engine unavailable.';
+    return;
+  }
+
+  if(drawChart.instance){
+    drawChart.instance.remove();
+    drawChart.instance=null;
+  }
+
+  container.innerHTML='';
+
+  const src=
+    currentTF===5
+      ?bars
+      :aggregate(bars,currentTF);
+
+  const data=src.slice(-80);
+
+  if(data.length<5)return;
+
+  const chart=
+    LightweightCharts.createChart(
+      container,
+      {
+        width:container.clientWidth,
+        height:400,
+
+        layout:{
+          background:{
+            type:LightweightCharts.ColorType.Solid,
+            color:'#06131f'
+          },
+          textColor:'#9fb3c8',
+          fontFamily:'system-ui'
+        },
+
+        grid:{
+          vertLines:{
+            color:'#122638'
+          },
+          horzLines:{
+            color:'#122638'
+          }
+        },
+
+        crosshair:{
+          mode:
+            LightweightCharts.CrosshairMode.Normal
+        },
+
+        rightPriceScale:{
+          borderColor:'#203950',
+          scaleMargins:{
+            top:0.08,
+            bottom:0.08
+          }
+        },
+
+        timeScale:{
+          borderColor:'#203950',
+          timeVisible:true,
+          secondsVisible:false,
+          rightOffset:4,
+          barSpacing:7,
+          minBarSpacing:3
+        },
+
+        handleScroll:{
+          mouseWheel:true,
+          pressedMouseMove:true,
+          horzTouchDrag:true,
+          vertTouchDrag:false
+        },
+
+        handleScale:{
+          axisPressedMouseMove:true,
+          mouseWheel:true,
+          pinch:true
+        }
+      }
+    );
+
+  drawChart.instance=chart;
+
+  const candles=
+    chart.addCandlestickSeries({
+      upColor:'#2fe0a7',
+      downColor:'#ff5964',
+      wickUpColor:'#2fe0a7',
+      wickDownColor:'#ff5964',
+      borderUpColor:'#2fe0a7',
+      borderDownColor:'#ff5964',
+
+      priceFormat:{
+        type:'price',
+        precision:2,
+        minMove:0.01
+      },
+
+      lastValueVisible:true,
+      priceLineVisible:true
+    });
+
+  candles.setData(
+    data.map(b=>({
+      time:Math.floor(b.t/1000),
+      open:b.o,
+      high:b.h,
+      low:b.l,
+      close:b.c
+    }))
+  );
+
+  const closes=
+    src.map(b=>b.c);
+
+  const ema50=
+    emaSeries(closes,50);
+
+  const ema200=
+    emaSeries(closes,200);
+
+  const start=
+    src.length-data.length;
+
+  const ema50Line=
+    chart.addLineSeries({
+      color:'#2f80ed',
+      lineWidth:2,
+      priceLineVisible:false,
+      lastValueVisible:false
+    });
+
+  ema50Line.setData(
+    data.map((b,i)=>({
+      time:Math.floor(b.t/1000),
+      value:ema50[start+i]
+    }))
+  );
+
+  const ema200Line=
+    chart.addLineSeries({
+      color:'#ff4057',
+      lineWidth:2,
+      priceLineVisible:false,
+      lastValueVisible:false
+    });
+
+  ema200Line.setData(
+    data.map((b,i)=>({
+      time:Math.floor(b.t/1000),
+      value:ema200[start+i]
+    }))
+  );
+
+  function priceLine(
+    price,
+    title,
+    color
+  ){
+    if(!Number.isFinite(price))return;
+
+    candles.createPriceLine({
+      price,
+      color,
+      lineWidth:1,
+      lineStyle:
+        LightweightCharts.LineStyle.Dashed,
+      axisLabelVisible:true,
+      title
+    });
+  }
+
+  const levels=getLevels();
+  const major=getMajorLevels();
+
+  priceLine(
+    levels.resistance,
+    'RES',
+    '#ff7b84'
+  );
+
+  priceLine(
+    levels.support,
+    'SUP',
+    '#4be0b0'
+  );
+
+  if(major){
+    priceLine(
+      major.pivot,
+      'PIVOT',
+      '#ffd15f'
+    );
+  }
+
+  if(
+    setup &&
+    setup.direction!=='WAIT'
+  ){
+    priceLine(
+      (setup.entryLow+setup.entryHigh)/2,
+      'ENTRY',
+      '#ffd15f'
+    );
+
+    priceLine(
+      setup.stop,
+      'SL',
+      '#ff5964'
+    );
+
+    priceLine(
+      setup.tp1,
+      'TP1',
+      '#2fe0a7'
+    );
+
+    priceLine(
+      setup.tp2,
+      'TP2',
+      '#4e9fff'
+    );
+  }
+
+  chart.timeScale().fitContent();
+
+  drawMACD(data);
+  drawRSI(data);
+
+  return;
+}
   drawChart.lastLabelY=-999;
+  
   if(!bars.length)return;
 
   const canvas=$('chart');
