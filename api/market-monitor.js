@@ -29,24 +29,26 @@ function aggregate(input,min){
     let x=out.at(-1);
 
     if(!x||x.t!==t){
-      x={
-        t,
-        o:b.o,
-        h:b.h,
-        l:b.l,
-        c:b.c,
-        n:0
-      };
+  x={
+    t,
+    o:b.o,
+    h:b.h,
+    l:b.l,
+    c:b.c,
+    v:Number.isFinite(b.v)?b.v:0,
+    n:0
+  };
 
-      out.push(x);
+  out.push(x);
 
-    }else{
-      x.h=Math.max(x.h,b.h);
-      x.l=Math.min(x.l,b.l);
-      x.c=b.c;
-    }
+}else{
+  x.h=Math.max(x.h,b.h);
+  x.l=Math.min(x.l,b.l);
+  x.c=b.c;
+  x.v+=Number.isFinite(b.v)?b.v:0;
+}
 
-    x.n++;
+x.n++;
   }
 
   return out.filter(
@@ -2008,12 +2010,15 @@ export default async function handler(
       result.timestamp
         .map(
           (t,i)=>({
-            t:t*1000,
-            o:quote.open[i],
-            h:quote.high[i],
-            l:quote.low[i],
-            c:quote.close[i]
-          })
+  t:t*1000,
+  o:quote.open[i],
+  h:quote.high[i],
+  l:quote.low[i],
+  c:quote.close[i],
+  v:Number.isFinite(quote.volume?.[i])
+    ?quote.volume[i]
+    :0
+})
         )
         .filter(
           b=>
