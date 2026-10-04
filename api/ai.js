@@ -86,6 +86,17 @@ RVOL compares the latest completed candle volume with its previous 20-candle ave
 - Volume is not directional by itself.
 - Missing, zero or unavailable volume means VOLUME CONFIRMATION is UNKNOWN; do not invent volume.
 - Never allow volume to override stale-data protection, event risk, major-level conflicts or timeframe conflicts.
+VWAP20 is a rolling 20-bar volume-weighted price, not an official session VWAP.
+
+Use VWAP20 only as confirmation:
+- For a LONG setup, price ABOVE VWAP20 may support the setup; price BELOW VWAP20 is a caution.
+- For a SHORT setup, price BELOW VWAP20 may support the setup; price ABOVE VWAP20 is a caution.
+- VWAP position alone must never create a LONG or SHORT signal.
+- ABOVE VWAP20 with elevated RVOL can strengthen confirmation of an already-valid LONG continuation or breakout.
+- BELOW VWAP20 with elevated RVOL can strengthen confirmation of an already-valid SHORT continuation or breakdown.
+- Low RVOL weakens VWAP confirmation and may support WAIT when the rest of the setup is incomplete.
+- If VWAP20 or vwapPosition is missing or UNKNOWN, do not infer it.
+- VWAP20 and RVOL must never override stale data, event blocks, major-level conflicts or timeframe conflicts.
 Always include NEWS RISK.
 Use UNKNOWN when headline freshness, relevance or event details cannot be established from the supplied context.
 Missing headlines do not mean LOW risk.
