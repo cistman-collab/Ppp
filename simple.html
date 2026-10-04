@@ -1851,16 +1851,14 @@ function drawChart(){
   );
 
   const closes=
-    src.map(b=>b.c);
+  src.map(b=>b.c);
 
+const start=
+  src.length-data.length;
+
+if(src.length>=50){
   const ema50=
     emaSeries(closes,50);
-
-  const ema200=
-    emaSeries(closes,200);
-
-  const start=
-    src.length-data.length;
 
   const ema50Line=
     chart.addLineSeries({
@@ -1876,6 +1874,11 @@ function drawChart(){
       value:ema50[start+i]
     }))
   );
+}
+
+if(src.length>=200){
+  const ema200=
+    emaSeries(closes,200);
 
   const ema200Line=
     chart.addLineSeries({
@@ -1891,6 +1894,7 @@ function drawChart(){
       value:ema200[start+i]
     }))
   );
+}
 
   function priceLine(
     price,
