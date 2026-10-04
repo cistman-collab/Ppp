@@ -933,14 +933,37 @@ function detectContinuationPattern(bars,b15,i5,i15){
     breakDown
   ){
     return make(
-      'RISING WEDGE BREAKDOWN',
-      'SHORT',
-      sL-zone,
-      sL,
-      sH+a*.25,
-      px-a,
-      px-a*2
-    );
+  'RISING WEDGE BREAKDOWN',
+  'SHORT',
+  sL-zone,
+  sL,
+  sH+a*.25,
+  px-a,
+  px-a*2,
+  {
+    kind:'RISING_WEDGE',
+    timeframe:'15m',
+
+    upperLine:{
+      fromTime:first[0].t,
+      fromPrice:fH,
+      toTime:second.at(-1).t,
+      toPrice:sH
+    },
+
+    lowerLine:{
+      fromTime:first[0].t,
+      fromPrice:fL,
+      toTime:second.at(-1).t,
+      toPrice:sL
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
   }
 
   if(
@@ -950,14 +973,37 @@ function detectContinuationPattern(bars,b15,i5,i15){
     breakUp
   ){
     return make(
-      'FALLING WEDGE BREAKOUT',
-      'LONG',
-      sH,
-      sH+zone,
-      sL-a*.25,
-      px+a,
-      px+a*2
-    );
+  'FALLING WEDGE BREAKOUT',
+  'LONG',
+  sH,
+  sH+zone,
+  sL-a*.25,
+  px+a,
+  px+a*2,
+  {
+    kind:'FALLING_WEDGE',
+    timeframe:'15m',
+
+    upperLine:{
+      fromTime:first[0].t,
+      fromPrice:fH,
+      toTime:second.at(-1).t,
+      toPrice:sH
+    },
+
+    lowerLine:{
+      fromTime:first[0].t,
+      fromPrice:fL,
+      toTime:second.at(-1).t,
+      toPrice:sL
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
   }
 
   const pole=b15.slice(-14,-7);
@@ -985,14 +1031,44 @@ function detectContinuationPattern(bars,b15,i5,i15){
     i5.hist>0
   ){
     return make(
-      'BULL FLAG / PENNANT BREAKOUT',
-      'LONG',
-      flagHigh,
-      flagHigh+zone,
-      flagLow-a*.25,
-      px+a,
-      px+a*2
-    );
+  'BULL FLAG / PENNANT BREAKOUT',
+  'LONG',
+  flagHigh,
+  flagHigh+zone,
+  flagLow-a*.25,
+  px+a,
+  px+a*2,
+  {
+    kind:'BULL_FLAG_PENNANT',
+    timeframe:'15m',
+
+    poleLine:{
+      fromTime:pole[0].t,
+      fromPrice:pole[0].o,
+      toTime:pole.at(-1).t,
+      toPrice:pole.at(-1).c
+    },
+
+    upperLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagHigh,
+      toTime:flag.at(-1).t,
+      toPrice:flagHigh
+    },
+
+    lowerLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagLow,
+      toTime:flag.at(-1).t,
+      toPrice:flagLow
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
   }
 
   if(
@@ -1004,14 +1080,44 @@ function detectContinuationPattern(bars,b15,i5,i15){
     i5.hist<0
   ){
     return make(
-      'BEAR FLAG / PENNANT BREAKDOWN',
-      'SHORT',
-      flagLow-zone,
-      flagLow,
-      flagHigh+a*.25,
-      px-a,
-      px-a*2
-    );
+  'BEAR FLAG / PENNANT BREAKDOWN',
+  'SHORT',
+  flagLow-zone,
+  flagLow,
+  flagHigh+a*.25,
+  px-a,
+  px-a*2,
+  {
+    kind:'BEAR_FLAG_PENNANT',
+    timeframe:'15m',
+
+    poleLine:{
+      fromTime:pole[0].t,
+      fromPrice:pole[0].o,
+      toTime:pole.at(-1).t,
+      toPrice:pole.at(-1).c
+    },
+
+    upperLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagHigh,
+      toTime:flag.at(-1).t,
+      toPrice:flagHigh
+    },
+
+    lowerLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagLow,
+      toTime:flag.at(-1).t,
+      toPrice:flagLow
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
   }
 
   return null;
@@ -1046,6 +1152,25 @@ function detectContinuationPattern(bars,b15,i5,i15){
   const flatLow=
     Math.abs(lowDelta)<=a*.25;
 
+   const shapeGeometry=kind=>({
+  kind,
+  timeframe:'15m',
+
+  upperLine:{
+    fromTime:first[0].t,
+    fromPrice:fH,
+    toTime:second.at(-1).t,
+    toPrice:sH
+  },
+
+  lowerLine:{
+    fromTime:first[0].t,
+    fromPrice:fL,
+    toTime:second.at(-1).t,
+    toPrice:sL
+  }
+});
+
   if(
     compressing &&
     flatHigh &&
@@ -1053,11 +1178,14 @@ function detectContinuationPattern(bars,b15,i5,i15){
     px<=sH+buffer
   ){
     return{
-      type:'ASCENDING TRIANGLE',
-      bias:'LONG',
-      waitingFor:
-        'WAIT FOR BREAKOUT ABOVE '+sH.toFixed(2)
-    };
+  type:'ASCENDING TRIANGLE',
+  bias:'LONG',
+  waitingFor:
+    'WAIT FOR BREAKOUT ABOVE '+sH.toFixed(2),
+
+  geometry:
+    shapeGeometry('ASCENDING_TRIANGLE')
+};
   }
 
   if(
@@ -1067,11 +1195,14 @@ function detectContinuationPattern(bars,b15,i5,i15){
     px>=sL-buffer
   ){
     return{
-      type:'DESCENDING TRIANGLE',
-      bias:'SHORT',
-      waitingFor:
-        'WAIT FOR BREAKDOWN BELOW '+sL.toFixed(2)
-    };
+  type:'DESCENDING TRIANGLE',
+  bias:'SHORT',
+  waitingFor:
+    'WAIT FOR BREAKDOWN BELOW '+sL.toFixed(2),
+
+  geometry:
+    shapeGeometry('DESCENDING_TRIANGLE')
+};
   }
 
   if(
@@ -1082,14 +1213,17 @@ function detectContinuationPattern(bars,b15,i5,i15){
     px<=sH+buffer
   ){
     return{
-      type:'SYMMETRICAL TRIANGLE',
-      bias:'WAIT',
-      waitingFor:
-        'WAIT FOR BREAKOUT ABOVE '+
-        sH.toFixed(2)+
-        ' OR BELOW '+
-        sL.toFixed(2)
-    };
+  type:'SYMMETRICAL TRIANGLE',
+  bias:'WAIT',
+  waitingFor:
+    'WAIT FOR BREAKOUT ABOVE '+
+    sH.toFixed(2)+
+    ' OR BELOW '+
+    sL.toFixed(2),
+
+  geometry:
+    shapeGeometry('SYMMETRICAL_TRIANGLE')
+};
   }
 
   if(
@@ -1099,11 +1233,14 @@ function detectContinuationPattern(bars,b15,i5,i15){
     px>=sL-buffer
   ){
     return{
-      type:'RISING WEDGE',
-      bias:'SHORT',
-      waitingFor:
-        'WAIT FOR BREAKDOWN BELOW '+sL.toFixed(2)
-    };
+  type:'RISING WEDGE',
+  bias:'SHORT',
+  waitingFor:
+    'WAIT FOR BREAKDOWN BELOW '+sL.toFixed(2),
+
+  geometry:
+    shapeGeometry('RISING_WEDGE')
+};
   }
 
   if(
@@ -1113,11 +1250,14 @@ function detectContinuationPattern(bars,b15,i5,i15){
     px<=sH+buffer
   ){
     return{
-      type:'FALLING WEDGE',
-      bias:'LONG',
-      waitingFor:
-        'WAIT FOR BREAKOUT ABOVE '+sH.toFixed(2)
-    };
+  type:'FALLING WEDGE',
+  bias:'LONG',
+  waitingFor:
+    'WAIT FOR BREAKOUT ABOVE '+sH.toFixed(2),
+
+  geometry:
+    shapeGeometry('FALLING_WEDGE')
+};
   }
 
   const pole=b15.slice(-14,-7);
@@ -1147,13 +1287,39 @@ function detectContinuationPattern(bars,b15,i5,i15){
     px<=flagHigh+buffer
   ){
     return{
-      type:'BULL FLAG / PENNANT',
-      bias:'LONG',
-      waitingFor:
-        'WAIT FOR BREAKOUT ABOVE '+
-        flagHigh.toFixed(2)+
-        ' + POSITIVE 5m MOMENTUM'
-    };
+  type:'BULL FLAG / PENNANT',
+  bias:'LONG',
+  waitingFor:
+    'WAIT FOR BREAKOUT ABOVE '+
+    flagHigh.toFixed(2)+
+    ' + POSITIVE 5m MOMENTUM',
+
+  geometry:{
+    kind:'BULL_FLAG_PENNANT',
+    timeframe:'15m',
+
+    poleLine:{
+      fromTime:pole[0].t,
+      fromPrice:pole[0].o,
+      toTime:pole.at(-1).t,
+      toPrice:pole.at(-1).c
+    },
+
+    upperLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagHigh,
+      toTime:flag.at(-1).t,
+      toPrice:flagHigh
+    },
+
+    lowerLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagLow,
+      toTime:flag.at(-1).t,
+      toPrice:flagLow
+    }
+  }
+};
   }
 
   if(
@@ -1164,13 +1330,39 @@ function detectContinuationPattern(bars,b15,i5,i15){
     px>=flagLow-buffer
   ){
     return{
-      type:'BEAR FLAG / PENNANT',
-      bias:'SHORT',
-      waitingFor:
-        'WAIT FOR BREAKDOWN BELOW '+
-        flagLow.toFixed(2)+
-        ' + NEGATIVE 5m MOMENTUM'
-    };
+  type:'BEAR FLAG / PENNANT',
+  bias:'SHORT',
+  waitingFor:
+    'WAIT FOR BREAKDOWN BELOW '+
+    flagLow.toFixed(2)+
+    ' + NEGATIVE 5m MOMENTUM',
+
+  geometry:{
+    kind:'BEAR_FLAG_PENNANT',
+    timeframe:'15m',
+
+    poleLine:{
+      fromTime:pole[0].t,
+      fromPrice:pole[0].o,
+      toTime:pole.at(-1).t,
+      toPrice:pole.at(-1).c
+    },
+
+    upperLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagHigh,
+      toTime:flag.at(-1).t,
+      toPrice:flagHigh
+    },
+
+    lowerLine:{
+      fromTime:flag[0].t,
+      fromPrice:flagLow,
+      toTime:flag.at(-1).t,
+      toPrice:flagLow
+    }
+  }
+};
   }
 
   return null;
