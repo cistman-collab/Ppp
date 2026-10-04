@@ -364,6 +364,13 @@ canvas{width:100%;height:400px;display:block}
   <span>Signal confidence</span>
   <strong id="signalConfidence" class="wait">—</strong>
 </div>
+    
+<div class="subcard">
+  <h3>🧠 Confidence reasons</h3>
+  <p id="signalConfidenceWhy">
+    Waiting for a confirmed setup…
+  </p>
+</div>
 
 <div class="row">
   <span>News bias</span>
@@ -1395,6 +1402,22 @@ $('signalConfidence').className=
     :confidence.label==='MEDIUM'
     ?'wait'
     :'bad';
+  
+  const confidenceReasons=
+  Array.isArray(
+    confidence?.reasons
+  )
+    ?confidence.reasons
+    :[];
+
+$('signalConfidenceWhy').textContent=
+  confidenceReasons.length
+    ?confidenceReasons.join(' · ')
+    :c?.eventBlocked
+    ?'No confidence score while a high-impact event block is active.'
+    :c?.dataFresh===false
+    ?'No confidence score while market data is stale.'
+    :'Waiting for a confirmed setup…';
 
    $('signalNewsBias').textContent=
   c?.newsAvailable
