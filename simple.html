@@ -1244,7 +1244,10 @@ const bearishMomentum=
   setup={
     direction:'WAIT',
 
-    waitReason:!fresh
+    waitReason:c.eventBlocked
+  ?'WAIT — '+c.activeEvent?.name+
+   ' · HIGH IMPACT EVENT.'
+  :!fresh
   ?'Monitor candle data is too old for a current setup.'
   :c.newsConflict
   ?'Technical '+c.technicalDirection+
@@ -1253,8 +1256,10 @@ const bearishMomentum=
   ?result.formingPattern.type+' forming — not confirmed.'
   :'The monitor has no active setup.',
 
-    waitConfirm:!fresh
-      ?'Wait for fresh candles and a confirmed monitor setup.'
+    waitConfirm:c.eventBlocked
+  ?'New trade setups are blocked until the event safety window ends.'
+  :!fresh
+  ?'Wait for fresh candles and a confirmed monitor setup.'
       :result.formingPattern?.waitingFor||
        'Wait for a confirmed monitor setup.',
 
