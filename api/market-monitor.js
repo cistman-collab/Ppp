@@ -98,6 +98,30 @@ function indicators(b){
     ?100
     :100-100/(1+gain/loss);
 
+  const volumes=b
+  .map(x=>Number.isFinite(x.v)?x.v:0);
+
+const currentVolume=volumes.at(-1);
+
+const previousVolumes=
+  volumes
+    .slice(-21,-1)
+    .filter(v=>v>0);
+
+const averageVolume=
+  previousVolumes.length
+    ?previousVolumes.reduce((a,v)=>a+v,0)/
+      previousVolumes.length
+    :null;
+
+const rvol=
+  Number.isFinite(currentVolume) &&
+  currentVolume>0 &&
+  Number.isFinite(averageVolume) &&
+  averageVolume>0
+    ?currentVolume/averageVolume
+    :null;
+  
   return{
     trend:
       fast>slow
@@ -107,6 +131,12 @@ function indicators(b){
       :'NEUTRAL',
 
     rsi,
+    
+    volume:{
+  current:currentVolume,
+  average20:averageVolume,
+  rvol
+},
     hist:
       mac.at(-1)-sig.at(-1)
   };
