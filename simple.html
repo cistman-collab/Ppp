@@ -165,6 +165,51 @@ small,.muted{color:var(--muted)}
   position:relative;
   z-index:1;
 }
+
+.patternOverlay{
+  position:absolute;
+  z-index:4;
+  top:0;
+  left:0;
+  right:58px;
+  height:400px;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.patternBadge,
+.confirmBadge{
+  position:absolute;
+  display:none;
+  padding:5px 9px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.patternBadge{
+  left:50%;
+  top:58%;
+  transform:translate(-50%,-50%);
+  color:#f5f8ff;
+  background:rgba(7,27,43,.90);
+  border:1px solid rgba(78,159,255,.70);
+}
+
+.confirmBadge{
+  right:12px;
+  top:72px;
+  color:#2fe0a7;
+  background:rgba(4,34,28,.92);
+  border:1px solid rgba(47,224,167,.85);
+}
+
+.confirmBadge.short{
+  color:#ff7b84;
+  background:rgba(47,12,18,.92);
+  border-color:rgba(255,89,100,.85);
+}
 canvas{width:100%;height:400px;display:block}
   .indicatorBox{
   margin-top:10px;
@@ -359,6 +404,11 @@ canvas{width:100%;height:400px;display:block}
     <div id="zoneOverlay" class="zoneOverlay">
   <div id="resistanceZone" class="priceZone resistanceZone"></div>
   <div id="supportZone" class="priceZone supportZone"></div>
+</div>
+  
+  <div id="patternOverlay" class="patternOverlay">
+  <div id="patternBadge" class="patternBadge"></div>
+  <div id="confirmBadge" class="confirmBadge"></div>
 </div>
 
   <div id="chart" style="height:400px"></div>
@@ -2012,6 +2062,63 @@ chart.timeScale()
   .subscribeVisibleLogicalRangeChange(
     ()=>requestAnimationFrame(updateZones)
   );
+
+  const patternBadge=$('patternBadge');
+const confirmBadge=$('confirmBadge');
+
+function updatePatternBadges(){
+  if(patternBadge){
+    patternBadge.style.display='none';
+    patternBadge.textContent='';
+  }
+
+  if(confirmBadge){
+    confirmBadge.style.display='none';
+    confirmBadge.textContent='';
+    confirmBadge.className='confirmBadge';
+  }
+
+  const forming=setup?.formingPattern;
+
+  if(
+    setup?.direction==='WAIT' &&
+    forming?.type
+  ){
+    patternBadge.textContent=
+      forming.type;
+
+    patternBadge.style.display='block';
+    return;
+  }
+
+  if(
+    setup &&
+    setup.direction!=='WAIT' &&
+    setup.setupType &&
+    setup.setupType!=='NONE'
+  ){
+    const name=
+      setup.setupType
+        .replace(' BREAKOUT','')
+        .replace(' BREAKDOWN','');
+
+    patternBadge.textContent=name;
+    patternBadge.style.display='block';
+
+    confirmBadge.textContent=
+      setup.direction==='LONG'
+        ?'✓ Breakout confirmed'
+        :'✓ Breakdown confirmed';
+
+    if(setup.direction==='SHORT'){
+      confirmBadge.classList.add('short');
+    }
+
+    confirmBadge.style.display='block';
+  }
+}
+
+updatePatternBadges();
 
     const ohlc=$('chartOhlc');
 
