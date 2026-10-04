@@ -74,6 +74,18 @@ Review:
 - confirmation
 - invalidation
 - headline risk
+- volume and RVOL confirmation
+
+Use the supplied volume data as confirmation, not as a standalone LONG or SHORT trigger.
+
+RVOL compares the latest completed candle volume with its previous 20-candle average:
+- RVOL above 1 means above-average participation.
+- RVOL below 1 means below-average participation.
+- Higher volume may support a breakout or continuation when price structure and momentum already agree.
+- Weak volume may reduce confidence in a breakout and can support WAIT when confirmation is incomplete.
+- Volume is not directional by itself.
+- Missing, zero or unavailable volume means VOLUME CONFIRMATION is UNKNOWN; do not invent volume.
+- Never allow volume to override stale-data protection, event risk, major-level conflicts or timeframe conflicts.
 Always include NEWS RISK.
 Use UNKNOWN when headline freshness, relevance or event details cannot be established from the supplied context.
 Missing headlines do not mean LOW risk.
