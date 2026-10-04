@@ -1257,7 +1257,17 @@ const bearishMomentum=
   :'The monitor has no active setup.',
 
     waitConfirm:c.eventBlocked
-  ?'New trade setups are blocked until the event safety window ends.'
+  ?'New trade setups are blocked until '+
+   new Date(
+     c.activeEvent.blockUntil
+   ).toLocaleTimeString(
+     [],
+     {
+       hour:'2-digit',
+       minute:'2-digit'
+     }
+   )+
+   ' local time.'
   :!fresh
   ?'Wait for fresh candles and a confirmed monitor setup.'
       :result.formingPattern?.waitingFor||
