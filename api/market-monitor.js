@@ -684,9 +684,21 @@ function detectContinuationPattern(bars,b15,i5,i15){
   const zone=Math.max(0.10,a*.25);
   const buffer=Math.max(0.03,a*.05);
 
-  const make=(type,direction,entryLow,entryHigh,stop,tp1,tp2)=>({
-    type,direction,entryLow,entryHigh,stop,tp1,tp2
-  });
+  const make=(
+  type,direction,
+  entryLow,entryHigh,
+  stop,tp1,tp2,
+  geometry=null
+)=>({
+  type,
+  direction,
+  entryLow,
+  entryHigh,
+  stop,
+  tp1,
+  tp2,
+  geometry
+});
 
   const prior5=bars.slice(-22,-2);
   const priorHigh=Math.max(...prior5.map(x=>x.h));
@@ -765,14 +777,37 @@ function detectContinuationPattern(bars,b15,i5,i15){
     breakUp
   ){
     return make(
-      'ASCENDING TRIANGLE BREAKOUT',
-      'LONG',
-      sH,
-      sH+zone,
-      sL-a*.25,
-      px+a,
-      px+a*2
-    );
+  'ASCENDING TRIANGLE BREAKOUT',
+  'LONG',
+  sH,
+  sH+zone,
+  sL-a*.25,
+  px+a,
+  px+a*2,
+  {
+    kind:'ASCENDING_TRIANGLE',
+    timeframe:'15m',
+
+    upperLine:{
+      fromTime:first[0].t,
+      fromPrice:fH,
+      toTime:second.at(-1).t,
+      toPrice:sH
+    },
+
+    lowerLine:{
+      fromTime:first[0].t,
+      fromPrice:fL,
+      toTime:second.at(-1).t,
+      toPrice:sL
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
   }
 
   if(
@@ -782,14 +817,37 @@ function detectContinuationPattern(bars,b15,i5,i15){
     breakDown
   ){
     return make(
-      'DESCENDING TRIANGLE BREAKDOWN',
-      'SHORT',
-      sL-zone,
-      sL,
-      sH+a*.25,
-      px-a,
-      px-a*2
-    );
+  'DESCENDING TRIANGLE BREAKDOWN',
+  'SHORT',
+  sL-zone,
+  sL,
+  sH+a*.25,
+  px-a,
+  px-a*2,
+  {
+    kind:'DESCENDING_TRIANGLE',
+    timeframe:'15m',
+
+    upperLine:{
+      fromTime:first[0].t,
+      fromPrice:fH,
+      toTime:second.at(-1).t,
+      toPrice:sH
+    },
+
+    lowerLine:{
+      fromTime:first[0].t,
+      fromPrice:fL,
+      toTime:second.at(-1).t,
+      toPrice:sL
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
   }
 
   if(
@@ -799,26 +857,72 @@ function detectContinuationPattern(bars,b15,i5,i15){
   ){
     if(breakUp){
       return make(
-        'SYMMETRICAL TRIANGLE BREAKOUT',
-        'LONG',
-        sH,
-        sH+zone,
-        sL-a*.25,
-        px+a,
-        px+a*2
-      );
+  'SYMMETRICAL TRIANGLE BREAKOUT',
+  'LONG',
+  sH,
+  sH+zone,
+  sL-a*.25,
+  px+a,
+  px+a*2,
+  {
+    kind:'SYMMETRICAL_TRIANGLE',
+    timeframe:'15m',
+
+    upperLine:{
+      fromTime:first[0].t,
+      fromPrice:fH,
+      toTime:second.at(-1).t,
+      toPrice:sH
+    },
+
+    lowerLine:{
+      fromTime:first[0].t,
+      fromPrice:fL,
+      toTime:second.at(-1).t,
+      toPrice:sL
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
     }
 
     if(breakDown){
       return make(
-        'SYMMETRICAL TRIANGLE BREAKDOWN',
-        'SHORT',
-        sL-zone,
-        sL,
-        sH+a*.25,
-        px-a,
-        px-a*2
-      );
+  'SYMMETRICAL TRIANGLE BREAKDOWN',
+  'SHORT',
+  sL-zone,
+  sL,
+  sH+a*.25,
+  px-a,
+  px-a*2,
+  {
+    kind:'SYMMETRICAL_TRIANGLE',
+    timeframe:'15m',
+
+    upperLine:{
+      fromTime:first[0].t,
+      fromPrice:fH,
+      toTime:second.at(-1).t,
+      toPrice:sH
+    },
+
+    lowerLine:{
+      fromTime:first[0].t,
+      fromPrice:fL,
+      toTime:second.at(-1).t,
+      toPrice:sL
+    },
+
+    confirmTime:
+      bars.at(-1).t,
+
+    confirmPrice:px
+  }
+);
     }
   }
 
