@@ -1759,6 +1759,21 @@ function drawChart(){
   {
   if(!bars.length)return;
 
+  const tfLabel=
+  currentTF===5?'5m':
+  currentTF===15?'15m':
+  currentTF===60?'1H':
+  currentTF===240?'4H':
+  currentTF+'m';
+
+const chartMeta=$('chartMeta');
+
+if(chartMeta){
+  chartMeta.textContent=
+    'WTI Crude Oil · '+
+    tfLabel+
+    ' · NYMEX';
+}
   const container=$('chart');
 
   if(
