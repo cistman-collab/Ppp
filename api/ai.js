@@ -19,7 +19,16 @@ module.exports = async (req, res) => {
       levels: market.levels || {},
       majorLevels: market.majorLevels || {},
       dataAgeMinutes: Number(market.dataAgeMinutes),
-      recentCompleted5mBars: Array.isArray(market.bars) ? market.bars.slice(-80).map(b => ({t:b.t,o:b.o,h:b.h,l:b.l,c:b.c})) : [],
+      recentCompleted5mBars: Array.isArray(market.bars)
+  ? market.bars.slice(-80).map(b => ({
+      t:b.t,
+      o:b.o,
+      h:b.h,
+      l:b.l,
+      c:b.c,
+      v:Number.isFinite(b.v)?b.v:null
+    }))
+  : [],
       headlines: Array.isArray(market.headlines) ? market.headlines.slice(0, 8).map(n => ({title:String(n.title||'').slice(0,160),published:String(n.published||'').slice(0,60)})) : [],
       newsFetchedAt: String(market.newsFetchedAt || 'unknown').slice(0, 40)
     };
