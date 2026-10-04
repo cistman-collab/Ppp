@@ -561,7 +561,7 @@ export default async function handler(req,res){
 
   try{
     const response=await fetch(
-      'https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?interval=5m&range=30d',
+      'https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?interval=5m&range=60d',
       {
         headers:{
           'User-Agent':'Mozilla/5.0',
