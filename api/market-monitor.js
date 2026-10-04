@@ -121,7 +121,47 @@ const rvol=
   averageVolume>0
     ?currentVolume/averageVolume
     :null;
-  
+
+  const vwapBars=
+  b
+    .slice(-20)
+    .filter(x=>
+      Number.isFinite(x.h) &&
+      Number.isFinite(x.l) &&
+      Number.isFinite(x.c) &&
+      Number.isFinite(x.v) &&
+      x.v>0
+    );
+
+const vwapVolume=
+  vwapBars.reduce(
+    (sum,x)=>sum+x.v,
+    0
+  );
+
+const vwapWeightedPrice=
+  vwapBars.reduce(
+    (sum,x)=>
+      sum+
+      (
+        (x.h+x.l+x.c)/3
+      )*x.v,
+    0
+  );
+
+const vwap20=
+  vwapVolume>0
+    ?vwapWeightedPrice/vwapVolume
+    :null;
+
+const vwapPosition=
+  Number.isFinite(vwap20)
+    ?b.at(-1).c>vwap20
+      ?'ABOVE'
+      :b.at(-1).c<vwap20
+      ?'BELOW'
+      :'AT'
+    :'UNKNOWN';
   return{
     trend:
       fast>slow
@@ -135,7 +175,9 @@ const rvol=
     volume:{
   current:currentVolume,
   average20:averageVolume,
-  rvol
+  rvol,
+  vwap20,
+  vwapPosition
 },
     hist:
       mac.at(-1)-sig.at(-1)
