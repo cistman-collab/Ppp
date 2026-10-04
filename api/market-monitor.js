@@ -224,18 +224,20 @@ function detectReversalPattern(bars,b15,i5){
   const buffer=Math.max(0.03,a*.05);
 
   const make=(
-    type,direction,
-    entryLow,entryHigh,
-    stop,tp1,tp2
-  )=>({
-    type,
-    direction,
-    entryLow,
-    entryHigh,
-    stop,
-    tp1,
-    tp2
-  });
+  type,direction,
+  entryLow,entryHigh,
+  stop,tp1,tp2,
+  geometry=null
+)=>({
+  type,
+  direction,
+  entryLow,
+  entryHigh,
+  stop,
+  tp1,
+  tp2,
+  geometry
+});
 
   const nearSupport=
     last.l<=base.support+zone &&
@@ -293,9 +295,10 @@ function detectReversalPattern(bars,b15,i5){
       recent[i].h>=recent[i+1].h
     ){
       highs.push({
-        i,
-        price:recent[i].h
-      });
+       i,
+       time:recent[i].t,
+       price:recent[i].h
+     });
     }
 
     if(
@@ -303,9 +306,10 @@ function detectReversalPattern(bars,b15,i5){
       recent[i].l<=recent[i+1].l
     ){
       lows.push({
-        i,
-        price:recent[i].l
-      });
+      i,
+      time:recent[i].t,
+      price:recent[i].l
+    });
     }
   }
 
@@ -352,14 +356,42 @@ function detectReversalPattern(bars,b15,i5){
         i5.hist<0
       ){
         return make(
-          'HEAD AND SHOULDERS BREAKDOWN',
-          'SHORT',
-          neckline-zone,
-          neckline,
-          rgt.price+a*.25,
-          px-a,
-          px-a*2
-        );
+  'HEAD AND SHOULDERS BREAKDOWN',
+  'SHORT',
+  neckline-zone,
+  neckline,
+  rgt.price+a*.25,
+  px-a,
+  px-a*2,
+  {
+    kind:'HEAD_AND_SHOULDERS',
+    timeframe:'15m',
+
+    leftShoulder:{
+      time:lft.time,
+      price:lft.price
+    },
+
+    head:{
+      time:head.time,
+      price:head.price
+    },
+
+    rightShoulder:{
+      time:rgt.time,
+      price:rgt.price
+    },
+
+    neckline:{
+      fromTime:lft.time,
+      toTime:rgt.time,
+      price:neckline
+    },
+
+    confirmTime:
+      bars.at(-1).t
+  }
+);
       }
     }
   }
@@ -407,14 +439,42 @@ function detectReversalPattern(bars,b15,i5){
         i5.hist>0
       ){
         return make(
-          'INVERSE HEAD AND SHOULDERS BREAKOUT',
-          'LONG',
-          neckline,
-          neckline+zone,
-          rgt.price-a*.25,
-          px+a,
-          px+a*2
-        );
+  'INVERSE HEAD AND SHOULDERS BREAKOUT',
+  'LONG',
+  neckline,
+  neckline+zone,
+  rgt.price-a*.25,
+  px+a,
+  px+a*2,
+  {
+    kind:'INVERSE_HEAD_AND_SHOULDERS',
+    timeframe:'15m',
+
+    leftShoulder:{
+      time:lft.time,
+      price:lft.price
+    },
+
+    head:{
+      time:head.time,
+      price:head.price
+    },
+
+    rightShoulder:{
+      time:rgt.time,
+      price:rgt.price
+    },
+
+    neckline:{
+      fromTime:lft.time,
+      toTime:rgt.time,
+      price:neckline
+    },
+
+    confirmTime:
+      bars.at(-1).t
+  }
+);
       }
     }
   }
@@ -442,17 +502,40 @@ function detectReversalPattern(bars,b15,i5){
         i5.hist<0
       ){
         return make(
-          'DOUBLE TOP BREAKDOWN',
-          'SHORT',
-          neckline-zone,
-          neckline,
-          Math.max(
-            p1.price,
-            p2.price
-          )+a*.25,
-          px-a,
-          px-a*2
-        );
+  'DOUBLE TOP BREAKDOWN',
+  'SHORT',
+  neckline-zone,
+  neckline,
+  Math.max(
+    p1.price,
+    p2.price
+  )+a*.25,
+  px-a,
+  px-a*2,
+  {
+    kind:'DOUBLE_TOP',
+    timeframe:'15m',
+
+    firstTop:{
+      time:p1.time,
+      price:p1.price
+    },
+
+    secondTop:{
+      time:p2.time,
+      price:p2.price
+    },
+
+    neckline:{
+      fromTime:p1.time,
+      toTime:p2.time,
+      price:neckline
+    },
+
+    confirmTime:
+      bars.at(-1).t
+  }
+);
       }
     }
   }
@@ -480,17 +563,40 @@ function detectReversalPattern(bars,b15,i5){
         i5.hist>0
       ){
         return make(
-          'DOUBLE BOTTOM BREAKOUT',
-          'LONG',
-          neckline,
-          neckline+zone,
-          Math.min(
-            p1.price,
-            p2.price
-          )-a*.25,
-          px+a,
-          px+a*2
-        );
+  'DOUBLE BOTTOM BREAKOUT',
+  'LONG',
+  neckline,
+  neckline+zone,
+  Math.min(
+    p1.price,
+    p2.price
+  )-a*.25,
+  px+a,
+  px+a*2,
+  {
+    kind:'DOUBLE_BOTTOM',
+    timeframe:'15m',
+
+    firstBottom:{
+      time:p1.time,
+      price:p1.price
+    },
+
+    secondBottom:{
+      time:p2.time,
+      price:p2.price
+    },
+
+    neckline:{
+      fromTime:p1.time,
+      toTime:p2.time,
+      price:neckline
+    },
+
+    confirmTime:
+      bars.at(-1).t
+  }
+);
       }
     }
   }
