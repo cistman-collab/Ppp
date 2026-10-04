@@ -1987,6 +1987,194 @@ if(chartMeta){
     }))
   );
 
+  function addPatternSegment(
+  segment,
+  color,
+  width=2,
+  style=LightweightCharts.LineStyle.Solid
+){
+  if(
+    !segment ||
+    !Number.isFinite(segment.fromTime) ||
+    !Number.isFinite(segment.fromPrice) ||
+    !Number.isFinite(segment.toTime) ||
+    !Number.isFinite(segment.toPrice)
+  )return null;
+
+  const line=
+    chart.addLineSeries({
+      color,
+      lineWidth:width,
+      lineStyle:style,
+      priceLineVisible:false,
+      lastValueVisible:false,
+      crosshairMarkerVisible:false
+    });
+
+  line.setData([
+    {
+      time:Math.floor(segment.fromTime/1000),
+      value:segment.fromPrice
+    },
+    {
+      time:Math.floor(segment.toTime/1000),
+      value:segment.toPrice
+    }
+  ]);
+
+  return line;
+}
+
+  function drawPatternGeometry(){
+  if(currentTF!==15)return;
+
+  const confirmed=
+    setup?.direction!=='WAIT';
+
+  const geometry=
+    confirmed
+      ?setup?.geometry
+      :setup?.formingPattern?.geometry;
+
+  if(!geometry)return;
+
+  const color=
+    confirmed
+      ?setup.direction==='LONG'
+        ?'#2fe0a7'
+        :'#ff5964'
+      :'#4e9fff';
+
+  const width=
+    confirmed?3:2;
+
+  const style=
+    confirmed
+      ?LightweightCharts.LineStyle.Solid
+      :LightweightCharts.LineStyle.Dashed;
+
+  const draw=(segment)=>
+    addPatternSegment(
+      segment,
+      color,
+      width,
+      style
+    );
+
+  if(geometry.upperLine){
+    draw(geometry.upperLine);
+  }
+
+  if(geometry.lowerLine){
+    draw(geometry.lowerLine);
+  }
+
+  if(geometry.poleLine){
+    draw(geometry.poleLine);
+  }
+
+  if(
+    geometry.leftShoulder &&
+    geometry.head &&
+    geometry.rightShoulder
+  ){
+    draw({
+      fromTime:geometry.leftShoulder.time,
+      fromPrice:geometry.leftShoulder.price,
+      toTime:geometry.head.time,
+      toPrice:geometry.head.price
+    });
+
+    draw({
+      fromTime:geometry.head.time,
+      fromPrice:geometry.head.price,
+      toTime:geometry.rightShoulder.time,
+      toPrice:geometry.rightShoulder.price
+    });
+  }
+
+  if(
+    geometry.firstTop &&
+    geometry.secondTop
+  ){
+    draw({
+      fromTime:geometry.firstTop.time,
+      fromPrice:geometry.firstTop.price,
+      toTime:geometry.secondTop.time,
+      toPrice:geometry.secondTop.price
+    });
+  }
+
+  if(
+    geometry.firstBottom &&
+    geometry.secondBottom
+  ){
+    draw({
+      fromTime:geometry.firstBottom.time,
+      fromPrice:geometry.firstBottom.price,
+      toTime:geometry.secondBottom.time,
+      toPrice:geometry.secondBottom.price
+    });
+  }
+
+  if(geometry.neckline){
+    draw({
+      fromTime:geometry.neckline.fromTime,
+      fromPrice:geometry.neckline.price,
+      toTime:geometry.neckline.toTime,
+      toPrice:geometry.neckline.price
+    });
+  }
+}
+
+drawPatternGeometry();
+
+  function drawPatternConfirmationMarker(){
+  if(
+    currentTF!==15 ||
+    setup?.direction==='WAIT' ||
+    !setup?.geometry?.confirmTime
+  )return;
+
+  const target=
+    setup.geometry.confirmTime;
+
+  const nearest=
+    data.reduce(
+      (best,b)=>
+        Math.abs(b.t-target)<
+        Math.abs(best.t-target)
+          ?b
+          :best,
+      data[0]
+    );
+
+  if(!nearest)return;
+
+  const long=
+    setup.direction==='LONG';
+
+  candles.setMarkers([
+    {
+      time:Math.floor(nearest.t/1000),
+      position:long
+        ?'belowBar'
+        :'aboveBar',
+      color:long
+        ?'#2fe0a7'
+        :'#ff5964',
+      shape:long
+        ?'arrowUp'
+        :'arrowDown',
+      text:long
+        ?'BREAKOUT'
+        :'BREAKDOWN'
+    }
+  ]);
+}
+
+drawPatternConfirmationMarker();
+
   const resistanceZone=$('resistanceZone');
 const supportZone=$('supportZone');
 
