@@ -1206,7 +1206,151 @@ function makeDirection(
 
   return 'WAIT';
 }
+function makeConfidence(
+  direction,
+  setupType,
+  confirmation
+){
+  if(
+    !['LONG','SHORT'].includes(direction) ||
+    !confirmation?.dataFresh ||
+    confirmation?.eventBlocked
+  ){
+    return null;
+  }
 
+  const bullish=
+    direction==='LONG';
+
+  const wanted=
+    bullish
+      ?'BULLISH'
+      :'BEARISH';
+
+  let score=45;
+  const reasons=[];
+
+  const trends=[
+    ['5m',confirmation.fiveMinTrend],
+    ['15m',confirmation.fifteenMinTrend],
+    ['1H',confirmation.oneHourTrend],
+    ['4H',confirmation.fourHourTrend]
+  ];
+
+  let aligned=0;
+
+  for(const [name,trend] of trends){
+    if(trend===wanted){
+      score+=5;
+      aligned++;
+    }
+  }
+
+  reasons.push(
+    aligned+'/4 timeframes aligned'
+  );
+
+  const rsi=
+    confirmation.fifteenMinRsi;
+
+  if(
+    bullish &&
+    rsi>=55
+  ){
+    score+=6;
+    reasons.push('15m RSI supports LONG');
+  }
+
+  if(
+    !bullish &&
+    rsi<=45
+  ){
+    score+=6;
+    reasons.push('15m RSI supports SHORT');
+  }
+
+  if(
+    bullish &&
+    confirmation.fiveMinHist>0
+  ){
+    score+=4;
+  }
+
+  if(
+    !bullish &&
+    confirmation.fiveMinHist<0
+  ){
+    score+=4;
+  }
+
+  if(
+    bullish &&
+    confirmation.fifteenMinHist>0
+  ){
+    score+=4;
+  }
+
+  if(
+    !bullish &&
+    confirmation.fifteenMinHist<0
+  ){
+    score+=4;
+  }
+
+  if(
+    setupType &&
+    setupType!=='TREND LONG' &&
+    setupType!=='TREND SHORT' &&
+    setupType!=='NONE'
+  ){
+    score+=5;
+    reasons.push('Confirmed pattern setup');
+  }
+
+  if(confirmation.newsAvailable){
+    if(
+      confirmation.newsBias===wanted
+    ){
+      score+=7;
+      reasons.push('News supports direction');
+    }else if(
+      confirmation.newsBias==='MIXED' ||
+      confirmation.newsBias==='NEUTRAL'
+    ){
+      reasons.push('News is neutral/mixed');
+    }
+  }
+
+  if(
+    confirmation.maritimeRisk==='HIGH'
+  ){
+    score-=6;
+    reasons.push('High maritime risk');
+  }else if(
+    confirmation.maritimeRisk==='ELEVATED'
+  ){
+    score-=3;
+    reasons.push('Elevated maritime risk');
+  }
+
+  score=Math.max(
+    0,
+    Math.min(100,score)
+  );
+
+  const label=
+    score>=75
+      ?'HIGH'
+      :score>=60
+      ?'MEDIUM'
+      :'LOW';
+
+  return{
+    score,
+    label,
+    reasons
+  };
+}
 async function readBlob(path){
   const result=
     await get(
@@ -1689,6 +1833,13 @@ const setupType=
       (activeDirection==='LONG'
         ?'TREND LONG'
         :'TREND SHORT'));
+    
+const confidence=
+  makeConfidence(
+    activeDirection,
+    setupType,
+    confirmation
+  );
 
         // Let the app read the setup without changing alert state.
     if(req.query?.view==='1'){
@@ -1702,6 +1853,7 @@ const setupType=
         zoneStatus,
         setupType,
         formingPattern,
+        confidence,
         confirmation
       });
     }
