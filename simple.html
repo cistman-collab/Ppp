@@ -130,6 +130,41 @@ small,.muted{color:var(--muted)}
   color:#cbd8e6;
   pointer-events:none;
 }
+
+.zoneOverlay{
+  position:absolute;
+  z-index:2;
+  top:0;
+  left:0;
+  right:58px;
+  height:400px;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.priceZone{
+  position:absolute;
+  left:0;
+  right:0;
+  display:none;
+  border-top:1px solid;
+  border-bottom:1px solid;
+}
+
+.resistanceZone{
+  background:rgba(255,89,100,.14);
+  border-color:rgba(255,89,100,.75);
+}
+
+.supportZone{
+  background:rgba(47,224,167,.14);
+  border-color:rgba(47,224,167,.75);
+}
+
+#chart{
+  position:relative;
+  z-index:1;
+}
 canvas{width:100%;height:400px;display:block}
   .indicatorBox{
   margin-top:10px;
@@ -320,7 +355,11 @@ canvas{width:100%;height:400px;display:block}
   
     <div id="chartOhlc" class="chartOhlc">
     O — &nbsp; H — &nbsp; L — &nbsp; C —
-  </div>
+    </div>
+    <div id="zoneOverlay" class="zoneOverlay">
+  <div id="resistanceZone" class="priceZone resistanceZone"></div>
+  <div id="supportZone" class="priceZone supportZone"></div>
+</div>
 
   <div id="chart" style="height:400px"></div>
 </div>
@@ -1318,9 +1357,10 @@ const bearishMomentum=
        'Wait for a confirmed monitor setup.',
 
     setupType:result.setupType,
-formingPattern:result.formingPattern,
-confidence:result.confidence,
-monitorConfirmation:c
+    levelZones:result.levelZones,
+    formingPattern:result.formingPattern,
+    confidence:result.confidence,
+    monitorConfirmation:c
   };
   
     }else{
@@ -1351,6 +1391,7 @@ monitorConfirmation:c
         ...p,
         direction:result.direction,
         setupType:result.setupType,
+        levelZones:result.levelZones,
         formingPattern:result.formingPattern,
         confidence:result.confidence,
         rr:Math.abs(p.tp2-entry)/Math.abs(entry-p.stop),
@@ -1894,6 +1935,82 @@ if(chartMeta){
       low:b.l,
       close:b.c
     }))
+  );
+
+  const resistanceZone=$('resistanceZone');
+const supportZone=$('supportZone');
+
+function hideZone(el){
+  if(el)el.style.display='none';
+}
+
+function placeZone(el,low,high){
+  if(
+    !el ||
+    !Number.isFinite(low) ||
+    !Number.isFinite(high)
+  ){
+    hideZone(el);
+    return;
+  }
+
+  const yHigh=
+    candles.priceToCoordinate(
+      Math.max(low,high)
+    );
+
+  const yLow=
+    candles.priceToCoordinate(
+      Math.min(low,high)
+    );
+
+  if(
+    !Number.isFinite(yHigh) ||
+    !Number.isFinite(yLow)
+  ){
+    hideZone(el);
+    return;
+  }
+
+  el.style.top=
+    Math.min(yHigh,yLow)+'px';
+
+  el.style.height=
+    Math.max(
+      3,
+      Math.abs(yLow-yHigh)
+    )+'px';
+
+  el.style.display='block';
+}
+
+function updateZones(){
+  const z=setup?.levelZones;
+
+  if(!z){
+    hideZone(resistanceZone);
+    hideZone(supportZone);
+    return;
+  }
+
+  placeZone(
+    resistanceZone,
+    z.resistanceZoneLow,
+    z.resistanceZoneHigh
+  );
+
+  placeZone(
+    supportZone,
+    z.supportZoneLow,
+    z.supportZoneHigh
+  );
+}
+
+requestAnimationFrame(updateZones);
+
+chart.timeScale()
+  .subscribeVisibleLogicalRangeChange(
+    ()=>requestAnimationFrame(updateZones)
   );
 
     const ohlc=$('chartOhlc');
