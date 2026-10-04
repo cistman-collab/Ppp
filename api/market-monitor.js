@@ -1,6 +1,8 @@
 import { get, put } from '@vercel/blob';
 import webpush from 'web-push';
 import { updateSignalJournal } from './signal-journal.js';
+import { getEventRisk } from './events.js';
+
 const M=60000;
 
 function ema(a,p){
@@ -1607,6 +1609,9 @@ confirmation.dataFresh=
     ?(levelSetup?.direction||current)
     :'WAIT';
 
+const eventRisk=
+  getEventRisk(now);
+    
 const newsContext=
   await getNewsContext(req);
 
@@ -1626,6 +1631,7 @@ const newsConflict=
   );
 
 const activeDirection=
+  eventRisk.blocked ||
   newsConflict
     ?'WAIT'
     :technicalDirection;
@@ -1650,6 +1656,19 @@ confirmation.newsRecent=
 
 confirmation.newsConflict=
   newsConflict;
+
+confirmation.eventBlocked=
+  eventRisk.blocked;
+
+confirmation.eventStatus=
+  eventRisk.status;
+
+confirmation.activeEvent=
+  eventRisk.activeEvent;
+
+confirmation.nextEvent=
+  eventRisk.nextEvent;
+    
 confirmation.technicalDirection=
   technicalDirection;
 
