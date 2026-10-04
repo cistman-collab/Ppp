@@ -1953,44 +1953,47 @@ if(src.length>=200){
 }
 
   function priceLine(
-    price,
-    title,
-    color
-  ){
-    if(!Number.isFinite(price))return;
+  price,
+  title,
+  color,
+  showLabel=true
+){
+  if(!Number.isFinite(price))return;
 
-    candles.createPriceLine({
-      price,
-      color,
-      lineWidth:1,
-      lineStyle:
-        LightweightCharts.LineStyle.Dashed,
-      axisLabelVisible:true,
-      title
-    });
-  }
+  candles.createPriceLine({
+    price,
+    color,
+    lineWidth:1,
+    lineStyle:
+      LightweightCharts.LineStyle.Dashed,
+    axisLabelVisible:showLabel,
+    title:showLabel?title:''
+  });
+}
 
   const levels=getLevels();
   const major=getMajorLevels();
 
   priceLine(
-    levels.resistance,
-    'RES',
-    '#ff7b84'
-  );
+  levels.resistance,
+  'RES',
+  '#ff7b84',
+  false
+);
 
   priceLine(
-    levels.support,
-    'SUP',
-    '#4be0b0'
-  );
+  levels.support,
+  'SUP',
+  '#4be0b0',
+  false
+);
 
-  if(major){
-    priceLine(
-      major.pivot,
-      'PIVOT',
-      '#ffd15f'
-    );
+  priceLine(
+  major.pivot,
+  'PIVOT',
+  '#ffd15f',
+  false
+);
   }
 
   if(
