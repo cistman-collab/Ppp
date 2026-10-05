@@ -772,9 +772,23 @@ export default async function handler(req,res){
         candleClosedAt
       );
 
-      const direction=
-        levelSetup?.direction||
-        trendDirection;
+      let direction=
+  levelSetup?.direction||
+  trendDirection;
+
+if(
+  direction==='LONG' &&
+  i60.trend!=='BULLISH'
+){
+  direction='WAIT';
+}
+
+if(
+  direction==='SHORT' &&
+  i60.trend!=='BEARISH'
+){
+  direction='WAIT';
+}
 
       const prices=
         direction==='WAIT'
