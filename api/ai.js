@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
     if (!question) return res.status(400).json({ error: 'Please enter a question.' });
     const market = body.market || {};
     const clean = {
-      instrument: 'Unofficial Yahoo CL=F historical data; NOT verified TradingView CL1!',
+      instrument: 'IG primary feed with Yahoo historical seed/fallback; not identical to TradingView CL1!',
       feedVerified: false,
       marketSchedule: String(market.marketSchedule || 'UNKNOWN').slice(0, 80),
       lastCompletedCandleUTC: String(market.lastCompletedCandleUTC || 'unknown').slice(0, 40),
