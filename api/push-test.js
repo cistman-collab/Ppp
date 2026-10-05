@@ -7,7 +7,34 @@ export default async function handler(req,res){
       error:'POST only'
     });
   }
+const host=
+  String(
+    req.headers['x-forwarded-host']||
+    req.headers.host||
+    ''
+  )
+  .split(',')[0]
+  .trim();
 
+const proto=
+  String(
+    req.headers['x-forwarded-proto']||
+    'https'
+  )
+  .split(',')[0]
+  .trim();
+
+const origin=
+  String(req.headers.origin||'');
+
+if(
+  !host ||
+  origin!==proto+'://'+host
+){
+  return res.status(403).json({
+    error:'Forbidden'
+  });
+}
   try{
     webpush.setVapidDetails(
       process.env.VAPID_SUBJECT,
