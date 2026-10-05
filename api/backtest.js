@@ -778,14 +778,20 @@ export default async function handler(req,res){
 
 if(
   direction==='LONG' &&
-  i60.trend!=='BULLISH'
+  (
+    i15.trend!=='BULLISH' ||
+    i60.trend!=='BULLISH'
+  )
 ){
   direction='WAIT';
 }
 
 if(
   direction==='SHORT' &&
-  i60.trend!=='BEARISH'
+  (
+    i15.trend!=='BEARISH' ||
+    i60.trend!=='BEARISH'
+  )
 ){
   direction='WAIT';
 }
