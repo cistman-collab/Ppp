@@ -55,19 +55,29 @@ function normalizeBars(input){
   const map=new Map();
 
   for(const b of input||[]){
-    const x={
-      t:Number(b.t),
-      o:Number(b.o),
-      h:Number(b.h),
-      l:Number(b.l),
-      c:Number(b.c),
-      v:Number.isFinite(Number(b.v))
-        ?Number(b.v)
-        :0
-    };
+  if(
+    b?.t==null ||
+    b?.o==null ||
+    b?.h==null ||
+    b?.l==null ||
+    b?.c==null
+  ){
+    continue;
+  }
 
-    if(
-      [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite) &&
+  const x={
+    t:Number(b.t),
+    o:Number(b.o),
+    h:Number(b.h),
+    l:Number(b.l),
+    c:Number(b.c),
+    v:Number.isFinite(Number(b.v))
+      ?Number(b.v)
+      :0
+  };
+
+  if(
+    [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite) &&
       x.t%(5*M)===0 &&
       x.t+5*M<=now
     ){
