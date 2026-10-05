@@ -271,8 +271,8 @@ async function fetchIG(preferredEpic){
       null;
 
     contractLastDealingAt=
-      marketData.instrument?.lastDealingDate||
-      null;
+  marketData.instrument?.expiryDetails?.lastDealingDate||
+  null;
   }
 }catch{
   contractExpiry=null;
