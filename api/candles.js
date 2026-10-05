@@ -623,11 +623,22 @@ module.exports=async(
        process.env.IG_EPIC
   );
 
-        bars=
-          normalizeBars([
-            ...bars,
-            ...ig.bars
-          ]);
+        if(ig.rolloverUsed){
+  const yahoo=
+    await fetchYahoo();
+
+  bars=
+    normalizeBars([
+      ...yahoo,
+      ...ig.bars
+    ]);
+}else{
+  bars=
+    normalizeBars([
+      ...bars,
+      ...ig.bars
+    ]);
+}
 
         provider='IG';
 
