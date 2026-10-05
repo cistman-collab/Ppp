@@ -126,3 +126,95 @@ module.exports=async(req,res)=>{
         error:'No Yahoo candle data'
       });
     }
+    const yahooBars=result.timestamp
+      .map((t,i)=>({
+        t:t*1000,
+        timeUTC:new Date(t*1000).toISOString(),
+        o:quote.open[i],
+        h:quote.high[i],
+        l:quote.low[i],
+        c:quote.close[i],
+        v:quote.volume?.[i]??null
+      }))
+      .filter(b=>
+        [b.o,b.h,b.l,b.c].every(Number.isFinite) &&
+        b.t+300000<=now
+      );
+
+    // ---------- MATCH SAME 5m TIMESTAMPS ----------
+    const yahooMap=new Map(
+      yahooBars.map(b=>[b.t,b])
+    );
+
+    const matches=igBars
+      .filter(ig=>yahooMap.has(ig.t))
+      .map(ig=>{
+        const yahoo=yahooMap.get(ig.t);
+
+        const difference=ig.c-yahoo.c;
+
+        return {
+          timeUTC:new Date(ig.t).toISOString(),
+
+          igClose:Number(ig.c.toFixed(3)),
+          yahooClose:Number(yahoo.c.toFixed(3)),
+
+          difference:Number(difference.toFixed(3)),
+          differenceCents:Number((difference*100).toFixed(1)),
+
+          igVolume:ig.v,
+          yahooVolume:yahoo.v
+        };
+      })
+      .slice(-10);
+
+    const averageDifference=
+      matches.length
+        ?matches.reduce(
+          (sum,x)=>sum+x.difference,
+          0
+        )/matches.length
+        :null;
+
+    return res.status(200).json({
+      ok:true,
+
+      ig:{
+        source:'IG DEMO',
+        epic,
+        completedBars:igBars.length
+      },
+
+      yahoo:{
+        source:'Yahoo CL=F unofficial public chart endpoint',
+        symbol:'CL=F',
+        completedBars:yahooBars.length
+      },
+
+      matchedBars:matches.length,
+
+      averageDifference:
+        averageDifference==null
+          ?null
+          :Number(averageDifference.toFixed(3)),
+
+      averageDifferenceCents:
+        averageDifference==null
+          ?null
+          :Number((averageDifference*100).toFixed(1)),
+
+      comparisons:matches,
+
+      note:
+        'IG is dated NOV-26 CFD pricing. Yahoo CL=F is a continuous futures chart, so a normal price basis difference may exist.',
+
+      checkedAt:new Date().toISOString()
+    });
+
+  }catch(error){
+    return res.status(500).json({
+      ok:false,
+      error:error.message
+    });
+  }
+};
