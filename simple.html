@@ -1705,17 +1705,18 @@ const stale=
 $('patternStatus').textContent=
   stale
   ?'DATA STALE'
-  :s?.direction==='LONG' ||
-   s?.direction==='SHORT'
-  ?'CONFIRMED'
+  :c?.signalStage
+  ?c.signalStage
   :s?.formingPattern
   ?'FORMING · '+s.formingPattern.waitingFor
   :'NO CONFIRMED SETUP';
 
   $('patternStatus').className=
-    stale || s?.direction==='WAIT'
-    ?'wait'
-    :'blue';
+  stale ||
+  c?.signalStage==='WAIT' ||
+  c?.signalStage==='WAIT FOR 5m TRIGGER'
+  ?'wait'
+  :'blue';
 
   loadSetupHistory();
 
