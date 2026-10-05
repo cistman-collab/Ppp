@@ -77,10 +77,14 @@ function normalizeBars(input){
   };
 
   if(
-    [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite) &&
-      x.t%(5*M)===0 &&
-      x.t+5*M<=now
-    ){
+  [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite) &&
+  x.o>0 &&
+  x.h>0 &&
+  x.l>0 &&
+  x.c>0 &&
+  x.t%(5*M)===0 &&
+  x.t+5*M<=now
+){
       map.set(x.t,x);
     }
   }
