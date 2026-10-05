@@ -3025,7 +3025,8 @@ async function loadCandles(){
         o:+x.o,
         h:+x.h,
         l:+x.l,
-        c:+x.c
+        c:+x.c,
+        v:Number.isFinite(+x.v)?+x.v:0
       }))
       .filter(x=>
         [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite)
