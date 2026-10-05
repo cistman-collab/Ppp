@@ -789,7 +789,34 @@ if(
 ){
   direction='WAIT';
 }
+const latest5=
+  hist5.at(-1);
 
+const previous5=
+  hist5.at(-2);
+
+const entryTriggered=
+  !!latest5 &&
+  !!previous5 &&
+  (
+    (
+      direction==='LONG' &&
+      latest5.c>latest5.o &&
+      latest5.c>previous5.h
+    ) ||
+    (
+      direction==='SHORT' &&
+      latest5.c<latest5.o &&
+      latest5.c<previous5.l
+    )
+  );
+
+if(
+  direction!=='WAIT' &&
+  !entryTriggered
+){
+  direction='WAIT';
+}
       const prices=
         direction==='WAIT'
           ?null
