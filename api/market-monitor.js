@@ -2306,7 +2306,7 @@ const newsConflict=
     )
   );
 
-const activeDirection=
+let activeDirection=
   eventRisk.blocked ||
   newsConflict
     ?'WAIT'
@@ -2359,6 +2359,13 @@ confirmation.entryTriggerText=
     :activeDirection==='SHORT'
     ?'Wait for a completed 5m bearish rejection after sweeping the previous 5m high and falling back below its midpoint.'
     :'No active directional setup.';
+
+    if(
+  activeDirection!=='WAIT' &&
+  !entryTriggered
+){
+  activeDirection='WAIT';
+}
 
     confirmation.newsAvailable=
   newsContext.available;
