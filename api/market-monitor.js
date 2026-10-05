@@ -2270,6 +2270,21 @@ if(
   technicalDirection='WAIT';
 }
 
+if(
+  technicalDirection==='LONG' &&
+  i240.trend!=='NEUTRAL' &&
+  i240.trend!=='BULLISH'
+){
+  technicalDirection='WAIT';
+}
+
+if(
+  technicalDirection==='SHORT' &&
+  i240.trend!=='NEUTRAL' &&
+  i240.trend!=='BEARISH'
+){
+  technicalDirection='WAIT';
+}
 const eventRisk=
   getEventRisk(now);
     
