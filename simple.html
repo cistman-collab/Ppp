@@ -835,6 +835,7 @@ let currentTF=15;
 let setup=null;
 let newsItems=[];
 let newsFetchedAt=null;
+let marketSchedule='UNKNOWN';
 
 let previousSetupDirection=null;
 let lastAlertTime=0;
@@ -3082,6 +3083,34 @@ function newsImpact(title){
   return['MIXED','wait'];
 }
 
+async function loadMarketStatus(){
+  try{
+    const r=
+      await fetch(
+        '/api/market-status',
+        {cache:'no-store'}
+      );
+
+    if(!r.ok){
+      throw Error('Market status unavailable');
+    }
+
+    const d=
+      await r.json();
+
+    marketSchedule=
+      [
+        d.status,
+        d.newYorkTime
+      ]
+      .filter(Boolean)
+      .join(' · ')||
+      'UNKNOWN';
+
+  }catch{
+    marketSchedule='UNKNOWN';
+  }
+}
 async function loadNews(){
   const box=$('newsList');
 
@@ -3215,7 +3244,7 @@ async function askAI(question){
         bars:bars.slice(-40),
         headlines:newsItems,
         newsFetchedAt,
-        marketSchedule:'UNKNOWN',
+        marketSchedule,
         lastCompletedCandleUTC:
           bars.length
           ?new Date(bars.at(-1).t+5*M).toISOString()
@@ -3271,7 +3300,7 @@ async function reviewSignalAI(){
         bars:bars.slice(-40),
         headlines:newsItems,
         newsFetchedAt,
-        marketSchedule:'UNKNOWN',
+        marketSchedule,
         lastCompletedCandleUTC:
           bars.length
           ?new Date(bars.at(-1).t+5*M).toISOString()
@@ -3530,6 +3559,7 @@ window.addEventListener('resize',()=>{
 
 loadCandles();
 loadNews();
+loadMarketStatus();
 
 setInterval(() => {
   loadNews();
@@ -3537,12 +3567,14 @@ setInterval(() => {
 
 setInterval(() => {
   loadCandles();
+  loadMarketStatus();
 }, 60000);
 
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     loadCandles();
     loadNews();
+    loadMarketStatus();
   }
 });
 
