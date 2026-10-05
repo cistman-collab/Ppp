@@ -2227,10 +2227,24 @@ confirmation.dataFresh=
   ?'APPROACHING RESISTANCE'
   :'APPROACHING SUPPORT';
    
-    const technicalDirection=
+    let technicalDirection=
   dataAgeMinutes<=15
     ?(levelSetup?.direction||current)
     :'WAIT';
+
+if(
+  technicalDirection==='LONG' &&
+  i60.trend!=='BULLISH'
+){
+  technicalDirection='WAIT';
+}
+
+if(
+  technicalDirection==='SHORT' &&
+  i60.trend!=='BEARISH'
+){
+  technicalDirection='WAIT';
+}
 
 const eventRisk=
   getEventRisk(now);
