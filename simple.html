@@ -3102,6 +3102,8 @@ async function loadMarketStatus(){
       [
         d.status,
         d.newYorkTime
+        ?d.newYorkTime+' New York time'
+        :null
       ]
       .filter(Boolean)
       .join(' · ')||
