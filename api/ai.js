@@ -3,6 +3,34 @@
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST required' });
+  const host=
+  String(
+    req.headers['x-forwarded-host']||
+    req.headers.host||
+    ''
+  )
+  .split(',')[0]
+  .trim();
+
+const proto=
+  String(
+    req.headers['x-forwarded-proto']||
+    'https'
+  )
+  .split(',')[0]
+  .trim();
+
+const origin=
+  String(req.headers.origin||'');
+
+if(
+  !host ||
+  origin!==proto+'://'+host
+){
+  return res.status(403).json({
+    error:'Forbidden'
+  });
+}
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'AI not configured: set OPENAI_API_KEY in Vercel Preview environment variables.' });
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
