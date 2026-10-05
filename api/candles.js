@@ -154,7 +154,30 @@ async function fetchYahoo(){
   }
 }
 
-async function fetchIG(){
+function expiryRank(expiry){
+  const months=[
+    'JAN','FEB','MAR','APR','MAY','JUN',
+    'JUL','AUG','SEP','OCT','NOV','DEC'
+  ];
+
+  const match=
+    String(expiry||'')
+      .toUpperCase()
+      .match(/^([A-Z]{3})-(\d{2})$/);
+
+  if(!match)return NaN;
+
+  const month=
+    months.indexOf(match[1]);
+
+  if(month<0)return NaN;
+
+  return(
+    (2000+Number(match[2]))*12+
+    month
+  );
+}
+async function fetchIG(preferredEpic){
   const base=
     process.env.IG_BASE_URL;
 
@@ -167,8 +190,13 @@ async function fetchIG(){
   const password=
     process.env.IG_PASSWORD;
 
-  const epic=
-    process.env.IG_EPIC;
+  let epic=
+  preferredEpic||
+  process.env.IG_EPIC;
+
+  let rolloverUsed=false;
+  let contractExpiry=null;
+  let contractLastDealingAt=null;
 
   if(
     !base ||
@@ -220,6 +248,96 @@ async function fetchIG(){
     );
   }
 
+  try{
+  const marketResponse=await fetch(
+    base+'/markets/'+encodeURIComponent(epic),
+    {
+      headers:{
+        'Accept':'application/json',
+        'X-IG-API-KEY':apiKey,
+        'CST':cst,
+        'X-SECURITY-TOKEN':securityToken,
+        'VERSION':'3'
+      }
+    }
+  );
+
+  if(marketResponse.ok){
+    const marketData=
+      await marketResponse.json();
+
+    contractExpiry=
+      marketData.instrument?.expiry||
+      null;
+
+    contractLastDealingAt=
+      marketData.instrument?.lastDealingDate||
+      null;
+  }
+}catch{
+  contractExpiry=null;
+  contractLastDealingAt=null;
+}
+
+const lastDealingMs=
+  Date.parse(contractLastDealingAt||'');
+
+const rolloverNeeded=
+  Number.isFinite(lastDealingMs) &&
+  lastDealingMs-Date.now()<=7*24*60*M;
+
+  if(rolloverNeeded){
+  try{
+    const searchResponse=await fetch(
+      base+
+      '/markets?searchTerm='+
+      encodeURIComponent('Oil - US Crude'),
+      {
+        headers:{
+          'Accept':'application/json',
+          'X-IG-API-KEY':apiKey,
+          'CST':cst,
+          'X-SECURITY-TOKEN':securityToken,
+          'VERSION':'1'
+        }
+      }
+    );
+
+    if(searchResponse.ok){
+      const searchData=
+        await searchResponse.json();
+
+      const currentRank=
+        expiryRank(contractExpiry);
+
+      const nextContract=
+        (searchData.markets||[])
+          .filter(m=>
+            String(m.epic||'')
+              .startsWith('EN.D.CL.') &&
+            Number.isFinite(
+              expiryRank(m.expiry)
+            ) &&
+            expiryRank(m.expiry)>
+              currentRank
+          )
+          .sort(
+            (a,b)=>
+              expiryRank(a.expiry)-
+              expiryRank(b.expiry)
+          )[0];
+
+      if(nextContract?.epic){
+        epic=nextContract.epic;
+        contractExpiry=
+          nextContract.expiry||
+          null;
+        contractLastDealingAt=null;
+        rolloverUsed=true;
+      }
+    }
+  }catch{}
+}
   const response=await fetch(
     base+
     '/prices/'+
@@ -294,6 +412,10 @@ async function fetchIG(){
 
   return{
     bars,
+    epic,
+    rolloverUsed,
+    contractExpiry,
+    contractLastDealingAt,
     allowance:
       data.metadata?.allowance ||
       data.allowance ||
@@ -496,7 +618,10 @@ module.exports=async(
 
       try{
         const ig=
-          await fetchIG();
+        await fetchIG(
+        cache.igEpic||
+       process.env.IG_EPIC
+  );
 
         bars=
           normalizeBars([
@@ -508,6 +633,17 @@ module.exports=async(
 
         allowance=
           ig.allowance;
+        cache.igEpic=
+  ig.epic;
+
+cache.contractExpiry=
+  ig.contractExpiry;
+
+cache.contractLastDealingAt=
+  ig.contractLastDealingAt;
+
+cache.rolloverUsed=
+  ig.rolloverUsed;
 
       }catch(e){
         igError=
@@ -565,11 +701,22 @@ module.exports=async(
           provider==='IG',
 
         epic:
-          process.env
-            .IG_EPIC||
-          null,
+  cache.igEpic||
+  process.env.IG_EPIC||
+  null,
 
-        allowance
+contractExpiry:
+  cache.contractExpiry||
+  null,
+
+contractLastDealingAt:
+  cache.contractLastDealingAt||
+  null,
+
+rolloverUsed:
+  cache.rolloverUsed===true,
+
+allowance
       }
     );
 
