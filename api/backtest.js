@@ -795,19 +795,26 @@ const latest5=
 const previous5=
   hist5.at(-2);
 
+const previousMid=
+  (previous5.o+previous5.c)/2;
+
 const entryTriggered=
   !!latest5 &&
   !!previous5 &&
   (
     (
       direction==='LONG' &&
+      previous5.c<previous5.o &&
       latest5.c>latest5.o &&
-      latest5.c>previous5.h
+      latest5.l<=previous5.l &&
+      latest5.c>previousMid
     ) ||
     (
       direction==='SHORT' &&
+      previous5.c>previous5.o &&
       latest5.c<latest5.o &&
-      latest5.c<previous5.l
+      latest5.h>=previous5.h &&
+      latest5.c<previousMid
     )
   );
 
