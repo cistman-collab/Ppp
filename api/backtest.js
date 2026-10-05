@@ -780,7 +780,11 @@ if(
   direction==='LONG' &&
   (
     i15.trend!=='BULLISH' ||
-    i60.trend!=='BULLISH'
+    i60.trend!=='BULLISH' ||
+    (
+      i240.trend!=='NEUTRAL' &&
+      i240.trend!=='BULLISH'
+    )
   )
 ){
   direction='WAIT';
@@ -790,7 +794,11 @@ if(
   direction==='SHORT' &&
   (
     i15.trend!=='BEARISH' ||
-    i60.trend!=='BEARISH'
+    i60.trend!=='BEARISH' ||
+    (
+      i240.trend!=='NEUTRAL' &&
+      i240.trend!=='BEARISH'
+    )
   )
 ){
   direction='WAIT';
