@@ -2309,6 +2309,41 @@ confirmation.nextEvent=
 confirmation.technicalDirection=
   technicalDirection;
 
+confirmation.waitReason=
+  activeDirection!=='WAIT'
+  ?null
+  :eventRisk.blocked
+  ?'High-impact event block is active.'
+  :newsConflict
+  ?'Technical signal blocked by conflicting news risk.'
+  :dataAgeMinutes>15
+  ?'Market data is not fresh enough.'
+  :levelSetup?.direction==='LONG' &&
+   i60.trend!=='BULLISH'
+  ?'15m LONG setup blocked — 1H is '+i60.trend+'.'
+  :levelSetup?.direction==='SHORT' &&
+   i60.trend!=='BEARISH'
+  ?'15m SHORT setup blocked — 1H is '+i60.trend+'.'
+  :i5.trend!==i15.trend
+  ?'5m is '+i5.trend+' while 15m is '+i15.trend+'.'
+  :i15.trend!==i60.trend
+  ?'15m is '+i15.trend+' while 1H is '+i60.trend+'.'
+  :i240.trend!=='NEUTRAL' &&
+   i240.trend!==i15.trend
+  ?'4H is '+i240.trend+' while 15m is '+i15.trend+'.'
+  :i15.trend==='BEARISH' &&
+   i5.hist>=0
+  ?'Bearish 1H/15m structure, but 5m momentum has not confirmed SHORT.'
+  :i15.trend==='BULLISH' &&
+   i5.hist<=0
+  ?'Bullish 1H/15m structure, but 5m momentum has not confirmed LONG.'
+  :i15.trend==='BEARISH' &&
+   i15.hist>=0
+  ?'Bearish structure, but 15m momentum has not confirmed SHORT.'
+  :i15.trend==='BULLISH' &&
+   i15.hist<=0
+  ?'Bullish structure, but 15m momentum has not confirmed LONG.'
+  :'No fully confirmed setup yet.';
 const prices=
   activeDirection==='WAIT'
     ?null
