@@ -2560,6 +2560,14 @@ await updateSignalJournal({
       );
 
     if(!stored?.subscription){
+        await saveBlob(
+    'push/monitor-state.json',
+    {
+      direction:activeDirection,
+      setupType,
+      checkedAt:new Date().toISOString()
+    }
+  );
       return res
         .status(200)
         .json({
