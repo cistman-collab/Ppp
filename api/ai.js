@@ -62,6 +62,7 @@ Also return WAIT if ruleBasedSetup.monitorConfirmation.dataFresh is false.
 Explain whether candle data is stale or its freshness is unknown.
 Describe levels.price as the last available candle close, never as a live or current market price.
 Include the supplied lastCompletedCandleUTC in DATA NOTE when available.
+Include the supplied marketSchedule in DATA NOTE when available. If it is UNKNOWN, say the market schedule is unknown.
 
 Review:
 - direction
