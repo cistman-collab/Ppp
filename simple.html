@@ -834,6 +834,7 @@ let bars=[];
 let currentTF=15;
 let setup=null;
 let newsItems=[];
+let newsFetchedAt=null;
 
 let previousSetupDirection=null;
 let lastAlertTime=0;
@@ -3091,7 +3092,8 @@ async function loadNews(){
     const d=await r.json();
 
 newsItems=Array.isArray(d.items)?d.items:[];
-
+newsFetchedAt=d.fetchedAt||null;
+    
 const maritime=d.maritime||{};
 const risk=String(maritime.risk||'UNKNOWN');
 
@@ -3212,6 +3214,7 @@ async function askAI(question){
         dataAgeMinutes:Math.round(dataAgeMinutes()),
         bars:bars.slice(-40),
         headlines:newsItems,
+        newsFetchedAt,
         marketSchedule:'UNKNOWN',
         lastCompletedCandleUTC:
           bars.length
@@ -3267,6 +3270,7 @@ async function reviewSignalAI(){
         dataAgeMinutes:Math.round(dataAgeMinutes()),
         bars:bars.slice(-40),
         headlines:newsItems,
+        newsFetchedAt,
         marketSchedule:'UNKNOWN',
         lastCompletedCandleUTC:
           bars.length
