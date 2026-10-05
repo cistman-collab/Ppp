@@ -2303,19 +2303,28 @@ const activeDirection=
 const previous5=
   bars.at(-2);
 
+const previousMid=
+  previous5
+    ?(previous5.o+previous5.c)/2
+    :null;
+
 const entryTriggered=
   !!latest5 &&
   !!previous5 &&
   (
     (
       activeDirection==='LONG' &&
+      previous5.c<previous5.o &&
       latest5.c>latest5.o &&
-      latest5.c>previous5.h
+      latest5.l<=previous5.l &&
+      latest5.c>previousMid
     ) ||
     (
       activeDirection==='SHORT' &&
+      previous5.c>previous5.o &&
       latest5.c<latest5.o &&
-      latest5.c<previous5.l
+      latest5.h>=previous5.h &&
+      latest5.c<previousMid
     )
   );
 
@@ -2331,9 +2340,9 @@ confirmation.signalStage=
 
 confirmation.entryTriggerText=
   activeDirection==='LONG'
-    ?'Wait for a completed 5m bullish candle to close above the previous 5m high.'
+    ?'Wait for a completed 5m bullish rejection after sweeping the previous 5m low and reclaiming its midpoint.'
     :activeDirection==='SHORT'
-    ?'Wait for a completed 5m bearish candle to close below the previous 5m low.'
+    ?'Wait for a completed 5m bearish rejection after sweeping the previous 5m high and falling back below its midpoint.'
     :'No active directional setup.';
 
     confirmation.newsAvailable=
