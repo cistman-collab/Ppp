@@ -2038,74 +2038,98 @@ export default async function handler(
   res
 ){
   try{
-    const response=
-      await fetch(
-        'https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?interval=5m&range=30d',
-        {
-          headers:{
-            'User-Agent':'Mozilla/5.0',
-            'Accept':'application/json'
-          }
-        }
-      );
+    const host=
+  req.headers['x-forwarded-host']||
+  req.headers.host;
 
-    if(!response.ok){
-      throw new Error(
-        'WTI data HTTP '+
-        response.status
-      );
+if(!host){
+  throw new Error(
+    'No request host'
+  );
+}
+
+const proto=
+  String(
+    req.headers['x-forwarded-proto']||
+    'https'
+  )
+    .split(',')[0]
+    .trim();
+
+const response=
+  await fetch(
+    proto+
+    '://'+
+    host+
+    '/api/candles',
+    {
+      cache:'no-store',
+      headers:{
+        'Accept':'application/json'
+      }
     }
+  );
 
-    const data=
-      await response.json();
+if(!response.ok){
+  throw new Error(
+    'WTI candle API HTTP '+
+    response.status
+  );
+}
 
-    const result=
-      data.chart?.result?.[0];
+const data=
+  await response.json();
 
-    const quote=
-      result
-        ?.indicators
-        ?.quote?.[0];
+const now=
+  Date.now();
 
-    if(
-      !result?.timestamp ||
-      !quote
-    ){
-      throw new Error(
-        'No WTI candle data'
-      );
-    }
+const bars=
+  (
+    Array.isArray(data.bars)
+      ?data.bars
+      :[]
+  )
+    .map(b=>({
+      t:Number(b.t),
+      o:Number(b.o),
+      h:Number(b.h),
+      l:Number(b.l),
+      c:Number(b.c),
+      v:Number.isFinite(
+        Number(b.v)
+      )
+        ?Number(b.v)
+        :0
+    }))
+    .filter(
+      b=>
+        [
+          b.t,
+          b.o,
+          b.h,
+          b.l,
+          b.c
+        ].every(Number.isFinite)
+        &&
+        b.o>0
+        &&
+        b.h>0
+        &&
+        b.l>0
+        &&
+        b.c>0
+        &&
+        b.t%(5*M)===0
+        &&
+        b.t+5*M<=now
+    )
+    .slice(-4000);
 
-    const now=Date.now();
-
-    const bars=
-      result.timestamp
-        .map(
-          (t,i)=>({
-  t:t*1000,
-  o:quote.open[i],
-  h:quote.high[i],
-  l:quote.low[i],
-  c:quote.close[i],
-  v:Number.isFinite(quote.volume?.[i])
-    ?quote.volume[i]
-    :0
-})
-        )
-        .filter(
-          b=>
-            [
-              b.o,
-              b.h,
-              b.l,
-              b.c
-            ].every(Number.isFinite)
-            &&
-           b.t%(5*M)===0
-           &&
-           b.t+5*M<=now
-        )
-        .slice(-4000);
+if(bars.length<40){
+  throw new Error(
+    'Not enough WTI candle data'
+  );
+}
 
     const b15=
       aggregate(bars,15);
