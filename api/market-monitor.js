@@ -2273,6 +2273,45 @@ const activeDirection=
     ?'WAIT'
     :technicalDirection;
 
+  const latest5=
+  bars.at(-1);
+
+const previous5=
+  bars.at(-2);
+
+const entryTriggered=
+  !!latest5 &&
+  !!previous5 &&
+  (
+    (
+      activeDirection==='LONG' &&
+      latest5.c>latest5.o &&
+      latest5.c>previous5.h
+    ) ||
+    (
+      activeDirection==='SHORT' &&
+      latest5.c<latest5.o &&
+      latest5.c<previous5.l
+    )
+  );
+
+confirmation.entryTriggered=
+  entryTriggered;
+
+confirmation.signalStage=
+  activeDirection==='WAIT'
+    ?'WAIT'
+    :entryTriggered
+    ?'ENTRY CONFIRMED'
+    :'WAIT FOR 5m TRIGGER';
+
+confirmation.entryTriggerText=
+  activeDirection==='LONG'
+    ?'Wait for a completed 5m bullish candle to close above the previous 5m high.'
+    :activeDirection==='SHORT'
+    ?'Wait for a completed 5m bearish candle to close below the previous 5m low.'
+    :'No active directional setup.';
+
     confirmation.newsAvailable=
   newsContext.available;
 
