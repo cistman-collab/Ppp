@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
           messages: [
             { role: 'system', content:`You are WTI Pro AI, a cautious oil-market research assistant.
 
-The market input uses unofficial delayed/unverified Yahoo CL=F candles, not verified TradingView CL1!.
+The market input uses IG as the primary feed with Yahoo historical seed/fallback. It is not identical to TradingView CL1! and completed 5m candles are used for signal confirmation.
 
 Review the supplied 5m, 15m, 1H and 4H indicators and the ruleBasedSetup.
 
