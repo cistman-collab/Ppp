@@ -1657,19 +1657,20 @@ $('signalMaritimeRisk').className=
     $('signalTrend').textContent=
       '5m '+c.fiveMinTrend+
       ' · 15m '+c.fifteenMinTrend+
+      ' · 30m '+c.thirtyMinTrend+
       ' · 1H '+c.oneHourTrend+
       ' · 4H '+c.fourHourTrend;
 
     const allBullish=
   c.fiveMinTrend==='BULLISH' &&
   c.fifteenMinTrend==='BULLISH' &&
-  c.oneHourTrend==='BULLISH' &&
+  c.thirtyMinTrend==='BULLISH' &&
   c.fourHourTrend==='BULLISH';
 
 const allBearish=
   c.fiveMinTrend==='BEARISH' &&
   c.fifteenMinTrend==='BEARISH' &&
-  c.oneHourTrend==='BEARISH' &&
+  c.thirtyMinTrend==='BEARISH' &&
   c.fourHourTrend==='BEARISH';
 
 $('signalTrend').className=
