@@ -2399,7 +2399,7 @@ confirmation.dataAgeMinutes=
 confirmation.dataFresh=
   dataAgeMinutes<=15;
    
-    const levels=
+    const rawLevels=
   getLevels(bars);
 
     const levelZones=
@@ -2408,6 +2408,22 @@ confirmation.dataFresh=
     b15,
     b30
   );
+
+    const levels={
+  resistance:levelZones.resistanceZoneHigh,
+  support:levelZones.supportZoneLow,
+  price:rawLevels.price,
+  distanceToResistance:
+    Math.abs(
+      levelZones.resistanceZoneHigh-
+      rawLevels.price
+    ),
+  distanceToSupport:
+    Math.abs(
+      rawLevels.price-
+      levelZones.supportZoneLow
+    )
+};
 
     const nearestZone=
   Math.abs(
