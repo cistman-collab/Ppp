@@ -271,16 +271,20 @@ distanceToSupport:
   
   }
 
-function getLevelZones(bars,b15){
-  const levels=getLevels(bars);
+function getLevelZones(bars,b15,b30){
+  const levels15=getLevels(b15);
+  const levels30=getLevels(b30);
   const a=atr(b15);
-  const zoneSize=Math.max(0.10,a*.25);
-
+  const a30=atr(b30);
+  const zoneSize=Math.max(0.10,a*.25,a30*.15);
+  const supportLevel=Math.max(levels15.support,levels30.support);
+  const resistanceLevel=Math.min(levels15.resistance,levels30.resistance);
+  
   return{
-    supportZoneLow:levels.support,
-    supportZoneHigh:levels.support+zoneSize,
-    resistanceZoneLow:levels.resistance-zoneSize,
-    resistanceZoneHigh:levels.resistance
+    supportZoneLow:supportLevel,
+    supportZoneHigh:supportLevel+zoneSize,
+    resistanceZoneLow:resistanceLevel-zoneSize,
+    resistanceZoneHigh:resistanceLevel
   };
 }
 
@@ -2400,19 +2404,26 @@ confirmation.dataFresh=
     const levelZones=
   getLevelZones(
     bars,
-    b15
+    b15,
+    b30
   );
 
     const nearestZone=
-  levels.distanceToResistance<
-  levels.distanceToSupport
+  Math.abs(
+    levels.price-levelZones.resistanceZoneHigh
+  )<
+  Math.abs(
+    levels.price-levelZones.supportZoneLow
+  )
   ?'RESISTANCE'
   :'SUPPORT';
 
   const zoneStatus=
-  levels.price>=levelZones.resistanceZoneLow
+  levels.price>=levelZones.resistanceZoneLow &&
+  levels.price<=levelZones.resistanceZoneHigh
   ?'IN RESISTANCE ZONE'
-  :levels.price<=levelZones.supportZoneHigh
+  :levels.price>=levelZones.supportZoneLow &&
+   levels.price<=levelZones.supportZoneHigh
   ?'IN SUPPORT ZONE'
   :nearestZone==='RESISTANCE'
   ?'APPROACHING RESISTANCE'
