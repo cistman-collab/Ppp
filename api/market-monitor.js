@@ -2380,7 +2380,8 @@ let levelSetup=
 }
     const formingPattern=
   dataAgeMinutes<=15 &&
-  !levelSetup
+!levelSetup &&
+i240.trend===i30.trend
     ?detectFormingPattern(
       bars,
       b15,
