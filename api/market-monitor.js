@@ -1621,6 +1621,7 @@ function makeDirection(
   i15,
   i60,
   i240,
+  i30=null,
   now=Date.now()
 ){
   const completedAt=
@@ -1636,6 +1637,13 @@ function makeDirection(
     return 'WAIT';
   }
 
+if(
+  !i30 ||
+  i30.trend==='NEUTRAL' ||
+  i30.trend!==i15.trend
+){
+  return 'WAIT';
+}
   if(
     i5.trend!==i15.trend
   ){
@@ -1643,18 +1651,12 @@ function makeDirection(
   }
 
   if(
-    i15.trend!==i60.trend
-  ){
-    return 'WAIT';
-  }
-
-  if(
-    i240 &&
-    i240.trend!=='NEUTRAL' &&
-    i240.trend!==i15.trend
-  ){
-    return 'WAIT';
-  }
+  !i240 ||
+  i240.trend==='NEUTRAL' ||
+  i240.trend!==i30.trend
+){
+  return 'WAIT';
+}
 
   const bullishMomentum=
     i15.rsi>50 &&
@@ -2133,6 +2135,9 @@ if(bars.length<40){
 
     const b15=
       aggregate(bars,15);
+    
+    const b30=
+  aggregate(bars,30);
 
     const b60=
       aggregate(bars,60);
@@ -2146,6 +2151,9 @@ if(bars.length<40){
     const i15=
       indicators(b15);
 
+    const i30=
+  indicators(b30);
+
     const i60=
       indicators(b60);
 
@@ -2155,6 +2163,7 @@ if(bars.length<40){
     if(
       !i5 ||
       !i15 ||
+      !i30 ||
       !i60 ||
       !i240
     ){
@@ -2168,6 +2177,8 @@ if(bars.length<40){
   fiveMinHist:i5.hist,
   fifteenMinTrend:i15.trend,
   fifteenMinHist:i15.hist,
+  thirtyMinTrend:i30.trend,
+  thirtyMinHist:i30.hist,
   fiveMinRsi:i5.rsi,
   fifteenMinRsi:i15.rsi,
   oneHourTrend:i60.trend,
@@ -2181,13 +2192,14 @@ if(bars.length<40){
 };
     const current=
       makeDirection(
-        bars,
-        i5,
-        i15,
-        i60,
-        i240
-      );
-   
+      bars,
+      i5,
+      i15,
+      i60,
+      i240,
+      i30
+   );
+     
     const lastCandleClosedAt=
   bars.at(-1).t+5*M;
 
@@ -2257,22 +2269,33 @@ confirmation.dataFresh=
     :'WAIT';
 
 if(
-  technicalDirection==='LONG' &&
-  i60.trend!=='BULLISH'
+  (
+    technicalDirection==='LONG' &&
+    i15.trend!=='BULLISH'
+  ) ||
+  (
+    technicalDirection==='SHORT' &&
+    i15.trend!=='BEARISH'
+  )
 ){
   technicalDirection='WAIT';
 }
 
 if(
-  technicalDirection==='SHORT' &&
-  i60.trend!=='BEARISH'
+  (
+    technicalDirection==='LONG' &&
+    i30.trend!=='BULLISH'
+  ) ||
+  (
+    technicalDirection==='SHORT' &&
+    i30.trend!=='BEARISH'
+  )
 ){
   technicalDirection='WAIT';
 }
 
 if(
   technicalDirection==='LONG' &&
-  i240.trend!=='NEUTRAL' &&
   i240.trend!=='BULLISH'
 ){
   technicalDirection='WAIT';
@@ -2280,7 +2303,6 @@ if(
 
 if(
   technicalDirection==='SHORT' &&
-  i240.trend!=='NEUTRAL' &&
   i240.trend!=='BEARISH'
 ){
   technicalDirection='WAIT';
@@ -2412,25 +2434,19 @@ confirmation.waitReason=
   ?'Technical signal blocked by conflicting news risk.'
   :dataAgeMinutes>15
   ?'Market data is not fresh enough.'
-  :levelSetup?.direction==='LONG' &&
-   i60.trend!=='BULLISH'
-  ?'15m LONG setup blocked — 1H is '+i60.trend+'.'
-  :levelSetup?.direction==='SHORT' &&
-   i60.trend!=='BEARISH'
-  ?'15m SHORT setup blocked — 1H is '+i60.trend+'.'
+  :i30.trend!==i15.trend
+?'30m is '+i30.trend+' while 15m is '+i15.trend+'.'
   :i5.trend!==i15.trend
   ?'5m is '+i5.trend+' while 15m is '+i15.trend+'.'
-  :i15.trend!==i60.trend
-  ?'15m is '+i15.trend+' while 1H is '+i60.trend+'.'
   :i240.trend!=='NEUTRAL' &&
-   i240.trend!==i15.trend
-  ?'4H is '+i240.trend+' while 15m is '+i15.trend+'.'
+ i240.trend!==i30.trend
+?'4H is '+i240.trend+' while 30m is '+i30.trend+'.'
   :i15.trend==='BEARISH' &&
    i5.hist>=0
-  ?'Bearish 1H/15m structure, but 5m momentum has not confirmed SHORT.'
+  ?'Bearish 15m structure, but 5m momentum has not confirmed SHORT.'
   :i15.trend==='BULLISH' &&
    i5.hist<=0
-  ?'Bullish 1H/15m structure, but 5m momentum has not confirmed LONG.'
+  ?'Bullish 15m structure, but 5m momentum has not confirmed LONG.'
   :i15.trend==='BEARISH' &&
    i15.hist>=0
   ?'Bearish structure, but 15m momentum has not confirmed SHORT.'
