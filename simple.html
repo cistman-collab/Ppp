@@ -76,7 +76,7 @@ small,.muted{color:var(--muted)}
 .bad{color:var(--red)}
 .wait{color:var(--yellow)}
 .blue{color:var(--blue)}
-.tfgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tfgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
   background:#0a1827;border:1px solid #1f3e59;
   border-radius:13px;padding:12px 6px;text-align:center
 }
@@ -326,6 +326,11 @@ canvas{width:100%;height:400px;display:block}
       <div id="m15" class="value wait">WAIT</div>
     </div>
      <div class="tf">
+  <div>30m</div>
+  <div id="a30" class="arrow wait">→</div>
+  <div id="m30" class="value wait">WAIT</div>
+</div> 
+  <div class="tf">
   <div>1H</div>
   <div id="a1h" class="arrow wait">→</div>
   <div id="h1" class="value wait">WAIT</div>
@@ -1287,18 +1292,21 @@ async function render(){
   if(!bars.length)return;
 
   const b15=aggregate(bars,15);
+  const b30=aggregate(bars,30);
 const b60=aggregate(bars,60);
 const b240=aggregate(bars,240);
 
 const i5=indicators(bars);
 const i15=indicators(b15);
+const i30=indicators(b30);
 const i60=indicators(b60);
 const i240=indicators(b240);
 
-if(!i5||!i15||!i60||!i240)return;
+if(!i5||!i15||!i30||!i60||!i240)return;
 
 setTF('m5','a5',i5.trend);
 setTF('m15','a15',i15.trend);
+setTF('m30','a30',i30.trend);
 setTF('h1','a1h',i60.trend);
 setTF('h4','a4h',i240.trend);
 
@@ -1333,11 +1341,11 @@ setTF('h4','a4h',i240.trend);
 
   const shortAligned=
   i5.trend===i15.trend &&
-  i15.trend===i60.trend;
+  i15.trend===i30.trend;
 
 const higherConflict=
   i240.trend!=='NEUTRAL' &&
-  i240.trend!==i15.trend;
+  i240.trend!==i30.trend;
 
 const aligned=
   shortAligned &&
@@ -1362,10 +1370,10 @@ const bearishMomentum=
     $('bigArrow').textContent='↑';
     $('bigArrow').className='bigArrow good';
 
-    $('message').textContent='5m, 15m, 1H and 4H support the bullish setup';
+    $('message').textContent='5m, 15m, 30m and 4H support the bullish setup';
 
     reasons=[
-  '5m, 15m and 1H are bullish',
+  '5m, 15m and 30m are bullish',
   '4H is '+i240.trend,
   'Momentum is positive'
 ];
@@ -1377,10 +1385,10 @@ const bearishMomentum=
     $('bigArrow').textContent='↓';
     $('bigArrow').className='bigArrow bad';
 
-    $('message').textContent='5m, 15m, 1H and 4H support the bearish setup';
+    $('message').textContent='5m, 15m, 30m and 4H support the bearish setup';
 
     reasons=[
-  '5m, 15m and 1H are bearish',
+  '5m, 15m and 30m are bearish',
   '4H is '+i240.trend,
   'Momentum is negative'
 ];
@@ -1400,6 +1408,7 @@ const bearishMomentum=
     reasons=[
   '5m is '+i5.trend,
   '15m is '+i15.trend,
+  '30m is '+i30.trend,
   '1H is '+i60.trend,
   '4H is '+i240.trend
 ];
