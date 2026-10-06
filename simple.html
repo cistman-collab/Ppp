@@ -1572,8 +1572,8 @@ const bearishMomentum=
     :setup.setupType+' — using the background monitor’s setup rules.';
   $('whyList').replaceChildren(reason);
 
-  $('resistance').textContent=l.resistance.toFixed(2);
-  $('support').textContent=l.support.toFixed(2);
+  $('resistance').textContent=(setup.levelZones?.resistanceZoneHigh??l.resistance).toFixed(2);
+  $('support').textContent=(setup.levelZones?.supportZoneLow??l.support).toFixed(2);
   $('nextTarget').textContent=setup.direction==='WAIT'?'—':fmt(setup.tp1);
   $('invalidation').textContent=setup.direction==='WAIT'?'—':fmt(setup.stop);
 
