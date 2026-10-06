@@ -1442,17 +1442,119 @@ function detectContinuationPattern(bars,b15,i5,i15){
   return null;
 }
 
-  function makeLevelSetup(bars,b15,i5,i15){
- const reversalPattern=
+  function makeLevelSetup(bars,b15,b30,i5,i15,i30){
+  const structureLevels15=getLevels(b15);
+  const structureLevels30=getLevels(b30);
+  const structureAtr15=atr(b15);
+  const structureAtr30=atr(b30);
+  const structureZone=Math.max(0.10,structureAtr15*.25,structureAtr30*.15);
+  const structureSupport=Math.max(structureLevels15.support,structureLevels30.support);
+  const structureResistance=Math.min(structureLevels15.resistance,structureLevels30.resistance);  
+  
+  const structureSupportConfluence=
+    Math.abs(
+    structureLevels15.support-
+    structureLevels30.support
+  )<=structureZone*2;
+    
+  const structureResistanceConfluence=
+    Math.abs(
+    structureLevels15.resistance-
+    structureLevels30.resistance
+  )<=structureZone*2;
+ 
+  const reversalPattern=
   detectReversalPattern(
     bars,
     b15,
     i5
   );
 
-  if(reversalPattern){
-    return reversalPattern;
-  }
+  const patternEntryMid=
+  (reversalPattern.entryLow+reversalPattern.entryHigh)/2;
+
+const isScalpReversal=
+  reversalPattern.type.includes('SCALP');
+
+const structureNear=
+  reversalPattern.direction==='LONG'
+    ?Math.abs(patternEntryMid-structureSupport)<=structureZone*2
+    :Math.abs(patternEntryMid-structureResistance)<=structureZone*2;
+
+const structureOk=
+  !isScalpReversal ||
+  (
+    reversalPattern.direction==='LONG'
+      ?structureSupportConfluence && structureNear
+      :structureResistanceConfluence && structureNear
+  );
+
+  if(structureOk){
+  
+if(
+  isScalpReversal &&
+  reversalPattern.direction==='LONG'
+){
+  reversalPattern.entryLow=
+    structureSupport;
+
+  reversalPattern.entryHigh=
+    structureSupport+structureZone;
+
+  reversalPattern.stop=
+    Math.min(
+      structureLevels15.support,
+      structureLevels30.support
+    )-
+    Math.max(
+      structureAtr15*.4,
+      structureAtr30*.20
+    );
+
+  reversalPattern.tp1=
+    structureResistance;
+
+  reversalPattern.tp2=
+    structureResistance+
+    Math.max(
+      structureAtr15*.5,
+      structureAtr30*.25
+    );
+}
+  
+if(
+  isScalpReversal &&
+  reversalPattern.direction==='SHORT'
+){
+  reversalPattern.entryLow=
+    structureResistance-structureZone;
+
+  reversalPattern.entryHigh=
+    structureResistance;
+
+  reversalPattern.stop=
+    Math.max(
+      structureLevels15.resistance,
+      structureLevels30.resistance
+    )+
+    Math.max(
+      structureAtr15*.4,
+      structureAtr30*.20
+    );
+
+  reversalPattern.tp1=
+    structureSupport;
+
+  reversalPattern.tp2=
+    structureSupport-
+    Math.max(
+      structureAtr15*.5,
+      structureAtr30*.25
+    );
+}
+  return reversalPattern;
+}
+}
   const continuationPattern=
   detectContinuationPattern(
     bars,
@@ -1462,12 +1564,36 @@ function detectContinuationPattern(bars,b15,i5,i15){
   );
 
 if(continuationPattern){
-  return continuationPattern;
+  const trendOk=
+    (
+      continuationPattern.direction==='LONG' &&
+      i30.trend==='BULLISH'
+    ) ||
+    (
+      continuationPattern.direction==='SHORT' &&
+      i30.trend==='BEARISH'
+    );
+
+  if(trendOk){
+    return continuationPattern;
+  }
 }
   
   const levels=getLevels(bars);
+  const levels15=getLevels(b15);
+  const levels30=getLevels(b30);
   const a=atr(b15);
-  const zoneSize=Math.max(0.10,a*.25);
+  const a30=atr(b30);
+  const zoneSize=Math.max(0.10,a*.25,a30*.15);
+  const supportLevel=Math.max(levels15.support,levels30.support);
+  const resistanceLevel=Math.min(levels15.resistance,levels30.resistance);
+  
+  const supportConfluence=
+  Math.abs(levels15.support-levels30.support)<=zoneSize*2;
+
+  const resistanceConfluence=
+  Math.abs(levels15.resistance-levels30.resistance)<=zoneSize*2;
+  
   const px=levels.price;
   const prev=bars.at(-2).c;
   const last=bars.at(-1);
@@ -1476,10 +1602,14 @@ if(continuationPattern){
   getLevels(bars.slice(0,-1));
 
   const nearSupport=
-    px<=levels.support+zoneSize;
+  supportConfluence &&
+  px<=supportLevel+zoneSize &&
+  px>=supportLevel-zoneSize*.35;
 
   const nearResistance=
-    px>=levels.resistance-zoneSize;
+  resistanceConfluence &&
+  px>=resistanceLevel-zoneSize &&
+  px<=resistanceLevel+zoneSize*.35;
     
   const bullishBreakout=
   prev<=breakoutLevels.resistance &&
@@ -1523,11 +1653,11 @@ if(bearishBreakout){
     return{
       type:'SUPPORT RETEST',
       direction:'LONG',
-      entryLow:levels.support,
-      entryHigh:levels.support+zoneSize,
-      stop:levels.support-a*.5,
-      tp1:px+a,
-      tp2:px+a*2
+      entryLow:supportLevel,
+      entryHigh:supportLevel+zoneSize,
+      stop:Math.min(levels15.support,levels30.support)-Math.max(a*.5,a30*.25),
+      tp1:resistanceLevel,
+      tp2:resistanceLevel+Math.max(a*.75,a30*.35)
     };
   }
 
@@ -1539,11 +1669,11 @@ if(bearishBreakout){
     return{
       type:'RESISTANCE REJECTION',
       direction:'SHORT',
-      entryLow:levels.resistance-zoneSize,
-      entryHigh:levels.resistance,
-      stop:levels.resistance+a*.5,
-      tp1:px-a,
-      tp2:px-a*2
+      entryLow:resistanceLevel-zoneSize,
+      entryHigh:resistanceLevel,
+      stop:Math.max(levels15.resistance,levels30.resistance)+Math.max(a*.5,a30*.25),
+      tp1:supportLevel,
+      tp2:supportLevel-Math.max(a*.75,a30*.35)
     };
   }
 
@@ -1555,11 +1685,11 @@ if(bearishBreakout){
   return{
     type:'RESISTANCE REJECTION SCALP',
     direction:'SHORT',
-    entryLow:levels.resistance-zoneSize,
-    entryHigh:levels.resistance,
-    stop:levels.resistance+a*.4,
-    tp1:px-a*.75,
-    tp2:px-a*1.5
+    entryLow:resistanceLevel-zoneSize,
+    entryHigh:resistanceLevel,
+    stop:Math.max(levels15.resistance,levels30.resistance)+Math.max(a*.4,a30*.20),
+    tp1:supportLevel,
+    tp2:supportLevel-Math.max(a*.5,a30*.25)
   };
 }
 
@@ -1571,11 +1701,11 @@ if(
   return{
     type:'SUPPORT BOUNCE SCALP',
     direction:'LONG',
-    entryLow:levels.support,
-    entryHigh:levels.support+zoneSize,
-    stop:levels.support-a*.4,
-    tp1:px+a*.75,
-    tp2:px+a*1.5
+    entryLow:supportLevel,
+    entryHigh:supportLevel+zoneSize,
+    stop:Math.min(levels15.support,levels30.support)-Math.max(a*.4,a30*.20),
+    tp1:resistanceLevel,
+    tp2:resistanceLevel+Math.max(a*.5,a30*.25)
   };
 }
   if(
@@ -2209,16 +2339,39 @@ const dataAgeMinutes=
     (now-lastCandleClosedAt)/M
   );
 
-const levelSetup=
+let levelSetup=
   dataAgeMinutes<=15
     ?makeLevelSetup(
       bars,
       b15,
+      b30,
       i5,
-      i15
+      i15,
+      i30
     )
     :null;
 
+    if(levelSetup){
+  const entryMid=
+    (levelSetup.entryLow+levelSetup.entryHigh)/2;
+
+  const risk=
+    levelSetup.direction==='LONG'
+      ?entryMid-levelSetup.stop
+      :levelSetup.stop-entryMid;
+
+  const reward1=
+    levelSetup.direction==='LONG'
+      ?levelSetup.tp1-entryMid
+      :entryMid-levelSetup.tp1;
+
+  if(
+    risk<=0 ||
+    reward1/risk<1.3
+  ){
+    levelSetup=null;
+  }
+}
     const formingPattern=
   dataAgeMinutes<=15 &&
   !levelSetup
