@@ -1470,6 +1470,8 @@ function detectContinuationPattern(bars,b15,i5,i15){
     i5
   );
 
+ if(reversalPattern){
+  
   const patternEntryMid=
   (reversalPattern.entryLow+reversalPattern.entryHigh)/2;
 
