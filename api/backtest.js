@@ -701,6 +701,7 @@ export default async function handler(req,res){
     }
 
     const all15=aggregate(bars,15);
+    const all30=aggregate(bars,30);
     const all60=aggregate(bars,60);
     const all240=aggregate(bars,240);
 
@@ -727,6 +728,13 @@ export default async function handler(req,res){
         15,
         240
       );
+     
+    const b30=recentCompleted(
+       all30,
+       candleClosedAt,
+       30,
+       240
+      );
 
       const b60=recentCompleted(
         all60,
@@ -744,12 +752,14 @@ export default async function handler(req,res){
 
       const i5=indicators(hist5);
       const i15=indicators(b15);
+      const i30=indicators(b30);
       const i60=indicators(b60);
       const i240=indicators(b240);
 
       if(
         !i5 ||
         !i15 ||
+        !i30 ||
         !i60 ||
         !i240
       ){
@@ -757,20 +767,23 @@ export default async function handler(req,res){
       }
 
       const levelSetup=makeLevelSetup(
-        hist5,
-        b15,
-        i5,
-        i15
-      );
+  hist5,
+  b15,
+  b30,
+  i5,
+  i15,
+  i30
+);
 
       const trendDirection=makeDirection(
-        hist5,
-        i5,
-        i15,
-        i60,
-        i240,
-        candleClosedAt
-      );
+  hist5,
+  i5,
+  i15,
+  i60,
+  i240,
+  i30,
+  candleClosedAt
+);
 
       let direction=
   levelSetup?.direction||
@@ -780,11 +793,8 @@ if(
   direction==='LONG' &&
   (
     i15.trend!=='BULLISH' ||
-    i60.trend!=='BULLISH' ||
-    (
-      i240.trend!=='NEUTRAL' &&
-      i240.trend!=='BULLISH'
-    )
+    i30.trend!=='BULLISH' ||
+    i240.trend!=='BULLISH'
   )
 ){
   direction='WAIT';
@@ -794,11 +804,8 @@ if(
   direction==='SHORT' &&
   (
     i15.trend!=='BEARISH' ||
-    i60.trend!=='BEARISH' ||
-    (
-      i240.trend!=='NEUTRAL' &&
-      i240.trend!=='BEARISH'
-    )
+    i30.trend!=='BEARISH' ||
+    i240.trend!=='BEARISH'
   )
 ){
   direction='WAIT';
