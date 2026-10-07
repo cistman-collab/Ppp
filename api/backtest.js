@@ -958,6 +958,7 @@ if(
   fiveMinVwapDistance:Number.isFinite(i5.volume.vwap20)
   ?Number((hist5.at(-1).c-i5.volume.vwap20).toFixed(3))
   :null,
+  fiveMinAtr:Number(atr(hist5).toFixed(3)),
   fiveMinVwapDistanceBucket:
   Math.abs(hist5.at(-1).c-i5.volume.vwap20)<0.25
     ?'NEAR'
