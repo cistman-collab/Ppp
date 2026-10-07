@@ -486,6 +486,11 @@ canvas{width:100%;height:400px;display:block}
   <span>Status</span>
   <strong id="patternStatus" class="wait">WAIT</strong>
 </div>
+
+<div class="row">
+  <span>Price vs zone</span>
+  <strong id="signalZoneStatus" class="wait">—</strong>
+</div>
     
 <div class="row">
   <span>Signal confidence</span>
@@ -1502,6 +1507,7 @@ const bearishMomentum=
 
     setupType:result.setupType,
     levelZones:result.levelZones,
+    zoneStatus:result.zoneStatus,
     formingPattern:result.formingPattern,
     confidence:result.confidence,
     monitorConfirmation:c
@@ -1536,6 +1542,7 @@ const bearishMomentum=
         direction:result.direction,
         setupType:result.setupType,
         levelZones:result.levelZones,
+        zoneStatus:result.zoneStatus,
         formingPattern:result.formingPattern,
         confidence:result.confidence,
         rr:Math.abs(p.tp2-entry)/Math.abs(entry-p.stop),
@@ -1730,6 +1737,18 @@ $('patternStatus').textContent=
   c?.signalStage==='WAIT FOR 5m TRIGGER'
   ?'wait'
   :'blue';
+  $('signalZoneStatus').textContent=
+  s?.zoneStatus || '—';
+  $('signalZoneStatus').className=
+  s?.zoneStatus==='BELOW SUPPORT'
+  ?'bad'
+  :s?.zoneStatus==='ABOVE RESISTANCE'
+  ?'good'
+  :s?.zoneStatus==='IN SUPPORT ZONE'
+  ?'good'
+  :s?.zoneStatus==='IN RESISTANCE ZONE'
+  ?'bad'
+  :'wait';
 
   loadSetupHistory();
 
