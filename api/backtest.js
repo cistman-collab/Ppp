@@ -896,11 +896,14 @@ if(
             oneHourTrend:i60.trend,
             fourHourTrend:i240.trend,
             fiveMinRsi:Number(
-              i5.rsi.toFixed(2)
-            ),
-            fifteenMinRsi:Number(
-              i15.rsi.toFixed(2)
-            )
+            i5.rsi.toFixed(2)
+          ),
+  fiveMinRvol:Number.isFinite(i5.volume.rvol)
+  ?Number(i5.volume.rvol.toFixed(2))
+  :null,
+fifteenMinRsi:Number(
+  i15.rsi.toFixed(2)
+)
           }
         };
 
