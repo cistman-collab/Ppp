@@ -2459,11 +2459,13 @@ confirmation.dataFresh=
   :'SUPPORT';
 
   const zoneStatus=
-  levels.price>=levelZones.resistanceZoneLow &&
-  levels.price<=levelZones.resistanceZoneHigh
+  levels.price>levelZones.resistanceZoneHigh
+  ?'ABOVE RESISTANCE'
+  :levels.price>=levelZones.resistanceZoneLow
   ?'IN RESISTANCE ZONE'
-  :levels.price>=levelZones.supportZoneLow &&
-   levels.price<=levelZones.supportZoneHigh
+  :levels.price<levelZones.supportZoneLow
+  ?'BELOW SUPPORT'
+  :levels.price<=levelZones.supportZoneHigh
   ?'IN SUPPORT ZONE'
   :nearestZone==='RESISTANCE'
   ?'APPROACHING RESISTANCE'
