@@ -183,7 +183,7 @@ const vwapPosition=
       mac.at(-1)-sig.at(-1)
   };
 }
-export function atr(b,p=14){
+function atr(b,p=14){
   if(b.length<p+1)return .5;
 
   const vals=[];
