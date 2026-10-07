@@ -473,6 +473,63 @@ for(const bucket of Object.values(byVwapDistanceBucket)){
   bucket.stopBeforeTp1Rate=
   pct(bucket.stopsBeforeTp1,bucket.evaluated);
 }
+
+const byVwapDistanceAtrBucket={};
+
+for(const signal of signals){
+  const key=
+    signal.context?.fiveMinVwapDistanceAtrBucket||'UNKNOWN';
+
+  const bucket=
+    byVwapDistanceAtrBucket[key]||{
+      signals:0,
+      evaluated:0,
+      tp1Hits:0,
+      tp2Hits:0,
+      stopsBeforeTp1:0
+    };
+
+  bucket.signals++;
+
+  if(
+    [
+      'TP2',
+      'STOP',
+      'STOP_AFTER_TP1'
+    ].includes(signal.status)
+  ){
+    bucket.evaluated++;
+  }
+
+  if(
+    signal.status==='TP2' ||
+    signal.status==='STOP_AFTER_TP1'
+  ){
+    bucket.tp1Hits++;
+  }
+
+  if(signal.status==='TP2'){
+    bucket.tp2Hits++;
+  }
+
+  if(signal.status==='STOP'){
+    bucket.stopsBeforeTp1++;
+  }
+
+  byVwapDistanceAtrBucket[key]=bucket;
+}
+
+for(const bucket of Object.values(byVwapDistanceAtrBucket)){
+  bucket.tp1HitRate=
+    pct(bucket.tp1Hits,bucket.evaluated);
+
+  bucket.tp2HitRate=
+    pct(bucket.tp2Hits,bucket.evaluated);
+
+  bucket.stopBeforeTp1Rate=
+    pct(bucket.stopsBeforeTp1,bucket.evaluated);
+}
+
 const bySetupSession={};
 
 for(const signal of signals){
