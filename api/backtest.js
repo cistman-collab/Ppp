@@ -904,7 +904,10 @@ if(
  fiveMinVwapPosition:i5.volume.vwapPosition,
  fiveMinVwap20:Number.isFinite(i5.volume.vwap20)
   ?Number(i5.volume.vwap20.toFixed(3))
-  :null,           
+  :null,   
+  fiveMinVwapDistance:Number.isFinite(i5.volume.vwap20)
+  ?Number((hist5.at(-1).c-i5.volume.vwap20).toFixed(3))
+  :null,
 fifteenMinRsi:Number(
   i15.rsi.toFixed(2)
 )
