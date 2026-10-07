@@ -2399,18 +2399,34 @@ let levelSetup=
     levelSetup=null;
   }
 }
-    const formingPattern=
+    const formingPatternCandidate=
   dataAgeMinutes<=15 &&
-!levelSetup &&
-i30.trend!=='NEUTRAL' &&
-i240.trend===i30.trend &&
-i15.trend===i30.trend
+  !levelSetup &&
+  i30.trend!=='NEUTRAL' &&
+  i240.trend===i30.trend &&
+  i15.trend===i30.trend
     ?detectFormingPattern(
       bars,
       b15,
       i5,
       i15
     )
+    :null;
+
+const formingPattern=
+  formingPatternCandidate &&
+  (
+    formingPatternCandidate.bias==='WAIT' ||
+    (
+      formingPatternCandidate.bias==='LONG' &&
+      i30.trend==='BULLISH'
+    ) ||
+    (
+      formingPatternCandidate.bias==='SHORT' &&
+      i30.trend==='BEARISH'
+    )
+  )
+    ?formingPatternCandidate
     :null;
 
     confirmation.lastCandleClosedAt=
