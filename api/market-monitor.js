@@ -2336,6 +2336,7 @@ if(bars.length<40){
   thirtyMinTrend:i30.trend,
   thirtyMinHist:i30.hist,
   fiveMinRsi:i5.rsi,
+  fiveMinRvol:i5.volume.rvol,    
   fifteenMinRsi:i15.rsi,
   oneHourTrend:i60.trend,
   fourHourTrend:i240.trend,
