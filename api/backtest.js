@@ -654,6 +654,7 @@ for(
     ),
     bySetup,
     bySession,
+    byVwapDistanceAtrBucket,
     byVwapDistanceBucket,
     bySetupSession
   };
