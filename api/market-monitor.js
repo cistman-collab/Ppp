@@ -2658,13 +2658,13 @@ confirmation.waitReason=
   ?'Technical signal blocked by conflicting news risk.'
   :dataAgeMinutes>15
   ?'Market data is not fresh enough.'
-  :i30.trend!==i15.trend
-?'30m is '+i30.trend+' while 15m is '+i15.trend+'.'
-  :i5.trend!==i15.trend
-  ?'5m is '+i5.trend+' while 15m is '+i15.trend+'.'
   :i240.trend!=='NEUTRAL' &&
  i240.trend!==i30.trend
 ?'4H is '+i240.trend+' while 30m is '+i30.trend+'.'
+:i30.trend!==i15.trend
+?'30m is '+i30.trend+' while 15m is '+i15.trend+'.'
+:i5.trend!==i15.trend
+?'5m is '+i5.trend+' while 15m is '+i15.trend+'.'
   :i15.trend==='BEARISH' &&
    i5.hist>=0
   ?'Bearish 15m structure, but 5m momentum has not confirmed SHORT.'
