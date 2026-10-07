@@ -891,6 +891,7 @@ if(
           context:{
             fiveMinTrend:i5.trend,
             fifteenMinTrend:i15.trend,
+            thirtyMinTrend:i30.trend,
             oneHourTrend:i60.trend,
             fourHourTrend:i240.trend,
             fiveMinRsi:Number(
