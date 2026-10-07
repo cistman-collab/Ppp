@@ -110,6 +110,13 @@ function addEvent(
     'Federal Reserve'
   )
 );
+addEvent(
+  'FOMC Minutes',
+  'FOMC_MINUTES',
+  zonedUtc('2026-11-18',14,0,ET),
+  45,60,
+  'Federal Reserve'
+);
 
 [
   ['2026-10-04','OPEC+ production meeting'],
