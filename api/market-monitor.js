@@ -2339,6 +2339,9 @@ if(bars.length<40){
   fiveMinRvol:i5.volume.rvol, 
   fiveMinVwapPosition:i5.volume.vwapPosition,    
   fiveMinVwap20:i5.volume.vwap20,
+  fiveMinVwapDistance:Number.isFinite(i5.volume.vwap20)
+  ?bars.at(-1).c-i5.volume.vwap20
+  :null,
   fifteenMinRsi:i15.rsi,
   oneHourTrend:i60.trend,
   fourHourTrend:i240.trend,
