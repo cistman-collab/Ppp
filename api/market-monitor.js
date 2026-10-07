@@ -1474,7 +1474,23 @@ function detectContinuationPattern(bars,b15,i5,i15){
     i5
   );
 
- if(reversalPattern){
+ if(
+  reversalPattern &&
+  (
+    (
+      reversalPattern.direction==='LONG' &&
+      i15.trend==='BULLISH' &&
+      i30.trend==='BULLISH' &&
+      i240.trend==='BULLISH'
+    ) ||
+    (
+      reversalPattern.direction==='SHORT' &&
+      i15.trend==='BEARISH' &&
+      i30.trend==='BEARISH' &&
+      i240.trend==='BEARISH'
+    )
+  )
+){
   
   const patternEntryMid=
   (reversalPattern.entryLow+reversalPattern.entryHigh)/2;
