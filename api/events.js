@@ -180,7 +180,7 @@ export function getEventRisk(now=Date.now()){
       )
       .slice(0,8),
 
-    scheduleUpdatedAt:'2026-10-04',
+    scheduleUpdatedAt:'2026-10-07',
 
     note:
       'Official published dates. OPEC events without a published decision time use a wide all-day safety window.'
