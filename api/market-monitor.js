@@ -2338,6 +2338,7 @@ if(bars.length<40){
   fiveMinRsi:i5.rsi,
   fiveMinRvol:i5.volume.rvol, 
   fiveMinVwapPosition:i5.volume.vwapPosition,    
+  fiveMinVwap20:i5.volume.vwap20,
   fifteenMinRsi:i15.rsi,
   oneHourTrend:i60.trend,
   fourHourTrend:i240.trend,
