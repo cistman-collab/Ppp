@@ -1,6 +1,7 @@
 import {
   aggregate,
   indicators,
+  atr,
   makeSetupPrices,
   makeLevelSetup,
   makeDirection
