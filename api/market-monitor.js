@@ -1573,11 +1573,13 @@ if(continuationPattern){
   const trendOk=
   (
     continuationPattern.direction==='LONG' &&
-    i30.trend==='BULLISH' &&
-    i240.trend==='BULLISH'
+i15.trend==='BULLISH' &&
+i30.trend==='BULLISH' &&
+i240.trend==='BULLISH'
   ) ||
   (
     continuationPattern.direction==='SHORT' &&
+    i15.trend==='BEARISH' &&
     i30.trend==='BEARISH' &&
     i240.trend==='BEARISH'
   );
