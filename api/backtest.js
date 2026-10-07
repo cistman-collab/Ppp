@@ -961,6 +961,12 @@ if(
   fiveMinAtr:Number(atr(hist5).toFixed(3)),
   fiveMinVwapDistanceAtr:
   Number((Math.abs(hist5.at(-1).c-i5.volume.vwap20)/atr(hist5)).toFixed(2)),
+  fiveMinVwapDistanceAtrBucket:
+  Math.abs(hist5.at(-1).c-i5.volume.vwap20)/atr(hist5)<1
+    ?'UNDER_1_ATR'
+    :Math.abs(hist5.at(-1).c-i5.volume.vwap20)/atr(hist5)<2
+      ?'ONE_TO_TWO_ATR'
+      :'OVER_2_ATR',
   fiveMinVwapDistanceBucket:
   Math.abs(hist5.at(-1).c-i5.volume.vwap20)<0.25
     ?'NEAR'
