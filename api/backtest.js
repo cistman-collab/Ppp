@@ -772,7 +772,8 @@ export default async function handler(req,res){
   b30,
   i5,
   i15,
-  i30
+  i30,
+  i240
 );
 
       const trendDirection=makeDirection(
