@@ -1446,7 +1446,7 @@ function detectContinuationPattern(bars,b15,i5,i15){
   return null;
 }
 
-  function makeLevelSetup(bars,b15,b30,i5,i15,i30){
+  function makeLevelSetup(bars,b15,b30,i5,i15,i30,i240){
   const structureLevels15=getLevels(b15);
   const structureLevels30=getLevels(b30);
   const structureAtr15=atr(b15);
@@ -1571,14 +1571,16 @@ if(
 
 if(continuationPattern){
   const trendOk=
-    (
-      continuationPattern.direction==='LONG' &&
-      i30.trend==='BULLISH'
-    ) ||
-    (
-      continuationPattern.direction==='SHORT' &&
-      i30.trend==='BEARISH'
-    );
+  (
+    continuationPattern.direction==='LONG' &&
+    i30.trend==='BULLISH' &&
+    i240.trend==='BULLISH'
+  ) ||
+  (
+    continuationPattern.direction==='SHORT' &&
+    i30.trend==='BEARISH' &&
+    i240.trend==='BEARISH'
+  );
 
   if(trendOk){
     return continuationPattern;
@@ -2353,7 +2355,8 @@ let levelSetup=
       b30,
       i5,
       i15,
-      i30
+      i30,
+      i240
     )
     :null;
 
@@ -2381,7 +2384,9 @@ let levelSetup=
     const formingPattern=
   dataAgeMinutes<=15 &&
 !levelSetup &&
-i240.trend===i30.trend
+i30.trend!=='NEUTRAL' &&
+i240.trend===i30.trend &&
+i15.trend===i30.trend
     ?detectFormingPattern(
       bars,
       b15,
