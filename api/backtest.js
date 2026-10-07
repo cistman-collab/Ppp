@@ -901,6 +901,7 @@ if(
   fiveMinRvol:Number.isFinite(i5.volume.rvol)
   ?Number(i5.volume.rvol.toFixed(2))
   :null,
+ fiveMinVwapPosition:i5.volume.vwapPosition,
 fifteenMinRsi:Number(
   i15.rsi.toFixed(2)
 )
