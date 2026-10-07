@@ -681,7 +681,8 @@ export default async function handler(req,res){
         o:quote.open[i],
         h:quote.high[i],
         l:quote.low[i],
-        c:quote.close[i]
+        c:quote.close[i],
+        v:quote.volume?.[i]??0
       }))
       .filter(b=>
         [
