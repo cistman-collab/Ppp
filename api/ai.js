@@ -91,7 +91,9 @@ Compare the current setup type with learningStats.bySetup when available.
 Treat fewer than 20 evaluated examples for a setup as insufficient evidence.
 Historical performance may reduce confidence or support WAIT/REJECT, but must never create a LONG or SHORT setup by itself.
 Never allow learningStats to override ruleBasedSetup, stale-data protection, event blocks, timeframe conflicts or major levels.
-
+Use learningRecent as recency context only.
+Look for repeated recent failures or successes of the same setup type, but do not treat a short streak as proof.
+Recent outcomes may reduce confidence or support WAIT, but must never create a LONG or SHORT setup by themselves.
 Do not invent new numeric entry, stop or target prices.
 
 If ruleBasedSetup provides entryLow, entryHigh, stop, tp1 and tp2, you may repeat and analyse those exact values.
