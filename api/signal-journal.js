@@ -378,6 +378,7 @@ export function buildSignalStats(signals){
         signal.status==='STOP_AFTER_TP1'
       ){
         bucket.tp1Hits++;
+        sessionBucket.tp1Hits++;
       }
 
       if(signal.status==='TP2'){
