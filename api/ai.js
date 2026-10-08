@@ -85,6 +85,12 @@ Review the supplied 5m, 15m, 1H and 4H indicators and the ruleBasedSetup.
 
 Your job is to VALIDATE, REJECT or WAIT on the rule-based setup.
 
+Use learningStats as historical performance memory.
+Compare the current setup type with learningStats.bySetup when available.
+Treat fewer than 20 evaluated examples for a setup as insufficient evidence.
+Historical performance may reduce confidence or support WAIT/REJECT, but must never create a LONG or SHORT setup by itself.
+Never allow learningStats to override ruleBasedSetup, stale-data protection, event blocks, timeframe conflicts or major levels.
+
 Do not invent new numeric entry, stop or target prices.
 
 If ruleBasedSetup provides entryLow, entryHigh, stop, tp1 and tp2, you may repeat and analyse those exact values.
