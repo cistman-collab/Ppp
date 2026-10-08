@@ -51,6 +51,7 @@ if(
       ruleBasedSetup: market.ruleBasedSetup || { direction: 'WAIT' },
       levels: market.levels || {},
       majorLevels: market.majorLevels || {},
+      learningStats:learning?.stats||null,
       dataAgeMinutes: Number(market.dataAgeMinutes),
       recentCompleted5mBars: Array.isArray(market.bars)
   ? market.bars.slice(-80).map(b => ({
