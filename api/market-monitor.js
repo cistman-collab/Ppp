@@ -2196,6 +2196,25 @@ export default async function handler(
   res
 ){
   try{
+    if(req.query?.view!=='1'){
+  const recentState=
+    await readBlob('push/monitor-state.json');
+
+  const recentCheckedAt=
+    Date.parse(recentState?.checkedAt||'');
+
+  if(
+    Number.isFinite(recentCheckedAt) &&
+    Date.now()-recentCheckedAt<4*M
+  ){
+    return res.status(200).json({
+      ok:true,
+      skipped:true,
+      reason:'Recent background monitor check already completed.',
+      checkedAt:recentState.checkedAt
+    });
+  }
+}
     const host=
   req.headers['x-forwarded-host']||
   req.headers.host;
