@@ -2775,7 +2775,9 @@ const journalUpdate=
   confirmation,
   isNewSignal
 });
-        if(
+   const journalEvents=
+  journalUpdate?.events||[]; 
+    if(
       oldDirection===null ||
       (
         oldDirection===activeDirection &&
