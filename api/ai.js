@@ -33,6 +33,9 @@ if(
 }
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'AI not configured: set OPENAI_API_KEY in Vercel Preview environment variables.' });
   try {
+    const {
+  getSignalLearningSnapshot
+}=await import('./signal-journal.js');
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
     const question = String(body.question || '').trim().slice(0, 800);
     if (!question) return res.status(400).json({ error: 'Please enter a question.' });
