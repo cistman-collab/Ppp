@@ -2777,6 +2777,37 @@ const journalUpdate=
 });
    const journalEvents=
   journalUpdate?.events||[]; 
+    if(journalEvents.length){
+  const eventStored=
+    await readBlob('push/subscription.json');
+
+  if(eventStored?.subscription){
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT,
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+
+    for(const event of journalEvents){
+      const label=
+        event.type==='STOP_AFTER_TP1'
+          ?'STOP AFTER TP1'
+          :event.type;
+
+      await webpush.sendNotification(
+        eventStored.subscription,
+        JSON.stringify({
+          title:'WTI Pro · '+label,
+          body:
+            event.direction+' · '+
+            event.setupType+' · '+
+            label+' '+Number(event.price).toFixed(2),
+          url:'/simple.html'
+        })
+      );
+    }
+  }
+}
     if(
       oldDirection===null ||
       (
