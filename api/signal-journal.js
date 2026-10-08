@@ -423,6 +423,19 @@ const previousTp1HitAt=signal.tp1HitAt||null;
     at:signal.tp1HitAt
   });
 } 
+if(
+  previousStatus!=='TP2' &&
+  signal.status==='TP2'
+){
+  events.push({
+    type:'TP2',
+    signalId:signal.id,
+    direction:signal.direction,
+    setupType:signal.setupType,
+    price:signal.tp2,
+    at:signal.tp2HitAt
+  });
+}
   }
 
   if(
