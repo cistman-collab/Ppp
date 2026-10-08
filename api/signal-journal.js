@@ -393,6 +393,7 @@ export function buildSignalStats(signals){
     }
 
     bySetup[key]=bucket;
+    bySession[sessionKey]=sessionBucket;
   }
 
   for(const bucket of Object.values(bySetup)){
