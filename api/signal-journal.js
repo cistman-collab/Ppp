@@ -388,6 +388,7 @@ export function buildSignalStats(signals){
 
       if(signal.status==='STOP'){
         bucket.stopsBeforeTp1++;
+        sessionBucket.stopsBeforeTp1++;
       }
     }
 
