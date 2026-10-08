@@ -340,7 +340,7 @@ export function buildSignalStats(signals){
   ).length;
 
   const bySetup={};
-
+  const bySession={};
   for(const signal of list){
     const key=signal.setupType||'UNKNOWN';
     const bucket=bySetup[key]||{
