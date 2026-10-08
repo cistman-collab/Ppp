@@ -273,6 +273,7 @@ function makeSignal({
     ),
     createdAt:new Date().toISOString(),
     signalCandleClosedAt:candleClosedAt,
+    session:signalSession(candleClosedAt),
     lastProcessedCandleClosedAt:candleClosedAt,
     expiresAt:new Date(
       Date.parse(candleClosedAt)+
