@@ -414,7 +414,11 @@ for(const bucket of Object.values(bySession)){
  bucket.tp2HitRate=rate(
   bucket.tp2Hits,
   bucket.evaluated
-); 
+);
+  bucket.stopBeforeTp1Rate=rate(
+  bucket.stopsBeforeTp1,
+  bucket.evaluated
+);
 }
   return{
     totalSignals:list.length,
