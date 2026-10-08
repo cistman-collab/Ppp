@@ -403,7 +403,7 @@ export async function updateSignalJournal({
   const journal=await readJournal();
   const signals=journal.signals;
   let changed=false;
-
+  const events=[];
   for(const signal of signals){
     if(processSignal(signal,bars)){
       changed=true;
