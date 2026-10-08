@@ -436,6 +436,19 @@ if(
     at:signal.tp2HitAt
   });
 }
+   if(
+  !['STOP','STOP_AFTER_TP1'].includes(previousStatus) &&
+  ['STOP','STOP_AFTER_TP1'].includes(signal.status)
+){
+  events.push({
+    type:signal.status,
+    signalId:signal.id,
+    direction:signal.direction,
+    setupType:signal.setupType,
+    price:signal.stop,
+    at:signal.closedAt
+  });
+} 
   }
 
   if(
