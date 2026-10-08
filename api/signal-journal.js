@@ -383,6 +383,7 @@ export function buildSignalStats(signals){
 
       if(signal.status==='TP2'){
         bucket.tp2Hits++;
+        sessionBucket.tp2Hits++;
       }
 
       if(signal.status==='STOP'){
