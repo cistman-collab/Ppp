@@ -75,6 +75,7 @@ if(
       feedVerified: false,
       marketSchedule: String(market.marketSchedule || 'UNKNOWN').slice(0, 80),
       lastCompletedCandleUTC: String(market.lastCompletedCandleUTC || 'unknown').slice(0, 40),
+      marketSession:marketSession(market.lastCompletedCandleUTC),
       indicators: market.indicators || {},
       ruleBasedSetup: market.ruleBasedSetup || { direction: 'WAIT' },
       levels: market.levels || {},
