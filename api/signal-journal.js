@@ -480,7 +480,15 @@ if(
   events
 };
 }
+export async function getSignalLearningSnapshot(){
+  const journal=await readJournal();
 
+  return{
+    updatedAt:journal.updatedAt,
+    stats:buildSignalStats(journal.signals),
+    recent:journal.signals.slice(-30)
+  };
+}
 export default async function handler(req,res){
   if(req.method!=='GET'){
     return res.status(405).json({
