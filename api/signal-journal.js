@@ -77,7 +77,34 @@ function signalId(candleClosedAt,direction,setupType){
     clean
   ].join('-');
 }
+function signalSession(candleClosedAt){
+  const timestamp=Date.parse(candleClosedAt);
 
+  if(!Number.isFinite(timestamp)){
+    return 'UNKNOWN';
+  }
+
+  const hour=Number(
+    new Intl.DateTimeFormat(
+      'en-US',
+      {
+        timeZone:'America/New_York',
+        hour:'2-digit',
+        hourCycle:'h23'
+      }
+    ).format(new Date(timestamp))
+  );
+
+  if(hour>=8 && hour<17){
+    return 'US';
+  }
+
+  if(hour>=3 && hour<8){
+    return 'LONDON';
+  }
+
+  return 'OVERNIGHT';
+}
 function entryTouched(bar,signal){
   return(
     bar.l<=signal.entryHigh &&
