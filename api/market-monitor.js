@@ -2766,7 +2766,8 @@ const isNewSignal=
     oldSetupType!==setupType
   );
 
-await updateSignalJournal({
+const journalUpdate=
+  await updateSignalJournal({
   bars,
   direction:activeDirection,
   setupType,
