@@ -1,5 +1,33 @@
 // WTI Pro research assistant. Configure OPENAI_API_KEY in Vercel environment settings.
 // Never put API keys in browser JavaScript or the GitHub repository.
+function marketSession(candleClosedAt){
+  const timestamp=Date.parse(candleClosedAt);
+
+  if(!Number.isFinite(timestamp)){
+    return 'UNKNOWN';
+  }
+
+  const hour=Number(
+    new Intl.DateTimeFormat(
+      'en-US',
+      {
+        timeZone:'America/New_York',
+        hour:'2-digit',
+        hourCycle:'h23'
+      }
+    ).format(new Date(timestamp))
+  );
+
+  if(hour>=8 && hour<17){
+    return 'US';
+  }
+
+  if(hour>=3 && hour<8){
+    return 'LONDON';
+  }
+
+  return 'OVERNIGHT';
+}
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST required' });
