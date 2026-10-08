@@ -352,6 +352,14 @@ export function buildSignalStats(signals){
       stopsBeforeTp1:0
     };
 
+    const sessionBucket=bySession[sessionKey]||{
+  signals:0,
+  evaluated:0,
+  tp1Hits:0,
+  tp2Hits:0,
+  stopsBeforeTp1:0
+};
+
     bucket.signals++;
 
     if(
