@@ -406,7 +406,12 @@ export function buildSignalStats(signals){
       bucket.evaluated
     );
   }
-
+for(const bucket of Object.values(bySession)){
+  bucket.tp1HitRate=rate(
+    bucket.tp1Hits,
+    bucket.evaluated
+  );
+}
   return{
     totalSignals:list.length,
     pending:list.filter(
