@@ -475,7 +475,10 @@ if(
     await writeJournal(signals);
   }
 
-  return buildSignalStats(signals);
+  return{
+  stats:buildSignalStats(signals),
+  events
+};
 }
 
 export default async function handler(req,res){
