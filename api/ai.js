@@ -90,6 +90,7 @@ Use learningStats as historical performance memory.
 Compare the current setup type with learningStats.bySetup when available.
 Treat fewer than 20 evaluated examples for a setup as insufficient evidence.
 When describing learningStats, state the evaluated sample count and TP1, TP2 and stop rates for the matching setup when available; if there is no active setup or no matching setup data, say learning memory is not applicable and do not generalize overall statistics.
+If ruleBasedSetup.direction is WAIT or the setup type is NONE, LEARNING MEMORY must say exactly "Not applicable — no active setup." Do not mention historical statistics or recent outcomes.
 Historical performance may reduce confidence or support WAIT/REJECT, but must never create a LONG or SHORT setup by itself.
 Never allow learningStats to override ruleBasedSetup, stale-data protection, event blocks, timeframe conflicts or major levels.
 Use learningRecent as recency context only.
