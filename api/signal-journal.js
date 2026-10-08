@@ -405,6 +405,8 @@ export async function updateSignalJournal({
   let changed=false;
   const events=[];
   for(const signal of signals){
+    const previousStatus=signal.status;
+const previousTp1HitAt=signal.tp1HitAt||null;
     if(processSignal(signal,bars)){
       changed=true;
     }
