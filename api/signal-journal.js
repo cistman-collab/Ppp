@@ -361,6 +361,7 @@ export function buildSignalStats(signals){
 };
 
     bucket.signals++;
+    sessionBucket.signals++;
 
     if(
       [
