@@ -371,6 +371,7 @@ export function buildSignalStats(signals){
       ].includes(signal.status)
     ){
       bucket.evaluated++;
+      sessionBucket.evaluated++;
 
       if(
         signal.status==='TP2' ||
