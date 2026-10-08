@@ -52,6 +52,7 @@ if(
       levels: market.levels || {},
       majorLevels: market.majorLevels || {},
       learningStats:learning?.stats||null,
+      learningRecent:learning?.recent?.slice(-10)||[],
       dataAgeMinutes: Number(market.dataAgeMinutes),
       recentCompleted5mBars: Array.isArray(market.bars)
   ? market.bars.slice(-80).map(b => ({
