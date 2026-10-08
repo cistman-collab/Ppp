@@ -40,6 +40,8 @@ if(
     const question = String(body.question || '').trim().slice(0, 800);
     if (!question) return res.status(400).json({ error: 'Please enter a question.' });
     const market = body.market || {};
+    const learning=
+  await getSignalLearningSnapshot();
     const clean = {
       instrument: 'IG primary feed with Yahoo historical seed/fallback; not identical to TradingView CL1!',
       feedVerified: false,
