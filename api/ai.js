@@ -117,6 +117,7 @@ Your job is to VALIDATE, REJECT or WAIT on the rule-based setup.
 
 Use learningStats as historical performance memory.
 Compare the current setup type with learningStats.bySetup when available.
+Compare marketSession with learningStats.bySession when available.
 Treat fewer than 20 evaluated examples for a setup as insufficient evidence.
 When describing learningStats, state the evaluated sample count and TP1, TP2 and stop rates for the matching setup when available; if there is no active setup or no matching setup data, say learning memory is not applicable and do not generalize overall statistics.
 If ruleBasedSetup.direction is WAIT or the setup type is NONE, LEARNING MEMORY must contain only "Not applicable — no active setup." with no extra words before or after it. Do not mention historical statistics or recent outcomes.
