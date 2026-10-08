@@ -410,6 +410,19 @@ const previousTp1HitAt=signal.tp1HitAt||null;
     if(processSignal(signal,bars)){
       changed=true;
     }
+   if(
+  !previousTp1HitAt &&
+  signal.tp1HitAt
+){
+  events.push({
+    type:'TP1',
+    signalId:signal.id,
+    direction:signal.direction,
+    setupType:signal.setupType,
+    price:signal.tp1,
+    at:signal.tp1HitAt
+  });
+} 
   }
 
   if(
