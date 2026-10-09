@@ -345,6 +345,7 @@ export function buildSignalStats(signals){
   const byPattern={};
   for(const signal of list){
     const sessionKey=signal.session||signalSession(signal.signalCandleClosedAt);
+    const patternKey=signal.context?.candlestickPattern||'NONE';
     const key=signal.setupType||'UNKNOWN';
     const bucket=bySetup[key]||{
       signals:0,
