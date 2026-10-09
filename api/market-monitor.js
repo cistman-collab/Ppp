@@ -2471,6 +2471,7 @@ if(bars.length<40){
   fifteenMinRsi:i15.rsi,
   oneHourTrend:i60.trend,
   fourHourTrend:i240.trend,
+  candlestickPattern:detectReversalPattern(bars,b15,i5,true),    
   latestCandle:
     bars.at(-1).c>bars.at(-1).o
     ?'BULLISH'
