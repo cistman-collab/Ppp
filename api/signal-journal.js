@@ -374,6 +374,7 @@ export function buildSignalStats(signals){
 
     bucket.signals++;
     sessionBucket.signals++;
+    patternBucket.signals++;
 
     if(
       [
