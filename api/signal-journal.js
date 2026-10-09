@@ -14,34 +14,33 @@ const TERMINAL=new Set([
 ]);
 
 async function readJournal(){
-  try{
-    const result=await get(
-      JOURNAL_PATH,
-      {
-        access:'private',
-        token:process.env.BLOB_READ_WRITE_TOKEN,
-        useCache:false
-      }
-    );
-
-    if(!result || result.statusCode!==200){
-      return {signals:[]};
+  const result=await get(
+    JOURNAL_PATH,
+    {
+      access:'private',
+      token:process.env.BLOB_READ_WRITE_TOKEN,
+      useCache:false
     }
+  );
 
-    const data=await new Response(
-      result.stream
-    ).json();
-
-    return {
-      signals:Array.isArray(data?.signals)
-        ?data.signals
-        :[],
-      updatedAt:data?.updatedAt||null
-    };
-  }catch{
-    return {signals:[]};
+  if(!result || result.statusCode!==200){
+    throw new Error('Signal journal storage unavailable');
   }
+
+  const data=await new Response(
+    result.stream
+  ).json();
+
+  if(!Array.isArray(data?.signals)){
+    throw new Error('Invalid signal journal data');
+  }
+
+  return {
+    signals:data.signals,
+    updatedAt:data.updatedAt||null
+  };
 }
+
 
 async function writeJournal(signals){
   const payload={
