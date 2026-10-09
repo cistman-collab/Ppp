@@ -2937,7 +2937,9 @@ const journalUpdate=
           ?'STOP AFTER TP1'
           :event.type;
 
-      await webpush.sendNotification(
+      
+await sendPushWithRetry(
+
         eventStored.subscription,
         JSON.stringify({
           title:'WTI Pro · '+label,
@@ -3066,7 +3068,9 @@ else if(activeDirection==='SHORT'){
     ' · Candle '+confirmation.latestCandle;
 }
 
-    await webpush.sendNotification(
+    
+await sendPushWithRetry(
+
       stored.subscription,
       JSON.stringify({
         title:
