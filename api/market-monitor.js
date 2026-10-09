@@ -358,35 +358,35 @@ const upper=lastMetrics.upperWick;
 const lower=lastMetrics.lowerWick;
 
   const doji=
-  lastMetrics.range>0 &&
-  lastMetrics.bodyRatio<=0.10;
+    lastMetrics.range>0 &&
+    lastMetrics.bodyRatio<=0.10;
 
   const dragonflyDoji=
-  doji &&
-  lower>=range*.60 &&
-  upper<=range*.15;
+    doji &&
+    lower>=range*.60 &&
+    upper<=range*.15;
 
  const gravestoneDoji=
-  doji &&
-  upper>=range*.60 &&
-  lower<=range*.15; 
+    doji &&
+    upper>=range*.60 &&
+    lower<=range*.15; 
 
   const longLeggedDoji=
-  doji &&
-  upper>=range*.30 &&
-  lower>=range*.30;
+    doji &&
+    upper>=range*.30 &&
+    lower>=range*.30;
 
   const spinningTop=
-  lastMetrics.bodyRatio>0.10 &&
-  lastMetrics.bodyRatio<=0.35 &&
-  upper>=range*.20 &&
-  lower>=range*.20;
+    lastMetrics.bodyRatio>0.10 &&
+    lastMetrics.bodyRatio<=0.35 &&
+    upper>=range*.20 &&
+    lower>=range*.20;
 
   const bullishMarubozu=
-  lastMetrics.bullish &&
-  body>=range*.80 &&
-  upper<=range*.10 &&
-  lower<=range*.10;
+    lastMetrics.bullish &&
+    body>=range*.80 &&
+    upper<=range*.10 &&
+    lower<=range*.10;
   
   const bullEngulf=
     prev.c<prev.o &&
@@ -396,10 +396,10 @@ const lower=lastMetrics.lowerWick;
     body>=prevBody*.9;
 
    const bearishMarubozu=
-  lastMetrics.bearish &&
-  body>=range*.80 &&
-  upper<=range*.10 &&
-  lower<=range*.10; 
+    lastMetrics.bearish &&
+    body>=range*.80 &&
+    upper<=range*.10 &&
+    lower<=range*.10; 
 
   const bearEngulf=
     prev.c>prev.o &&
