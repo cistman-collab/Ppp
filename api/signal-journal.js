@@ -342,6 +342,7 @@ export function buildSignalStats(signals){
 
   const bySetup={};
   const bySession={};
+  const byPattern={};
   for(const signal of list){
     const sessionKey=signal.session||signalSession(signal.signalCandleClosedAt);
     const key=signal.setupType||'UNKNOWN';
