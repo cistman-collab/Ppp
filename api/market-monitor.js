@@ -414,6 +414,12 @@ const lower=lastMetrics.lowerWick;
     lower>=Math.max(body*2,range*.45) &&
     upper<=range*.25;
 
+  const invertedHammer=
+  lastMetrics.bullish &&
+  body<=range*.40 &&
+  upper>=Math.max(body*2,range*.45) &&
+  lower<=range*.25;
+
   const shootingStar=
     last.c<last.o &&
     body<=range*.40 &&
