@@ -393,6 +393,7 @@ export function buildSignalStats(signals){
       ){
         bucket.tp1Hits++;
         sessionBucket.tp1Hits++;
+        patternBucket.tp1Hits++;
       }
 
       if(signal.status==='TP2'){
