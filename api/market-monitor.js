@@ -420,6 +420,12 @@ const lower=lastMetrics.lowerWick;
   upper>=Math.max(body*2,range*.45) &&
   lower<=range*.25;
 
+  const hangingMan=
+  lastMetrics.bearish &&
+  body<=range*.40 &&
+  lower>=Math.max(body*2,range*.45) &&
+  upper<=range*.25;
+
   const shootingStar=
     last.c<last.o &&
     body<=range*.40 &&
