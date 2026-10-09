@@ -298,6 +298,7 @@ function makeSignal({
       fifteenMinRsi:Number(
         confirmation.fifteenMinRsi.toFixed(2)
       ),
+      candlestickPattern:confirmation.candlestickPattern||null,
       newsBias:confirmation.newsBias,
       maritimeRisk:confirmation.maritimeRisk,
       newsConflict:Boolean(
