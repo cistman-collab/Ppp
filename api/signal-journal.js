@@ -35,15 +35,18 @@ async function readJournal(){
     throw new Error('Invalid signal journal data');
   }
 
-  return {
-    signals:data.signals,
-    updatedAt:data.updatedAt||null
-  };
+  
+return {
+  signals:data.signals,
+  updatedAt:data.updatedAt||null,
+  etag:result.blob.etag
+};
 }
 
 
-async function writeJournal(signals){
-  const payload={
+
+async function writeJournal(signals,expectedEtag){
+   const payload={
     version:1,
     updatedAt:new Date().toISOString(),
     signals:signals.slice(-500)
@@ -76,6 +79,7 @@ async function writeJournal(signals){
       access:'private',
       addRandomSuffix:false,
       allowOverwrite:true,
+      ifMatch:expectedEtag,
       contentType:'application/json',
       token:process.env.BLOB_READ_WRITE_TOKEN
     }
@@ -584,8 +588,8 @@ if(
   }
 
   if(changed){
-    await writeJournal(signals);
-  }
+    await writeJournal(signals,journal.etag);
+   }
 
   return{
   stats:buildSignalStats(signals),
