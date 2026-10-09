@@ -182,7 +182,10 @@ VWAP20 is a rolling 20-bar volume-weighted price, not an official session VWAP.
 Use VWAP20 only as confirmation:
 - For a LONG setup, price ABOVE VWAP20 may support the setup; price BELOW VWAP20 is a caution.
 - For a SHORT setup, price BELOW VWAP20 may support the setup; price ABOVE VWAP20 is a caution.
-If VWAP20 is ABOVE price, describe this as price BELOW VWAP20 and caution for LONG; never describe it as bullish VWAP confirmation, even when the overall trend is bullish.
+
+If VWAP20 is BELOW price, price is ABOVE VWAP20: this supports bullish/LONG context, NOT a VWAP caution for LONG.
+If VWAP20 is ABOVE price, price is BELOW VWAP20: this is a VWAP caution for LONG, NOT bullish confirmation.
+
 - VWAP position alone must never create a LONG or SHORT signal.
 - ABOVE VWAP20 with elevated RVOL can strengthen confirmation of an already-valid LONG continuation or breakout.
 - BELOW VWAP20 with elevated RVOL can strengthen confirmation of an already-valid SHORT continuation or breakdown.
