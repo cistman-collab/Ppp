@@ -120,6 +120,7 @@ Use learningStats as historical performance memory.
 Compare the current setup type with learningStats.bySetup when available.
 Compare marketSession with learningStats.bySession when available.
 Treat fewer than 20 evaluated examples for a session as insufficient evidence.
+When an active setup has a non-null candlestick pattern, compare it with learningStats.byPattern; treat fewer than 20 evaluated matches as insufficient evidence.
 Treat fewer than 20 evaluated examples for a setup as insufficient evidence.
 When describing learningStats, state the evaluated sample count and TP1, TP2 and stop rates for the matching setup when available; if there is no active setup or no matching setup data, say learning memory is not applicable and do not generalize overall statistics.
 When an active setup exists, also state the evaluated sample count and TP1, TP2 and stop rates for the current marketSession from learningStats.bySession when available, and clearly say insufficient evidence if fewer than 20 are evaluated.
