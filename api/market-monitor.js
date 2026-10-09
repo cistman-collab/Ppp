@@ -464,6 +464,10 @@ const lower=lastMetrics.lowerWick;
   spinningTop?'SPINNING TOP':
   null;
 
+  if(patternOnly){
+  return candlestickPattern;
+}
+
   const recent=b15.slice(-30);
 
   const highs=[];
