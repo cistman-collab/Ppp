@@ -375,6 +375,12 @@ const lower=lastMetrics.lowerWick;
   doji &&
   upper>=range*.30 &&
   lower>=range*.30;
+
+  const spinningTop=
+  lastMetrics.bodyRatio>0.10 &&
+  lastMetrics.bodyRatio<=0.35 &&
+  upper>=range*.20 &&
+  lower>=range*.20;
   
   const bullEngulf=
     prev.c<prev.o &&
