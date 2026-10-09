@@ -2790,6 +2790,10 @@ confirmation.technicalDirection=
 confirmation.waitReason=
   activeDirection!=='WAIT'
   ?null
+  :data.activeProvider!=='IG' ||
+   data.fallbackUsed!==false ||
+   data.contractVerified!==true
+  ?'IG feed unverified: trading signals blocked.'
   :eventRisk.blocked
   ?'High-impact event block is active.'
   :newsConflict
