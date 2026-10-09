@@ -387,6 +387,12 @@ const lower=lastMetrics.lowerWick;
     body>=range*.80 &&
     upper<=range*.10 &&
     lower<=range*.10;
+
+  const bearishMarubozu=
+    lastMetrics.bearish &&
+    body>=range*.80 &&
+    upper<=range*.10 &&
+    lower<=range*.10; 
   
   const bullEngulf=
     prev.c<prev.o &&
@@ -394,12 +400,6 @@ const lower=lastMetrics.lowerWick;
     last.o<=prev.c &&
     last.c>=prev.o &&
     body>=prevBody*.9;
-
-   const bearishMarubozu=
-    lastMetrics.bearish &&
-    body>=range*.80 &&
-    upper<=range*.10 &&
-    lower<=range*.10; 
 
   const bearEngulf=
     prev.c>prev.o &&
