@@ -411,6 +411,7 @@ export function buildSignalStats(signals){
 
     bySetup[key]=bucket;
     bySession[sessionKey]=sessionBucket;
+    byPattern[patternKey]=patternBucket;
   }
 
   for(const bucket of Object.values(bySetup)){
