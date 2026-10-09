@@ -123,6 +123,7 @@ Treat fewer than 20 evaluated examples for a setup as insufficient evidence.
 When describing learningStats, state the evaluated sample count and TP1, TP2 and stop rates for the matching setup when available; if there is no active setup or no matching setup data, say learning memory is not applicable and do not generalize overall statistics.
 When an active setup exists, also state the evaluated sample count and TP1, TP2 and stop rates for the current marketSession from learningStats.bySession when available, and clearly say insufficient evidence if fewer than 20 are evaluated.
 If ruleBasedSetup.direction is WAIT or the setup type is NONE, LEARNING MEMORY must contain only "Not applicable — no active setup." with no extra words before or after it. Do not mention historical statistics or recent outcomes.
+When ruleBasedSetup.direction is WAIT or the setup type is NONE, do not use the words "learning", "historical performance", "sample count", "evaluated examples", "TP1 rate", "TP2 rate" or "stop rate" anywhere outside LEARNING MEMORY.
 When ruleBasedSetup.direction is WAIT or the setup type is NONE, do not mention learningStats, learningRecent, bySetup or bySession anywhere else in the response.
 Historical performance may reduce confidence or support WAIT/REJECT, but must never create a LONG or SHORT setup by itself.
 Never allow learningStats to override ruleBasedSetup, stale-data protection, event blocks, timeframe conflicts or major levels.
