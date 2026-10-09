@@ -96,6 +96,15 @@ if(
       headlines: Array.isArray(market.headlines) ? market.headlines.slice(0, 8).map(n => ({title:String(n.title||'').slice(0,160),published:String(n.published||'').slice(0,60)})) : [],
       newsFetchedAt: String(market.newsFetchedAt || 'unknown').slice(0, 40)
     };
+    
+    if (
+      clean.ruleBasedSetup.direction === 'WAIT' ||
+      clean.ruleBasedSetup.setupType === 'NONE'
+    ) {
+      clean.learningStats = null;
+      clean.learningRecent = [];
+    }
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     let response;
