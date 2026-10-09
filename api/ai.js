@@ -115,6 +115,7 @@ Review the supplied 5m, 15m, 1H and 4H indicators and the ruleBasedSetup.
 
 Your job is to VALIDATE, REJECT or WAIT on the rule-based setup.
 Use ruleBasedSetup.monitorConfirmation.candlestickPattern as candlestick context when available, but never let a candlestick pattern create or override a LONG or SHORT setup by itself.
+When ruleBasedSetup.monitorConfirmation.candlestickPattern is available, explicitly name that pattern in CONFIRMATION; when it is unavailable or null, say "No candlestick pattern detected."
 Use learningStats as historical performance memory.
 Compare the current setup type with learningStats.bySetup when available.
 Compare marketSession with learningStats.bySession when available.
