@@ -480,7 +480,8 @@ for(const bucket of Object.values(bySession)){
     tp2HitRate:rate(tp2Wins,evaluated.length),
     stopBeforeTp1Rate:rate(stops,evaluated.length),
     bySetup,
-    bySession
+    bySession,
+    byPattern
   };
 }
 
