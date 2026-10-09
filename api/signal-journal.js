@@ -385,6 +385,7 @@ export function buildSignalStats(signals){
     ){
       bucket.evaluated++;
       sessionBucket.evaluated++;
+      patternBucket.evaluated++;
 
       if(
         signal.status==='TP2' ||
