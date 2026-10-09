@@ -381,6 +381,12 @@ const lower=lastMetrics.lowerWick;
   lastMetrics.bodyRatio<=0.35 &&
   upper>=range*.20 &&
   lower>=range*.20;
+
+  const bullishMarubozu=
+  lastMetrics.bullish &&
+  body>=range*.80 &&
+  upper<=range*.10 &&
+  lower<=range*.10;
   
   const bullEngulf=
     prev.c<prev.o &&
