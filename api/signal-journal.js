@@ -399,12 +399,12 @@ export function buildSignalStats(signals){
       if(signal.status==='TP2'){
         bucket.tp2Hits++;
         sessionBucket.tp2Hits++;
+        patternBucket.tp2Hits++;
       }
 
       if(signal.status==='STOP'){
         bucket.stopsBeforeTp1++;
         sessionBucket.stopsBeforeTp1++;
-        patternBucket.tp2Hits++;
       }
     }
 
