@@ -2,6 +2,10 @@ name: WTI Market Monitor
 
 on:
   workflow_dispatch:
+  
+  schedule:
+    - cron: '3-58/5 * * * *'
+
 
 jobs:
   monitor:
