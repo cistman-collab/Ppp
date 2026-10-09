@@ -347,6 +347,7 @@ export function buildSignalStats(signals){
     const sessionKey=signal.session||signalSession(signal.signalCandleClosedAt);
     const patternKey=signal.context?.candlestickPattern||'NONE';
     const key=signal.setupType||'UNKNOWN';
+  
     const bucket=bySetup[key]||{
       signals:0,
       evaluated:0,
@@ -354,6 +355,14 @@ export function buildSignalStats(signals){
       tp2Hits:0,
       stopsBeforeTp1:0
     };
+
+    const patternBucket=byPattern[patternKey]||{
+  signals:0,
+  evaluated:0,
+  tp1Hits:0,
+  tp2Hits:0,
+  stopsBeforeTp1:0
+};
 
     const sessionBucket=bySession[sessionKey]||{
   signals:0,
