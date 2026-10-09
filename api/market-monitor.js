@@ -205,6 +205,29 @@ function atr(b,p=14){
     .slice(-p)
     .reduce((a,b)=>a+b,0)/p;
 }
+function candleMetrics(bar){
+  const range=Math.max(0,bar.h-bar.l);
+  const body=Math.abs(bar.c-bar.o);
+
+  return{
+    range,
+    body,
+    upperWick:Math.max(
+      0,
+      bar.h-Math.max(bar.o,bar.c)
+    ),
+    lowerWick:Math.max(
+      0,
+      Math.min(bar.o,bar.c)-bar.l
+    ),
+    bodyRatio:
+      range>0
+        ?body/range
+        :0,
+    bullish:bar.c>bar.o,
+    bearish:bar.c<bar.o
+  };
+}
 function makeSetupPrices(direction,b15,bars){
   if(direction==='WAIT'){
     return null;
