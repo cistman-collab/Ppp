@@ -5,6 +5,32 @@ import { getEventRisk } from './events.js';
 
 const M=60000;
 
+async function sendPushWithRetry(subscription,payload){
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      return await webpush.sendNotification(
+        subscription,
+        payload
+      );
+    }catch(error){
+      const status=Number(error?.statusCode||0);
+      const retryable=
+        status===0 ||
+        status===408 ||
+        status===429 ||
+        status>=500;
+
+      if(!retryable || attempt===2){
+        throw error;
+      }
+
+      await new Promise(resolve=>
+        setTimeout(resolve,500*(attempt+1))
+      );
+    }
+  }
+}
+
 function ema(a,p){
   if(!a.length)return[];
 
