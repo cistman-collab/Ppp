@@ -365,6 +365,11 @@ const lower=lastMetrics.lowerWick;
   doji &&
   lower>=range*.60 &&
   upper<=range*.15;
+
+ const gravestoneDoji=
+  doji &&
+  upper>=range*.60 &&
+  lower<=range*.15; 
   
   const bullEngulf=
     prev.c<prev.o &&
