@@ -360,6 +360,11 @@ const lower=lastMetrics.lowerWick;
   const doji=
   lastMetrics.range>0 &&
   lastMetrics.bodyRatio<=0.10;
+
+  const dragonflyDoji=
+  doji &&
+  lower>=range*.60 &&
+  upper<=range*.15;
   
   const bullEngulf=
     prev.c<prev.o &&
