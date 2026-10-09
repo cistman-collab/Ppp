@@ -446,6 +446,24 @@ const lower=lastMetrics.lowerWick;
     upper>=Math.max(body*2,range*.45) &&
     lower<=range*.25;
 
+  const candlestickPattern=
+  bullEngulf?'BULLISH ENGULFING':
+  bearEngulf?'BEARISH ENGULFING':
+  bullishHarami?'BULLISH HARAMI':
+  bearishHarami?'BEARISH HARAMI':
+  dragonflyDoji?'DRAGONFLY DOJI':
+  gravestoneDoji?'GRAVESTONE DOJI':
+  longLeggedDoji?'LONG-LEGGED DOJI':
+  doji?'DOJI':
+  hammer?'HAMMER':
+  invertedHammer?'INVERTED HAMMER':
+  hangingMan?'HANGING MAN':
+  shootingStar?'SHOOTING STAR':
+  bullishMarubozu?'BULLISH MARUBOZU':
+  bearishMarubozu?'BEARISH MARUBOZU':
+  spinningTop?'SPINNING TOP':
+  null;
+
   const recent=b15.slice(-30);
 
   const highs=[];
