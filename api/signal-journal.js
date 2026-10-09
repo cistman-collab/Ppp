@@ -438,6 +438,12 @@ for(const bucket of Object.values(bySession)){
   bucket.evaluated
 );
 }
+  for(const bucket of Object.values(byPattern)){
+  bucket.tp1HitRate=rate(
+    bucket.tp1Hits,
+    bucket.evaluated
+  );
+}
   return{
     totalSignals:list.length,
     pending:list.filter(
