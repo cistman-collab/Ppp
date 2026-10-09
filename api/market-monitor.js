@@ -357,6 +357,10 @@ const range=Math.max(.0001,lastMetrics.range);
 const upper=lastMetrics.upperWick;
 const lower=lastMetrics.lowerWick;
 
+  const doji=
+  lastMetrics.range>0 &&
+  lastMetrics.bodyRatio<=0.10;
+  
   const bullEngulf=
     prev.c<prev.o &&
     last.c>last.o &&
