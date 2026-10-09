@@ -2685,11 +2685,16 @@ const newsConflict=
     )
   );
 
+
 let activeDirection=
+  data.activeProvider!=='IG' ||
+  data.fallbackUsed!==false ||
+  data.contractVerified!==true ||
   eventRisk.blocked ||
   newsConflict
     ?'WAIT'
     :technicalDirection;
+
 
   const latest5=
   bars.at(-1);
