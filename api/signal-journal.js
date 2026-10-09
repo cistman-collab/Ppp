@@ -49,6 +49,26 @@ async function writeJournal(signals){
     signals:signals.slice(-500)
   };
 
+  
+  const previous=await readJournal();
+
+  await put(
+    'journal/backups/signals.json',
+    JSON.stringify({
+      version:1,
+      updatedAt:previous.updatedAt,
+      signals:previous.signals
+    }),
+    {
+      access:'private',
+      addRandomSuffix:true,
+      contentType:'application/json',
+      token:process.env.BLOB_READ_WRITE_TOKEN
+    }
+  );
+
+
+
   await put(
     JOURNAL_PATH,
     JSON.stringify(payload,null,2),
