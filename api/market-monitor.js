@@ -348,15 +348,14 @@ function detectReversalPattern(bars,b15,i5){
     last.h>=base.resistance-zone &&
     last.c<=base.resistance+zone*.35;
 
-  const prevBody=Math.abs(prev.c-prev.o);
-  const body=Math.abs(last.c-last.o);
-  const range=Math.max(.0001,last.h-last.l);
+  const prevMetrics=candleMetrics(prev);
+const lastMetrics=candleMetrics(last);
 
-  const upper=
-    last.h-Math.max(last.o,last.c);
-
-  const lower=
-    Math.min(last.o,last.c)-last.l;
+const prevBody=prevMetrics.body;
+const body=lastMetrics.body;
+const range=Math.max(.0001,lastMetrics.range);
+const upper=lastMetrics.upperWick;
+const lower=lastMetrics.lowerWick;
 
   const bullEngulf=
     prev.c<prev.o &&
