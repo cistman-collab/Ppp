@@ -370,6 +370,11 @@ const lower=lastMetrics.lowerWick;
   doji &&
   upper>=range*.60 &&
   lower<=range*.15; 
+
+  const longLeggedDoji=
+  doji &&
+  upper>=range*.30 &&
+  lower>=range*.30;
   
   const bullEngulf=
     prev.c<prev.o &&
