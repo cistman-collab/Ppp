@@ -415,6 +415,13 @@ const lower=lastMetrics.lowerWick;
   last.c<=prev.o &&
   body<=prevBody*.60;
 
+  const bearishHarami=
+  prevMetrics.bullish &&
+  lastMetrics.bearish &&
+  last.o<=prev.c &&
+  last.c>=prev.o &&
+  body<=prevBody*.60;
+
   const hammer=
     last.c>last.o &&
     body<=range*.40 &&
