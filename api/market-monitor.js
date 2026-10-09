@@ -311,7 +311,7 @@ function getLevelZones(bars,b15,b30){
   };
 }
 
-function detectReversalPattern(bars,b15,i5){
+function detectReversalPattern(bars,b15,i5,patternOnly=false){
   if(bars.length<10 || b15.length<12)return null;
 
   const a=atr(b15);
