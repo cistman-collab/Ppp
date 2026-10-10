@@ -2721,6 +2721,34 @@ if(src.length>=200){
 
   drawPath(resistanceStart,bullTarget,'#2fe0a7');
   drawPath(supportStart,bearTarget,'#ff5964');
+  
+  function drawTriggerLabel(price,text,color,offset){
+    if(!Number.isFinite(price))return;
+
+    const y=candles.priceToCoordinate(price);
+    if(!Number.isFinite(y)||y<18||y>h-18)return;
+
+    const label=document.createElementNS(
+      'http://www.w3.org/2000/svg','text'
+    );
+
+    label.setAttribute('x',String(w*0.95));
+    label.setAttribute('y',String(y+offset));
+    label.setAttribute('text-anchor','end');
+    label.setAttribute('fill',color);
+    label.setAttribute('font-size','12');
+    label.setAttribute('font-weight','700');
+    label.setAttribute('stroke','#06131f');
+    label.setAttribute('stroke-width','3');
+    label.setAttribute('paint-order','stroke');
+
+    label.textContent=text+' $'+price.toFixed(2);
+    svg.appendChild(label);
+  }
+
+  drawTriggerLabel(bullLevel,'Break above','#2fe0a7',-10);
+  drawTriggerLabel(bearLevel,'Break below','#ff5964',16);
+ 
 }
 
 requestAnimationFrame(drawScenarioArrows);
