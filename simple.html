@@ -431,14 +431,18 @@ canvas{width:100%;height:400px;display:block}
     <div id="chartBullTrigger" style="font-size:13px;margin-top:6px">
       Waiting for resistance level…
     </div>
-    <small style="color:#9fb3c8">Scenario only · confirmation needed</small>
+   <small id="chartBullStatus" style="color:#9fb3c8">
+  WAIT · Bullish breakout not confirmed
+</small>
   </div>
   <div style="background:#301b27;border:1px solid #754052;border-radius:12px;padding:12px">
     <strong style="color:#ff5964">↘ Bearish path</strong>
     <div id="chartBearTrigger" style="font-size:13px;margin-top:6px">
       Waiting for support level…
     </div>
-    <small style="color:#9fb3c8">Scenario only · confirmation needed</small>
+    <small id="chartBearStatus" style="color:#9fb3c8">
+  WAIT · Bearish breakdown not confirmed
+</small>
   </div>
 </div>
 
@@ -870,6 +874,8 @@ let setup=null;
 let newsItems=[];
 let newsFetchedAt=null;
 let marketSchedule='UNKNOWN';
+let chartFeedVerified=false;
+let chartMarketScheduledOpen=false;
 
 let previousSetupDirection=null;
 let lastAlertTime=0;
@@ -2553,17 +2559,115 @@ if(src.length>=200){
   const major=getMajorLevels();
     
   const zones=setup?.levelZones;
+    
+const previousLevels15=aggregate(bars,15).slice(-13,-1);
 
-  const bullLevel=
-    zones?.resistanceZoneHigh??levels.resistance;
+const fixedResistance=previousLevels15.length===12
+  ?Math.max(...previousLevels15.map(b=>b.h))
+  :null;
 
-  const bearLevel=
-    zones?.supportZoneLow??levels.support;
+const fixedSupport=previousLevels15.length===12
+  ?Math.min(...previousLevels15.map(b=>b.l))
+  :null;
 
+
+  const bullLevel=fixedResistance;
+const bearLevel=fixedSupport;
+    
   const bullTrigger=$('chartBullTrigger');
   const bearTrigger=$('chartBearTrigger');
+  
+const closed15=aggregate(bars,15);
+const closed1H=aggregate(bars,60);
 
-  if(bullTrigger){
+const last15=closed15.at(-1);
+const previous15=closed15.at(-2);
+
+const i15Closed=indicators(closed15);
+const i1HClosed=indicators(closed1H);
+
+const nowCheck=Date.now();
+const last1H=closed1H.at(-1);
+
+const candlesRecentlyClosed=
+  !!previous15 &&
+  Number.isFinite(last15?.t) &&
+  Number.isFinite(last1H?.t) &&
+  nowCheck>=last15.t+15*M &&
+  nowCheck-(last15.t+15*M)<=30*M &&
+  nowCheck>=last1H.t+60*M &&
+  nowCheck-(last1H.t+60*M)<=75*M;
+  
+const confirmationDataReady=
+  chartFeedVerified &&
+  chartMarketScheduledOpen &&
+  candlesRecentlyClosed &&
+  !!i15Closed &&
+  !!i1HClosed;
+
+const bullStatus=$('chartBullStatus');
+const bearStatus=$('chartBearStatus');
+
+const waitText=confirmationDataReady
+  ?'WAIT · Breakout not confirmed'
+  :'WAIT · Market or data not verified';
+
+if(bullStatus)bullStatus.textContent=waitText;
+if(bearStatus)bearStatus.textContent=waitText;
+
+const prior15Bars=closed15.slice(-13,-1);
+
+const prior15Resistance=prior15Bars.length===12
+  ?Math.max(...prior15Bars.map(b=>b.h))
+  :null;
+
+const prior15Support=prior15Bars.length===12
+  ?Math.min(...prior15Bars.map(b=>b.l))
+  :null;
+    
+const bullishBreakConfirmed=
+  confirmationDataReady &&
+  Number.isFinite(prior15Resistance) &&
+  Number.isFinite(last15?.c) &&
+  last15.c>prior15Resistance+0.02 &&
+  Number.isFinite(bullLevel) &&
+  last15.c>bullLevel+0.02 &&
+  i15Closed.trend==='BULLISH' &&
+  i1HClosed.trend==='BULLISH' &&
+  i15Closed.hist>0 &&
+  i1HClosed.hist>0 &&
+  Number.isFinite(i15Closed.volume?.rvol) &&
+  i15Closed.volume.rvol>=1.2;
+    
+const bearishBreakConfirmed=
+  confirmationDataReady &&
+  Number.isFinite(prior15Support) &&
+  Number.isFinite(last15?.c) &&
+  last15.c<prior15Support-0.02 &&
+  Number.isFinite(bearLevel) &&
+  last15.c<bearLevel-0.02 &&
+  i15Closed.trend==='BEARISH' &&
+  i1HClosed.trend==='BEARISH' &&
+  i15Closed.hist<0 &&
+  i1HClosed.hist<0 &&
+  Number.isFinite(i15Closed.volume?.rvol) &&
+  i15Closed.volume.rvol>=1.2;
+    
+if(bullStatus){
+  bullStatus.textContent=bullishBreakConfirmed
+    ?'BULLISH BREAKOUT CONFIRMED · Technical only'
+    :waitText;
+  bullStatus.style.color=bullishBreakConfirmed?'#2fe0a7':'#9fb3c8';
+}
+
+if(bearStatus){
+  bearStatus.textContent=bearishBreakConfirmed
+    ?'BEARISH BREAKDOWN CONFIRMED · Technical only'
+    :waitText;
+  bearStatus.style.color=bearishBreakConfirmed?'#ff5964':'#9fb3c8';
+}
+
+if(bullTrigger){
     bullTrigger.textContent=
       Number.isFinite(bullLevel)
       ?'Watch for confirmed break above $'+bullLevel.toFixed(2)
@@ -3260,12 +3364,18 @@ function drawRSI(data){
 }
 
 async function loadCandles(){
+  chartFeedVerified=false;
   try{
     const r=await fetch('/api/candles',{cache:'no-store'});
 
     if(!r.ok)throw Error('Candle API error');
 
     const d=await r.json();
+   
+    chartFeedVerified=
+     d.activeProvider==='IG' &&
+     d.fallbackUsed===false &&
+     d.contractVerified===true;
     const now=Date.now();
 
     bars=(d.bars||[])
@@ -3283,10 +3393,24 @@ async function loadCandles(){
         x.t+5*M<=now
       )
       .sort((a,b)=>a.t-b.t);
+    
+const lastClosedAt=bars.length
+  ?bars.at(-1).t+5*M
+  :null;
 
-        await render();
+chartFeedVerified=
+  chartFeedVerified &&
+  Number.isFinite(lastClosedAt) &&
+  now>=lastClosedAt &&
+  now-lastClosedAt<=15*M;
+
+await render();
 
   }catch(e){
+    $('chartBullStatus').textContent='WAIT · Market data unavailable';
+    $('chartBearStatus').textContent='WAIT · Market data unavailable';
+    $('chartBullStatus').style.color='#9fb3c8';
+    $('chartBearStatus').style.color='#9fb3c8';
     $('overall').textContent='DATA ERROR';
     $('message').textContent=e.message;
   }
@@ -3331,6 +3455,7 @@ function newsImpact(title){
 }
 
 async function loadMarketStatus(){
+  chartMarketScheduledOpen=false;
   try{
     const r=
       await fetch(
@@ -3344,8 +3469,16 @@ async function loadMarketStatus(){
 
     const d=
       await r.json();
+    
+const statusCheckedAt=Date.parse(d.checkedAt||'');
 
-    marketSchedule=
+chartMarketScheduledOpen=
+  d.scheduledOpen===true &&
+  Number.isFinite(statusCheckedAt) &&
+  Date.now()>=statusCheckedAt &&
+  Date.now()-statusCheckedAt<=2*M;
+
+ marketSchedule=
       [
         d.status,
         d.newYorkTime
