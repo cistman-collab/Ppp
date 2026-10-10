@@ -2669,11 +2669,50 @@ if(src.length>=200){
 
   if(!Number.isFinite(resistanceStart) || !Number.isFinite(supportStart))return;
 
-  const range=Math.max(0.45,Math.abs(resistanceStart-supportStart));
-  const bullTarget=resistanceStart + range*0.55;
-  const bearTarget=supportStart - range*0.55;
+  
+const referenceLevels=[
+  major?.r1,major?.r2,
+  major?.s1,major?.s2,
+  major?.prevDayHigh,major?.prevDayLow,
+  major?.prevWeekHigh,major?.prevWeekLow
+].filter(Number.isFinite);
 
-  function drawPath(startPrice,targetPrice,color){
+function nextLevel(trigger,up){
+  if(!Number.isFinite(trigger))return null;
+
+  const possible=referenceLevels.filter(
+    p=>up?p>trigger+0.02:p<trigger-0.02
+  );
+
+  if(!possible.length)return null;
+
+  return up
+    ?Math.min(...possible)
+    :Math.max(...possible);
+}
+
+const bullTarget=nextLevel(bullLevel,true);
+const bearTarget=nextLevel(bearLevel,false);
+   
+if(bullTrigger && Number.isFinite(bullLevel)){
+  bullTrigger.textContent=
+    'Break above $'+bullLevel.toFixed(2)+
+    (Number.isFinite(bullTarget)
+      ?' → Next resistance $'+bullTarget.toFixed(2)
+      :' → No higher historical level found');
+}
+
+if(bearTrigger && Number.isFinite(bearLevel)){
+  bearTrigger.textContent=
+    'Break below $'+bearLevel.toFixed(2)+
+    (Number.isFinite(bearTarget)
+      ?' → Next support $'+bearTarget.toFixed(2)
+      :' → No lower historical level found');
+}
+
+   function drawPath(startPrice,targetPrice,color){
+    if(!Number.isFinite(startPrice)||!Number.isFinite(targetPrice))return; 
+    
     const y0raw=candles.priceToCoordinate(startPrice);
     const y3raw=candles.priceToCoordinate(targetPrice);
 
@@ -2748,6 +2787,10 @@ if(src.length>=200){
 
   drawTriggerLabel(bullLevel,'Break above','#2fe0a7',-10);
   drawTriggerLabel(bearLevel,'Break below','#ff5964',16);
+  
+drawTriggerLabel(bullTarget,'Next R','#2fe0a7',-10);
+drawTriggerLabel(bearTarget,'Next S','#ff5964',16);
+
  
 }
 
