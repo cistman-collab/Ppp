@@ -875,7 +875,7 @@ export default async function handler(req,res){
         continue;
       }
 
-      const levelSetup=makeLevelSetup(
+      let levelSetup=makeLevelSetup(
   hist5,
   b15,
   b30,
@@ -884,6 +884,26 @@ export default async function handler(req,res){
   i30,
   i240
 );
+      
+if(levelSetup){
+  const entryMid=
+    (levelSetup.entryLow+levelSetup.entryHigh)/2;
+
+  const risk=
+    levelSetup.direction==='LONG'
+      ?entryMid-levelSetup.stop
+      :levelSetup.stop-entryMid;
+
+  const reward1=
+    levelSetup.direction==='LONG'
+      ?levelSetup.tp1-entryMid
+      :entryMid-levelSetup.tp1;
+
+  if(risk<=0 || reward1/risk<1.3){
+    levelSetup=null;
+  }
+}
+
 
       const trendDirection=makeDirection(
   hist5,
