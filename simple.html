@@ -2074,7 +2074,7 @@ if(chartMeta){
           borderColor:'#203950',
           timeVisible:true,
           secondsVisible:false,
-          rightOffset:4,
+          rightOffset:18,
           barSpacing:7,
           minBarSpacing:3
         },
@@ -2632,62 +2632,102 @@ if(src.length>=200){
 
   chart.timeScale().fitContent();
   
-  function drawScenarioArrows(){
-    const svg=$('chartScenarioArrows');
-    if(!svg)return;
+ function drawScenarioArrows(){
+  const svg=$('chartScenarioArrows');
+  if(!svg || !data?.length)return;
 
-    svg.replaceChildren();
+  svg.replaceChildren();
 
-    const w=svg.clientWidth;
-    const h=svg.clientHeight;
-    const lastPrice=data.at(-1)?.c;
+  const w=svg.clientWidth;
+  const h=svg.clientHeight;
+  const lastPrice=data.at(-1)?.c;
 
-    if(w<120||h<100||!Number.isFinite(lastPrice))return;
+  if(w<120 || h<100 || !Number.isFinite(lastPrice))return;
 
-    const currentY=candles.priceToCoordinate(lastPrice);
-    if(!Number.isFinite(currentY))return;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
 
-    svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const clamp=y=>Math.max(24,Math.min(h-24,y));
 
-    const clamp=y=>Math.max(30,Math.min(h-30,y));
+  const zoneMid=(low,high,fallback)=>{
+    if(Number.isFinite(low) && Number.isFinite(high))return (low+high)/2;
+    if(Number.isFinite(high))return high;
+    if(Number.isFinite(low))return low;
+    return fallback;
+  };
 
-    function arrow(target,color,isUp){
-      if(!Number.isFinite(target))return;
-      if(isUp?target<=lastPrice:target>=lastPrice)return;
-
-      const targetY=candles.priceToCoordinate(target);
-      if(!Number.isFinite(targetY))return;
-
-      const x0=w*0.62;
-      const x1=w*0.93;
-      const y0=clamp(currentY);
-      const y1=clamp(targetY);
-      const wing=isUp?7:-7;
-
-      const path=document.createElementNS(
-        'http://www.w3.org/2000/svg','path'
-      );
-
-      path.setAttribute('d',
-        `M ${x0} ${y0} L ${(x0+x1)/2} ${(y0+y1)/2} L ${x1} ${y1} M ${x1-11} ${y1+wing} L ${x1} ${y1} L ${x1-11} ${y1-wing}`
-      );
-      path.setAttribute('stroke',color);
-      path.setAttribute('stroke-width','2.5');
-      path.setAttribute('fill','none');
-      path.setAttribute('opacity','0.75');
-      svg.appendChild(path);
-    }
-
-    arrow(bullLevel,'#2fe0a7',true);
-    arrow(bearLevel,'#ff5964',false);
-  }
-
-  requestAnimationFrame(drawScenarioArrows);
-
-  chart.timeScale().subscribeVisibleLogicalRangeChange(
-    ()=>requestAnimationFrame(drawScenarioArrows)
+  const resistanceStart=zoneMid(
+    zones?.resistanceZoneLow,
+    zones?.resistanceZoneHigh,
+    bullLevel
   );
 
+  const supportStart=zoneMid(
+    zones?.supportZoneLow,
+    zones?.supportZoneHigh,
+    bearLevel
+  );
+
+  if(!Number.isFinite(resistanceStart) || !Number.isFinite(supportStart))return;
+
+  const range=Math.max(0.45,Math.abs(resistanceStart-supportStart));
+  const bullTarget=resistanceStart + range*0.55;
+  const bearTarget=supportStart - range*0.55;
+
+  function drawPath(startPrice,targetPrice,color){
+    const y0raw=candles.priceToCoordinate(startPrice);
+    const y3raw=candles.priceToCoordinate(targetPrice);
+
+    if(!Number.isFinite(y0raw) || !Number.isFinite(y3raw))return;
+
+    const y0=clamp(y0raw);
+    const y3=clamp(y3raw);
+
+    const x0=w*0.68;
+    const x1=w*0.77;
+    const x2=w*0.86;
+    const x3=w*0.94;
+
+    const y1=y0;
+    const y2=clamp((y0+y3)/2);
+
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute(
+      'd',
+      `M ${x0} ${y0} L ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3}`
+    );
+    path.setAttribute('stroke',color);
+    path.setAttribute('stroke-width','3');
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke-linecap','round');
+    path.setAttribute('stroke-linejoin','round');
+    path.setAttribute('opacity','0.9');
+    svg.appendChild(path);
+
+    const up=y3<y0;
+    const wing=up ? 8 : -8;
+
+    const head=document.createElementNS('http://www.w3.org/2000/svg','path');
+    head.setAttribute(
+      'd',
+      `M ${x3-12} ${y3-wing} L ${x3} ${y3} L ${x3-12} ${y3+wing}`
+    );
+    head.setAttribute('stroke',color);
+    head.setAttribute('stroke-width','3');
+    head.setAttribute('fill','none');
+    head.setAttribute('stroke-linecap','round');
+    head.setAttribute('stroke-linejoin','round');
+    svg.appendChild(head);
+  }
+
+  drawPath(resistanceStart,bullTarget,'#2fe0a7');
+  drawPath(supportStart,bearTarget,'#ff5964');
+}
+
+requestAnimationFrame(drawScenarioArrows);
+
+chart.timeScale().subscribeVisibleLogicalRangeChange(
+  ()=>requestAnimationFrame(drawScenarioArrows)
+);
 
   drawMACD(data);
   drawRSI(data);
