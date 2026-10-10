@@ -3939,24 +3939,24 @@ window.addEventListener('resize',()=>{
   }
 });
 
-loadCandles();
+loadMarketStatus().then(loadCandles);
 loadNews();
-loadMarketStatus();
-
+  
 setInterval(() => {
   loadNews();
 }, 300000);
 
+
 setInterval(() => {
-  loadCandles();
-  loadMarketStatus();
+  loadMarketStatus().then(loadCandles);
 }, 60000);
+
+
 
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
-    loadCandles();
+    loadMarketStatus().then(loadCandles);
     loadNews();
-    loadMarketStatus();
   }
 });
 
