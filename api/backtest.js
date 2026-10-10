@@ -186,6 +186,42 @@ function pct(n,d){
     :null;
 }
 
+function netRStats(signals,costPerBarrel){
+  let count=0;
+  let total=0;
+
+  for(const s of signals){
+    if(!['STOP','STOP_AFTER_TP1','TP2'].includes(s.status))continue;
+
+    const entry=(s.entryLow+s.entryHigh)/2;
+    const risk=s.direction==='LONG'
+      ?entry-s.stop
+      :s.stop-entry;
+    if(!Number.isFinite(risk)||risk<=0)continue;
+
+    const side=s.direction==='LONG'?1:-1;
+    const tp1R=side*(s.tp1-entry)/risk;
+    const tp2R=side*(s.tp2-entry)/risk;
+    if(!Number.isFinite(tp1R)||!Number.isFinite(tp2R))continue;
+
+    const grossR=s.status==='STOP'
+      ?-1
+      :s.status==='TP2'
+      ?(tp1R+tp2R)/2
+      :(tp1R-1)/2;
+
+    total+=grossR-costPerBarrel/risk;
+    count++;
+  }
+
+  return {
+    evaluated:count,
+    costPerBarrel,
+    averageNetR:count?Number((total/count).toFixed(3)):null,
+    totalNetR:Number(total.toFixed(2))
+  };
+}
+
 function localMinutes(ts,timeZone){
   const parts=
     Object.fromEntries(
@@ -1157,6 +1193,25 @@ const walkForward={
     validationSignals.filter(s=>s.session!=='LONDON')
   )
 }, 
+  
+netRComparison:{
+  model:'HALF_TP1_HALF_TP2_OR_STOP',
+  scenarios:[0,0.05].map(cost=>({
+    costPerBarrel:cost,
+    development:{
+      all:netRStats(developmentSignals,cost),
+      noLondon:netRStats(
+        developmentSignals.filter(s=>s.session!=='LONDON'),cost
+      )
+    },
+    validation:{
+      all:netRStats(validationSignals,cost),
+      noLondon:netRStats(
+        validationSignals.filter(s=>s.session!=='LONDON'),cost
+      )
+    }
+  }))
+},
         assumptions:{
         entryExpiryMinutes:
           ENTRY_EXPIRY_MINUTES,
