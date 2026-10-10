@@ -1146,8 +1146,18 @@ const walkForward={
       },
       
       walkForward,
-      
-      assumptions:{
+
+  sessionFilterComparison:{
+  method:'POST_HOC_EXCLUSION',
+  excludedSession:'LONDON',
+  development:buildStats(
+    developmentSignals.filter(s=>s.session!=='LONDON')
+  ),
+  validation:buildStats(
+    validationSignals.filter(s=>s.session!=='LONDON')
+  )
+}, 
+        assumptions:{
         entryExpiryMinutes:
           ENTRY_EXPIRY_MINUTES,
         activeTimeoutMinutes:
