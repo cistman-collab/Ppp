@@ -419,6 +419,24 @@ canvas{width:100%;height:400px;display:block}
 
   <div id="chart" style="height:400px"></div>
 </div>
+    
+<div id="chartScenarioGuide" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0">
+  <div style="background:#082b29;border:1px solid #1f6554;border-radius:12px;padding:12px">
+    <strong style="color:#2fe0a7">↗ Bullish path</strong>
+    <div id="chartBullTrigger" style="font-size:13px;margin-top:6px">
+      Waiting for resistance level…
+    </div>
+    <small style="color:#9fb3c8">Scenario only · confirmation needed</small>
+  </div>
+  <div style="background:#301b27;border:1px solid #754052;border-radius:12px;padding:12px">
+    <strong style="color:#ff5964">↘ Bearish path</strong>
+    <div id="chartBearTrigger" style="font-size:13px;margin-top:6px">
+      Waiting for support level…
+    </div>
+    <small style="color:#9fb3c8">Scenario only · confirmation needed</small>
+  </div>
+</div>
+
     <div class="indicatorBox">
   <div class="indicatorTitle">
   MACD (12,26,9) · <span id="macdValue">—</span>
@@ -2528,6 +2546,32 @@ if(src.length>=200){
 
   const levels=getLevels();
   const major=getMajorLevels();
+    
+  const zones=setup?.levelZones;
+
+  const bullLevel=
+    zones?.resistanceZoneHigh??levels.resistance;
+
+  const bearLevel=
+    zones?.supportZoneLow??levels.support;
+
+  const bullTrigger=$('chartBullTrigger');
+  const bearTrigger=$('chartBearTrigger');
+
+  if(bullTrigger){
+    bullTrigger.textContent=
+      Number.isFinite(bullLevel)
+      ?'Watch for confirmed break above $'+bullLevel.toFixed(2)
+      :'Resistance unavailable';
+  }
+
+  if(bearTrigger){
+    bearTrigger.textContent=
+      Number.isFinite(bearLevel)
+      ?'Watch for confirmed break below $'+bearLevel.toFixed(2)
+      :'Support unavailable';
+  }
+
 
   priceLine(
   levels.resistance,
