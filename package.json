@@ -1,6 +1,15 @@
 {
+  "name": "wti-pro",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@vercel/blob": "^2.3.0",
+    "express": "^4.21.2",
     "web-push": "^3.6.7"
   }
 }
