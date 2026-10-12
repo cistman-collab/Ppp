@@ -1,4 +1,4 @@
-import { get, put } from '@vercel/blob';
+import { get, put } from './storage.js';
 import webpush from 'web-push';
 import { updateSignalJournal } from './signal-journal.js';
 import { getEventRisk } from './events.js';
