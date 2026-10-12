@@ -1,4 +1,4 @@
-import { get } from '@vercel/blob';
+import { get } from './storage.js';
 import webpush from 'web-push';
 
 export default async function handler(req,res){
