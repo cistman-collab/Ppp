@@ -1,54 +1,43 @@
 const M=60000;
 const CACHE_PATH='wti-ig-candles-cache.json';
 
-async function readCache(){
-  const token=process.env.BLOB_READ_WRITE_TOKEN;
-  if(!token)return{available:false,data:null};
 
-  try{
-    const {get}=await import('@vercel/blob');
-    const result=await get(CACHE_PATH,{
-      access:'private',
-      token,
-      useCache:false
-    });
+async function readCache() {
+  try {
+    const { get } = await import('./storage.js');
+    const result = await get(CACHE_PATH);
 
-    if(!result)return{available:true,data:null};
-    if(result.statusCode!==200)return{available:false,data:null};
+    if (!result) {
+      return { available: true, data: null };
+    }
 
-    return{
-      available:true,
-      data:await new Response(result.stream).json()
+    if (result.statusCode !== 200) {
+      return { available: false, data: null };
+    }
+
+    return {
+      available: true,
+      data: await new Response(result.stream).json()
     };
-  }catch{
-    return{available:false,data:null};
+  } catch {
+    return { available: false, data: null };
   }
 }
 
-async function writeCache(data){
-  const token=process.env.BLOB_READ_WRITE_TOKEN;
-  if(!token)return false;
+async function writeCache(data) {
+  try {
+    const { put } = await import('./storage.js');
 
-  try{
-    const {put}=await import('@vercel/blob');
-
-    await put(
-      CACHE_PATH,
-      JSON.stringify(data),
-      {
-        access:'private',
-        addRandomSuffix:false,
-        allowOverwrite:true,
-        contentType:'application/json',
-        token
-      }
-    );
+    await put(CACHE_PATH, JSON.stringify(data), {
+      allowOverwrite: true
+    });
 
     return true;
-  }catch{
+  } catch {
     return false;
   }
 }
+
 
 function normalizeBars(input){
   const now=Date.now();
