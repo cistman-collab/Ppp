@@ -1,4 +1,4 @@
-import { get, put } from '@vercel/blob';
+import { get, put } from './storage.js';
 
 const M=60000;
 const JOURNAL_PATH='journal/signals.json';
