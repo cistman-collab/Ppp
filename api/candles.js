@@ -594,7 +594,18 @@ cache.rolloverUsed=
         cache
       );
     }
+    
+    const configuredEpic=
+      process.env.IG_EPIC||cache.igEpic;
 
+    if(
+      !configuredEpic ||
+      cache.igHistoryEpic!==configuredEpic ||
+      cache.igEpic!==configuredEpic
+    ){
+      throw Error('Selected IG contract history is not ready');
+    }
+    
     if(bars.length<40){
       throw Error(
         'Insufficient historical candles'
