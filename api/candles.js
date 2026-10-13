@@ -606,11 +606,11 @@ module.exports=async(
         igBucket;
 
       try{
-        const ig=
-        await fetchIG(
-        cache.igEpic||
-       process.env.IG_EPIC
-  );
+               const ig=
+          await fetchIG(
+            process.env.IG_EPIC||
+            cache.igEpic
+          );
 
         if(ig.rolloverUsed){
   const yahoo=
