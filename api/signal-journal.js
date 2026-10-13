@@ -587,14 +587,25 @@ if(
     }
   }
 
+    const pendingEvents=[...journal.pendingEvents];
+
+  for(const event of events){
+    const id=[event.signalId,event.type,event.at].join('|');
+
+    if(!pendingEvents.some(x=>x.id===id)){
+      pendingEvents.push({...event,id});
+      changed=true;
+    }
+  }
+
   if(changed){
-    await writeJournal(signals,journal.etag);
-   }
+    await writeJournal(signals,journal.etag,pendingEvents);
+  }
 
   return{
-  stats:buildSignalStats(signals),
-  events
-};
+    stats:buildSignalStats(signals),
+    events:pendingEvents
+  };
 }
 export async function getSignalLearningSnapshot(){
   const journal=await readJournal();
