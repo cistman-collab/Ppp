@@ -607,28 +607,34 @@ module.exports=async(
         igBucket;
 
       try{
-               const ig=
+                       const requestedEpic=
+          process.env.IG_EPIC||cache.igEpic;
+
+        const rebuildHistory=
+          cache.igHistoryEpic!==requestedEpic;
+
+        const ig=
           await fetchIG(
-            process.env.IG_EPIC||
-            cache.igEpic
+            requestedEpic,
+            rebuildHistory ? 4000 : 2
           );
 
-        if(ig.rolloverUsed){
-  const yahoo=
-    await fetchYahoo();
+        if(rebuildHistory){
+          if(ig.bars.length<100){
+            throw Error('Insufficient IG history for rebuild');
+          }
 
-  bars=
-    normalizeBars([
-      ...yahoo,
-      ...ig.bars
-    ]);
-}else{
-  bars=
-    normalizeBars([
-      ...bars,
-      ...ig.bars
-    ]);
-}
+          bars=normalizeBars(ig.bars);
+        }else if(ig.epic!==cache.igHistoryEpic){
+          throw Error('IG contract changed; history rebuild required');
+        }else{
+          bars=normalizeBars([
+            ...bars,
+            ...ig.bars
+          ]);
+        }
+
+        cache.igHistoryEpic=ig.epic;
 
         provider='IG';
 
