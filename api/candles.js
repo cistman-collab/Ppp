@@ -459,25 +459,8 @@ module.exports=async(
     const state=
       await readCache();
 
-    if(!state.available){
-      const bars=
-        await fetchYahoo();
-
-      return send(
-        res,
-        bars,
-        {
-          activeProvider:
-            'YAHOO FALLBACK',
-
-          fallbackUsed:true,
-
-          igError:
-            'IG cache unavailable',
-
-          contractVerified:false
-        }
-      );
+        if(!state.available){
+      throw Error('IG candle cache unavailable');
     }
 
     let cache=
