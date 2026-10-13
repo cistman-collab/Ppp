@@ -590,9 +590,11 @@ cache.rolloverUsed=
             .toISOString()
       };
 
-      await writeCache(
-        cache
-      );
+           const historySaved=await writeCache(cache);
+
+      if(!historySaved){
+        throw Error('Could not save IG candle history');
+      }
     }
     
     const configuredEpic=
