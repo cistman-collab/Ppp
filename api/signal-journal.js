@@ -44,24 +44,23 @@ return {
 };
 }
 
-
-
-async function writeJournal(signals,expectedEtag){
+async function writeJournal(signals,expectedEtag,pendingEvents=[]){
    const payload={
     version:1,
     updatedAt:new Date().toISOString(),
-    signals:signals.slice(-500)
+       signals:signals.slice(-500),
+    pendingEvents
   };
 
-  
   const previous=await readJournal();
 
-  await put(
+    await put(
     'journal/backups/signals.json',
     JSON.stringify({
       version:1,
       updatedAt:previous.updatedAt,
-      signals:previous.signals
+      signals:previous.signals,
+      pendingEvents:previous.pendingEvents
     }),
     {
       access:'private',
