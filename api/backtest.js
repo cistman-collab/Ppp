@@ -1149,8 +1149,10 @@ const walkForward={
     return res.status(200).json({
       ok:true,
       mode:'TECHNICAL_ONLY_REPLAY',
-      source:
-        'Yahoo CL=F 5m historical data (unofficial/unverified)',
+                  
+      source:'IG Demo cached 5m candles',
+      epic:data.igEpic,
+      contractExpiry:data.contractExpiry||null,
       range:{
         first:new Date(
           bars[0].t
