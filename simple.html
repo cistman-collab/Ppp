@@ -3433,6 +3433,22 @@ chartFeedVerified=
 await render();
 
   }catch(e){
+        chartFeedVerified=false;
+    setup={
+      direction:'WAIT',
+      waitReason:'Market data unavailable. No current setup.',
+      waitConfirm:'Wait for fresh candles and a successful monitor check.'
+    };
+    updateSetup();
+    drawChart();
+    $('overall').className='signalTitle wait';
+    $('bigArrow').textContent='→';
+    $('bigArrow').className='bigArrow wait';
+    $('nextTarget').textContent='—';
+    $('invalidation').textContent='—';
+    const reason=document.createElement('li');
+    reason.textContent=setup.waitReason;
+    $('whyList').replaceChildren(reason);
     $('chartBullStatus').textContent='WAIT · Market data unavailable';
     $('chartBearStatus').textContent='WAIT · Market data unavailable';
     $('chartBullStatus').style.color='#9fb3c8';
