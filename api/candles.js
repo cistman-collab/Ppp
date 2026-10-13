@@ -166,7 +166,7 @@ function expiryRank(expiry){
     month
   );
 }
-async function fetchIG(preferredEpic){
+async function fetchIG(preferredEpic, historyPoints=2){
   const base=
     process.env.IG_BASE_URL;
 
