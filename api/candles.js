@@ -534,12 +534,21 @@ module.exports=async(
         const rebuildHistory=
           cache.igHistoryEpic!==requestedEpic;
 
-        const ig=
-          await fetchIG(
-            requestedEpic,
-            rebuildHistory ? 4000 : 2
+                const lastHistoryUpdate=
+          Date.parse(cache.igHistoryUpdatedAt||'')||lastBarTime;
+
+        const historyPoints=rebuildHistory
+          ?4000
+          :Math.min(
+            4000,
+            Math.max(
+              2,
+              Math.ceil((now-lastHistoryUpdate)/(5*M))+1
+            )
           );
 
+        const ig=
+          await fetchIG(requestedEpic,historyPoints);
         if(rebuildHistory){
           if(ig.bars.length<100){
             throw Error('Insufficient IG history for rebuild');
@@ -556,6 +565,7 @@ module.exports=async(
         }
 
         cache.igHistoryEpic=ig.epic;
+        cache.igHistoryUpdatedAt=new Date(now).toISOString();
 
         provider='IG';
 
