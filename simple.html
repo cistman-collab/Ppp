@@ -833,6 +833,31 @@ const applicationServerKey=
 let subscription=
   await registration.pushManager.getSubscription();
 
+if(subscription){
+  const existingKey=
+    subscription.options.applicationServerKey;
+
+  const existingBytes=
+    existingKey ? new Uint8Array(existingKey) : null;
+
+  const keyMatches=
+    existingBytes &&
+    existingBytes.length===applicationServerKey.length &&
+    existingBytes.every(
+      (byte,index)=>byte===applicationServerKey[index]
+    );
+
+  if(!keyMatches){
+    const unsubscribed=await subscription.unsubscribe();
+
+    if(!unsubscribed){
+      throw new Error('Could not replace old push subscription');
+    }
+
+    subscription=null;
+  }
+}
+
 if(!subscription){
   subscription=
     await registration.pushManager.subscribe({
@@ -841,7 +866,8 @@ if(!subscription){
     });
 }
 
-const response=
+
+    const response=
   await fetch('/api/push-subscribe',{
     method:'POST',
     headers:{
