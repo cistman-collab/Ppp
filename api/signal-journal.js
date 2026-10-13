@@ -38,6 +38,7 @@ async function readJournal(){
   
 return {
   signals:data.signals,
+  pendingEvents:Array.isArray(data.pendingEvents)?data.pendingEvents:[],
   updatedAt:data.updatedAt||null,
   etag:result.blob.etag
 };
