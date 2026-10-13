@@ -331,7 +331,8 @@ const rolloverNeeded=
     base+
     '/prices/'+
     encodeURIComponent(epic)+
-    '?resolution=MINUTE_5&max=2&pageSize=2',
+       '?resolution=MINUTE_5&max='+historyPoints+
+    '&pageSize='+historyPoints,
     {
       headers:{
         'Accept':'application/json',
