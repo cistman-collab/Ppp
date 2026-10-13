@@ -1,6 +1,6 @@
 import { get, put } from './storage.js';
 import webpush from 'web-push';
-import { updateSignalJournal } from './signal-journal.js';
+import { updateSignalJournal, acknowledgeSignalEvent } from './signal-journal.js';
 import { getEventRisk } from './events.js';
 
 const M=60000;
@@ -2968,6 +2968,7 @@ await sendPushWithRetry(
           url:'/simple.html'
         })
       );
+            await acknowledgeSignalEvent(event.id);
     }
   }
 }
