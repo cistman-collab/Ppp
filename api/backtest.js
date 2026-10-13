@@ -788,56 +788,36 @@ export default async function handler(req,res){
   }
 
   try{
-    const response=await fetch(
-      'https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?interval=5m&range=60d',
-      {
-        headers:{
-          'User-Agent':'Mozilla/5.0',
-          'Accept':'application/json'
-        }
-      }
-    );
+        const { get }=await import('./storage.js');
 
-    if(!response.ok){
-      throw new Error(
-        'WTI history HTTP '+
-        response.status
-      );
+    const stored=await get('wti-ig-candles-cache.json');
+
+    if(!stored || stored.statusCode!==200){
+      throw new Error('IG history cache unavailable');
     }
 
-    const data=await response.json();
-    const result=data.chart?.result?.[0];
-    const quote=result
-      ?.indicators
-      ?.quote?.[0];
+    const data=await new Response(stored.stream).json();
 
-    if(!result?.timestamp || !quote){
-      throw new Error(
-        'No WTI historical candle data'
-      );
+    const configuredEpic=process.env.IG_EPIC;
+
+    if(
+      !configuredEpic ||
+      data.igHistoryEpic!==configuredEpic ||
+      data.igEpic!==configuredEpic
+    ){
+      throw new Error('Selected IG contract history is not ready');
     }
 
     const now=Date.now();
 
-    const bars=result.timestamp
-      .map((t,i)=>({
-        t:t*1000,
-        o:quote.open[i],
-        h:quote.high[i],
-        l:quote.low[i],
-        c:quote.close[i],
-        v:quote.volume?.[i]??0
-      }))
+    const bars=(data.bars||[])
       .filter(b=>
-        [
-          b.o,
-          b.h,
-          b.l,
-          b.c
-        ].every(Number.isFinite) &&
+        [b.t,b.o,b.h,b.l,b.c].every(Number.isFinite) &&
+        b.o>0 && b.h>0 && b.l>0 && b.c>0 &&
         b.t%(5*M)===0 &&
         b.t+5*M<=now
-      );
+      )
+      .sort((a,b)=>a.t-b.t);
 
     if(bars.length<1800){
       throw new Error(
