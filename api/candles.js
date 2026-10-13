@@ -520,31 +520,8 @@ module.exports=async(
               .toISOString()
         });
 
-      if(!marked){
-        const yahoo=
-          await fetchYahoo();
-
-        bars=
-          normalizeBars([
-            ...bars,
-            ...yahoo
-          ]);
-
-        return send(
-          res,
-          bars,
-          {
-            activeProvider:
-              'YAHOO FALLBACK',
-
-            fallbackUsed:true,
-
-            igError:
-              'IG cache write unavailable',
-
-            contractVerified:false
-          }
-        );
+            if(!marked){
+        throw Error('IG candle cache write unavailable');
       }
 
       cache.igAttemptBucket=
