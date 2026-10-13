@@ -2328,6 +2328,24 @@ export default async function handler(
   req,
   res
 ){
+    if(req.query?.view!=='1'){
+    const monitorSecret=process.env.WTI_MONITOR_SECRET;
+    const authorization=req.headers.authorization;
+
+    if(!monitorSecret){
+      return res.status(503).json({
+        ok:false,
+        error:'Background monitor is not configured'
+      });
+    }
+
+    if(authorization!=='Bearer '+monitorSecret){
+      return res.status(401).json({
+        ok:false,
+        error:'Unauthorized'
+      });
+    }
+  }
   try{
     if(req.query?.view!=='1'){
   const recentState=
