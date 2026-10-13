@@ -510,46 +510,7 @@ module.exports=async(
       now-lastBarTime>
       15*M;
 
-    if(
-      bars.length<40 ||
-      gapTooLarge
-    ){
-      const yahoo=
-        await fetchYahoo();
-
-      bars=
-        normalizeBars([
-          ...bars,
-          ...yahoo
-        ]);
-
-      const seeded=
-        await writeCache({
-          ...cache,
-          bars,
-          updatedAt:
-            new Date()
-              .toISOString()
-        });
-
-      if(!seeded){
-        return send(
-          res,
-          bars,
-          {
-            activeProvider:
-              'YAHOO FALLBACK',
-
-            fallbackUsed:true,
-
-            igError:
-              'IG cache write unavailable',
-
-            contractVerified:false
-          }
-        );
-      }
-    }
+        // History is rebuilt from the selected IG contract below.
 
     const igBucket=
       Math.floor(
