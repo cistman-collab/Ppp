@@ -652,21 +652,10 @@ cache.contractLastDealingAt=
 cache.rolloverUsed=
   ig.rolloverUsed;
 
-      }catch(e){
-        igError=
-          e.message;
-
-        provider=
-          'YAHOO FALLBACK';
-
-        const yahoo=
-          await fetchYahoo();
-
-        bars=
-          normalizeBars([
-            ...bars,
-            ...yahoo
-          ]);
+           }catch(e){
+        throw Error(
+          'IG candle update failed: '+e.message
+        );
       }
 
       cache={
