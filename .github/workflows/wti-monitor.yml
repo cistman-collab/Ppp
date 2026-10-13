@@ -2,17 +2,31 @@ name: WTI Market Monitor
 
 on:
   workflow_dispatch:
-  
-  schedule:
-  - cron: '*/5 * * * *'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: wti-market-monitor
+  cancel-in-progress: false
 
 jobs:
   monitor:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
 
     steps:
-      - name: Check WTI setup
+      - name: Check WTI setup on Render
+        env:
+          WTI_MONITOR_SECRET: ${{ secrets.WTI_MONITOR_SECRET }}
         run: |
+          if [ -z "$WTI_MONITOR_SECRET" ]; then
+            echo "WTI_MONITOR_SECRET is missing"
+            exit 1
+          fi
+
           curl --fail --silent --show-error \
-            https://wtimobilev03.vercel.app/api/market-monitor
+            --connect-timeout 15 \
+            --max-time 120 \
+            --header "Authorization: Bearer $WTI_MONITOR_SECRET" \
+            https://wti-pro-render-test.onrender.com/api/market-monitor
