@@ -273,7 +273,7 @@ const lastDealingMs=
 
 const rolloverNeeded=
   Number.isFinite(lastDealingMs) &&
-  lastDealingMs-Date.now()<=7*24*60*M;
+  Date.now()>=lastDealingMs;
 
   if(rolloverNeeded){
   try{
