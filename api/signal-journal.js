@@ -607,6 +607,15 @@ if(
     events:pendingEvents
   };
 }
+export async function acknowledgeSignalEvent(id){
+  const journal=await readJournal();
+  const pendingEvents=journal.pendingEvents.filter(event=>event.id!==id);
+
+  if(pendingEvents.length!==journal.pendingEvents.length){
+    await writeJournal(journal.signals,journal.etag,pendingEvents);
+  }
+}
+
 export async function getSignalLearningSnapshot(){
   const journal=await readJournal();
 
