@@ -616,8 +616,11 @@ module.exports=async(
 
         allowance=
           ig.allowance;
-        cache.igEpic=
-  ig.epic;
+       
+        cache.igEpic=ig.epic;
+        if(configuredEpic){
+          cache.igConfiguredEpic=configuredEpic;
+        }
 
 cache.contractExpiry=
   ig.contractExpiry;
