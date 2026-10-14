@@ -76,7 +76,7 @@ if(
       stored.subscription,
       JSON.stringify({
         title:'WTI Pro ✅',
-        body:'Background alerts are working on your iPhone.',
+        body:'Test notification from WTI Pro. Confirm receipt on your device.',
         url:'/simple.html'
       })
     );

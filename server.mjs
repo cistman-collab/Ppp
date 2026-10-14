@@ -1,3 +1,4 @@
+import {accessGate} from './access.mjs';
 
 import express from 'express';
 import path from 'node:path';
@@ -7,7 +8,15 @@ const app = express();
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 app.disable('x-powered-by');
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/') || req.path === '/sw.js') res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'same-origin');
+  next();
+});
 app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({extended:false,limit:'4kb'}));
+accessGate(app);
 
 app.get('/health', (req, res) => {
   res.json({ ok: true });
@@ -22,7 +31,10 @@ const publicFiles = [
   'index.html',
   'sw.js',
   'manifest.webmanifest',
-  'icon.svg'
+  'icon.svg',
+  'icon-192.png',
+  'icon-512.png',
+  'apple-touch-icon.png'
 ];
 
 for (const file of publicFiles) {
@@ -41,9 +53,19 @@ const apiNames = new Set([
   'news',
   'push-subscribe',
   'push-test',
+  'push-config',
   'signal-journal'
 ]);
 
+let monitorRunning=false;
+app.use('/api/market-monitor',(req,res,next)=>{
+  if(req.query.view==='1') return next();
+  if(monitorRunning) return res.status(409).json({error:'Monitor check already running'});
+  monitorRunning=true;
+  const release=()=>{monitorRunning=false;};
+  res.once('finish',release);res.once('close',release);
+  next();
+});
 app.all('/api/:name', async (req, res) => {
   const name = req.params.name;
 
@@ -81,6 +103,7 @@ const port = Number(process.env.PORT || 10000);
 function startRenderMonitor() {
   const secret = process.env.WTI_MONITOR_SECRET;
 
+  if (process.env.WTI_MONITOR_ENABLED === 'false') return;
   if (!secret) {
     console.error('Render monitor disabled: secret missing');
     return;
@@ -101,7 +124,7 @@ function startRenderMonitor() {
   async function runCheck() {
     try {
       const response = await fetch(
-        'https://wti-pro-render-test.onrender.com/api/market-monitor',
+        `http://127.0.0.1:${port}/api/market-monitor`,
         {
           headers: {
             Authorization: 'Bearer ' + secret

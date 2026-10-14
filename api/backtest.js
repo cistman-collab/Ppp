@@ -7,6 +7,7 @@ import {
   makeDirection
 } from './market-monitor.js';
 
+import {entryTrigger,validPrices} from './safety.js';
 const M=60000;
 const ENTRY_EXPIRY_MINUTES=90;
 const ACTIVE_TIMEOUT_MINUTES=8*60;
@@ -43,7 +44,7 @@ function recentCompleted(series,now,minutes,limit=240){
 }
 
 function priceZoneTouched(bar,low,high){
-  return bar.l<=high && bar.h>=low;
+  return bar.l<=(low+high)/2 && bar.h>=(low+high)/2;
 }
 
 function levelHits(bar,signal){
@@ -119,6 +120,18 @@ function evaluateSignal(signal,bars,startIndex){
       continue;
     }
 
+    if(
+      closedAt-enteredAt>
+      ACTIVE_TIMEOUT_MINUTES*M
+    ){
+      return{
+        status:'TIMEOUT',
+        enteredAt,
+        tp1HitAt,
+        closedAt
+      };
+    }
+
     const hit=levelHits(bar,signal);
 
     if(
@@ -159,17 +172,7 @@ function evaluateSignal(signal,bars,startIndex){
       };
     }
 
-    if(
-      closedAt-enteredAt>
-      ACTIVE_TIMEOUT_MINUTES*M
-    ){
-      return{
-        status:'TIMEOUT',
-        enteredAt,
-        tp1HitAt,
-        closedAt
-      };
-    }
+
   }
 
   return{
@@ -245,33 +248,8 @@ function localMinutes(ts,timeZone){
 }
 
 function getTradingSession(ts){
-  const ny=
-    localMinutes(
-      ts,
-      'America/New_York'
-    );
-
-  const london=
-    localMinutes(
-      ts,
-      'Europe/London'
-    );
-
-  if(
-    ny>=8*60 &&
-    ny<17*60
-  ){
-    return 'US';
-  }
-
-  if(
-    london>=8*60 &&
-    london<13*60
-  ){
-    return 'LONDON';
-  }
-
-  return 'OVERNIGHT';
+  const ny=localMinutes(ts,'America/New_York');
+  return ny>=8*60 && ny<17*60?'US':ny>=3*60 && ny<8*60?'LONDON':'OVERNIGHT';
 }
 function buildStats(signals){
   const evaluated=signals.filter(x=>
@@ -744,7 +722,7 @@ function buildSetupValidation(
         devTP1>=55 &&
         valTP1>=55
       ){
-        rating='VALIDATED';
+        rating='OUT-OF-SAMPLE TP1 SUPPORT';
       }else if(
         devTP1<45 &&
         valTP1<45
@@ -822,10 +800,12 @@ export default async function handler(req,res){
       .filter(b=>
         [b.t,b.o,b.h,b.l,b.c].every(Number.isFinite) &&
         b.o>0 && b.h>0 && b.l>0 && b.c>0 &&
+        b.h>=Math.max(b.o,b.c) && b.l<=Math.min(b.o,b.c) && b.h>=b.l &&
         b.t%(5*M)===0 &&
         b.t+5*M<=now
       )
-      .sort((a,b)=>a.t-b.t);
+      .sort((a,b)=>a.t-b.t)
+      .filter((b,i,a)=>i===0 || b.t!==a[i-1].t);
 
     if(bars.length<1800){
       throw new Error(
@@ -964,34 +944,7 @@ if(
 ){
   direction='WAIT';
 }
-const latest5=
-  hist5.at(-1);
-
-const previous5=
-  hist5.at(-2);
-
-const previousMid=
-  (previous5.o+previous5.c)/2;
-
-const entryTriggered=
-  !!latest5 &&
-  !!previous5 &&
-  (
-    (
-      direction==='LONG' &&
-      previous5.c<previous5.o &&
-      latest5.c>latest5.o &&
-      latest5.l<=previous5.l &&
-      latest5.c>previousMid
-    ) ||
-    (
-      direction==='SHORT' &&
-      previous5.c>previous5.o &&
-      latest5.c<latest5.o &&
-      latest5.h>=previous5.h &&
-      latest5.c<previousMid
-    )
-  );
+const entryTriggered=entryTrigger(direction,hist5);
 
 if(
   direction!=='WAIT' &&
@@ -999,7 +952,7 @@ if(
 ){
   direction='WAIT';
 }
-      const prices=
+      let prices=
         direction==='WAIT'
           ?null
           :(levelSetup||
@@ -1008,6 +961,8 @@ if(
               b15,
               hist5
             ));
+
+      if(!validPrices(direction,prices)){direction='WAIT';prices=null;}
 
       const setupType=
         direction==='WAIT'
@@ -1083,7 +1038,7 @@ fifteenMinRsi:Number(
 
         const outcome=evaluateSignal(
           baseSignal,
-          bars,
+          i<Math.floor(bars.length/2)?bars.slice(0,Math.floor(bars.length/2)):bars,
           i
         );
 
@@ -1212,7 +1167,7 @@ netRComparison:{
         feesIncluded:false,
         slippageIncluded:false,
         note:
-          'Replay uses the current technical rules. Same-candle entry/exit or stop/target conflicts are marked AMBIGUOUS.'
+          'Technical-only replay; development outcomes stop at the validation boundary. Entry requires the zone midpoint to trade. Same-candle entry/exit or stop/target conflicts are AMBIGUOUS. News and event blocking are not replayed; overlapping signals are not a portfolio return.'
       },
       stats:buildStats(signals),
       recent:signals
@@ -1231,3 +1186,5 @@ netRComparison:{
     });
   }
 }
+
+export {evaluateSignal,buildStats,netRStats,getTradingSession};

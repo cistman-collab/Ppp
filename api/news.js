@@ -1,7 +1,7 @@
 // WTI Pro multi-source oil + maritime news monitor.
 // Public RSS is best-effort and may be delayed or incomplete.
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   const queries = [

@@ -1,4 +1,4 @@
-const CACHE='wti-v5-shell-1';
+const CACHE='wti-v5-shell-2';
 
 self.addEventListener('install',event=>{
   self.skipWaiting();
@@ -21,7 +21,7 @@ self.addEventListener('activate',event=>{
       caches.keys().then(keys=>
         Promise.all(
           keys
-            .filter(key=>key!==CACHE)
+            .filter(key=>key.startsWith('wti-') && key!==CACHE)
             .map(key=>caches.delete(key))
         )
       ),
@@ -31,7 +31,7 @@ self.addEventListener('activate',event=>{
 });
 
 self.addEventListener('fetch',event=>{
-  if(event.request.url.includes('/api/'))return;
+  if(event.request.method!=='GET' || new URL(event.request.url).origin!==self.location.origin || event.request.url.includes('/api/'))return;
 
   event.respondWith(
     fetch(event.request)
@@ -62,8 +62,10 @@ self.addEventListener('push',event=>{
     body:
       data.body||
       'Market conditions changed. Open WTI Pro to review.',
-    icon:'/icon.svg',
-    badge:'/icon.svg',
+    icon:'/icon-192.png',
+    badge:'/icon-192.png',
+    tag:data.tag,
+    timestamp:Date.now(),
     data:{
       url:
         data.url||
@@ -82,9 +84,8 @@ self.addEventListener('push',event=>{
 self.addEventListener('notificationclick',event=>{
   event.notification.close();
 
-  const url=
-    event.notification.data?.url||
-    '/simple.html';
+  const target=new URL(event.notification.data?.url||'/simple.html',self.location.origin);
+  const url=target.origin===self.location.origin?target.href:self.location.origin+'/simple.html';
 
   event.waitUntil(
     clients.matchAll({

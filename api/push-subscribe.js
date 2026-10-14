@@ -1,4 +1,4 @@
-import { put } from './storage.js';
+import { get, put } from './storage.js';
 
 export default async function handler(req,res){
   if(req.method!=='POST'){
@@ -46,6 +46,16 @@ if(
       });
     }
 
+    const previous=await get('push/subscription.json');
+    const existing=previous?await new Response(previous.stream).json():null;
+    if(existing?.subscription?.endpoint && existing.subscription.endpoint!==subscription.endpoint){
+      return res.status(409).json({error:'Another device is already subscribed. Existing alerts preserved.'});
+    }
+    const endpoint=new URL(subscription.endpoint);
+    const providerAllowed=['web.push.apple.com','fcm.googleapis.com','updates.push.services.mozilla.com'].includes(endpoint.hostname) || endpoint.hostname.endsWith('.notify.windows.com');
+    if(!providerAllowed || endpoint.protocol!=='https:' || !subscription.keys?.p256dh || !subscription.keys?.auth){
+      return res.status(400).json({error:'Invalid push subscription'});
+    }
     const savedAt=new Date().toISOString();
 
     await put(
@@ -58,6 +68,7 @@ if(
         access:'private',
         addRandomSuffix:false,
         allowOverwrite:true,
+        ifMatch:previous?.blob.etag??null,
         contentType:'application/json',
         token:process.env.BLOB_READ_WRITE_TOKEN
       }

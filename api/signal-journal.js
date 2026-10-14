@@ -1,3 +1,5 @@
+import {performanceMemory} from './learning.js';
+import {validPrices} from './safety.js';
 import { get, put } from './storage.js';
 
 const M=60000;
@@ -10,7 +12,8 @@ const TERMINAL=new Set([
   'STOP_AFTER_TP1',
   'EXPIRED',
   'AMBIGUOUS',
-  'TIMEOUT'
+  'TIMEOUT',
+  'ROLLED_OVER'
 ]);
 
 async function readJournal(){
@@ -23,7 +26,8 @@ async function readJournal(){
     }
   );
 
-  if(!result || result.statusCode!==200){
+  if(!result) return {signals:[], pendingEvents:[], updatedAt:null, etag:null};
+  if(result.statusCode!==200){
     throw new Error('Signal journal storage unavailable');
   }
 
@@ -48,7 +52,7 @@ async function writeJournal(signals,expectedEtag,pendingEvents=[]){
    const payload={
     version:1,
     updatedAt:new Date().toISOString(),
-       signals:signals.slice(-500),
+       signals,
     pendingEvents
   };
 
@@ -130,8 +134,8 @@ function signalSession(candleClosedAt){
 }
 function entryTouched(bar,signal){
   return(
-    bar.l<=signal.entryHigh &&
-    bar.h>=signal.entryLow
+    bar.l<=(signal.entryLow+signal.entryHigh)/2 &&
+    bar.h>=(signal.entryLow+signal.entryHigh)/2
   );
 }
 
@@ -223,6 +227,22 @@ function processSignal(signal,bars){
       continue;
     }
 
+    const enteredAt=Date.parse(
+      signal.enteredAt||''
+    );
+
+    if(
+      Number.isFinite(enteredAt) &&
+      closedAt-enteredAt>
+        ACTIVE_TIMEOUT_MINUTES*M
+    ){
+      signal.status='TIMEOUT';
+      signal.closedAt=closedIso;
+      signal.note=
+        'No TP2 or stop within 8 hours after entry.';
+      break;
+    }
+
     const hit=touched(bar,signal);
 
     if(
@@ -259,21 +279,7 @@ function processSignal(signal,bars){
       break;
     }
 
-    const enteredAt=Date.parse(
-      signal.enteredAt||''
-    );
 
-    if(
-      Number.isFinite(enteredAt) &&
-      closedAt-enteredAt>
-        ACTIVE_TIMEOUT_MINUTES*M
-    ){
-      signal.status='TIMEOUT';
-      signal.closedAt=closedIso;
-      signal.note=
-        'No TP2 or stop within 8 hours after entry.';
-      break;
-    }
   }
 
   return changed;
@@ -438,6 +444,7 @@ export function buildSignalStats(signals){
   }
 
   for(const bucket of Object.values(bySetup)){
+    bucket.stopBeforeTp1Rate=rate(bucket.stopsBeforeTp1,bucket.evaluated);
     bucket.tp1HitRate=rate(
       bucket.tp1Hits,
       bucket.evaluated
@@ -479,6 +486,7 @@ for(const bucket of Object.values(bySession)){
 }
 
   return{
+    performance:performanceMemory(list),
     totalSignals:list.length,
     pending:list.filter(
       x=>x.status==='PENDING'
@@ -533,6 +541,13 @@ export async function updateSignalJournal({
   const events=[];
   for(const signal of signals){
     if(signal.contractEpic!==currentContractEpic){
+      if (!TERMINAL.has(signal.status)) {
+        signal.statusBeforeRollover=signal.status;
+        signal.status='ROLLED_OVER';
+        signal.closedAt=new Date().toISOString();
+        signal.note='Contract changed; outcome unknown. Excluded from learning.';
+        changed=true;
+      }
       continue;
     }
     const previousStatus=signal.status;
@@ -586,7 +601,7 @@ if(
   if(
     isNewSignal &&
     (direction==='LONG'||direction==='SHORT') &&
-    prices &&
+    validPrices(direction,prices) &&
     confirmation?.dataFresh &&
     confirmation?.lastCandleClosedAt
   ){
