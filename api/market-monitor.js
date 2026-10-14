@@ -2917,15 +2917,22 @@ const confidence=
     const oldSetupType=
   previous?.setupType??null;
 
+
+const contractChanged=
+  Boolean(previous?.contractEpic) &&
+  previous.contractEpic!==data.epic;
+
 const isNewSignal=
   (
     activeDirection==='LONG' ||
     activeDirection==='SHORT'
   ) &&
   (
+    contractChanged ||
     oldDirection!==activeDirection ||
     oldSetupType!==setupType
   );
+
 
 
 const journalUpdate=
