@@ -628,20 +628,27 @@ canvas{width:100%;height:400px;display:block}
     <div class="mode">AI</div>
   </div>
 
-  <div class="card">
-    <div class="title">Ask AI</div>
+  
+<div class="card">
+  <div class="title">Ask AI — Unavailable</div>
 
-    <div class="aiGrid">
-      <button class="aiBtn" onclick="askAI('Explain the current WTI market simply.')">📈 Explain market</button>
-      <button class="aiBtn" onclick="askAI('Explain the current research setup simply.')">🎯 Explain setup</button>
-      <button class="aiBtn" onclick="askAI('Explain the main market risks simply.')">⚠️ Explain risks</button>
-      <button class="aiBtn" onclick="askAI('Explain why oil may be moving using available data and news.')">📰 Why is oil moving?</button>
-    </div>
+  <p class="notice">
+    AI is currently not configured.
+    Rule-based signals and alerts still work.
+  </p>
 
-    <div id="aiAnswer" class="aiAnswer">
-      Choose a question above.
-    </div>
+  <div class="aiGrid">
+    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">📈 Explain market</button>
+    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">🎯 Explain setup</button>
+    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">⚠️ Explain risks</button>
+    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">📰 Why is oil moving?</button>
   </div>
+
+  <div id="aiAnswer" class="aiAnswer">
+    AI assistant is disabled.
+  </div>
+</div>
+
 
   <div class="card" style="margin-top:12px">
     <div class="title">Alerts</div>
