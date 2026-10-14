@@ -287,21 +287,26 @@ async function fetchIG(preferredEpic, historyPoints=2){
   contractLastDealingAt=null;
 }
 
+const lastDealingText=String(contractLastDealingAt||'').trim();
+const validTimestamp=
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?$/i
+    .test(lastDealingText);
+const hasTimeZone=/(?:Z|[+-]\d{2}:\d{2})$/i.test(lastDealingText);
+const lastDealingMs=validTimestamp
+  ?Date.parse(hasTimeZone?lastDealingText:lastDealingText+'Z')
+  :NaN;
 
 if(
   !Number.isFinite(expiryRank(contractExpiry)) ||
-  !Number.isFinite(Date.parse(contractLastDealingAt||''))
+  !Number.isFinite(lastDealingMs)
 ){
   throw Error('IG contract expiry metadata unavailable');
 }
 
-const lastDealingMs=
-  Date.parse(contractLastDealingAt||'');
+contractLastDealingAt=new Date(lastDealingMs).toISOString();
 
+const rolloverNeeded=Date.now()>=lastDealingMs;
 
-const rolloverNeeded=
-  Number.isFinite(lastDealingMs) &&
-  Date.now()>=lastDealingMs;
 
   if(rolloverNeeded){
   try{
