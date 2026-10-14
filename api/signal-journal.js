@@ -514,18 +514,21 @@ export async function updateSignalJournal({
   setupType,
   prices,
   confirmation,
-  isNewSignal
+  isNewSignal,
+  contractEpic
 }){
+
   const journal=await readJournal();
   const signals=journal.signals;
   let changed=false;
   const events=[];
   for(const signal of signals){
     const previousStatus=signal.status;
-const previousTp1HitAt=signal.tp1HitAt||null;
+    const previousTp1HitAt=signal.tp1HitAt||null;
     if(processSignal(signal,bars)){
       changed=true;
     }
+
    if(
   !previousTp1HitAt &&
   signal.tp1HitAt
