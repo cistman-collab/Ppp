@@ -566,11 +566,23 @@ canvas{width:100%;height:400px;display:block}
     Waiting for a confirmed setup…
   </p>
 </div>
-    <div class="subcard">
+   
+<div class="subcard">
   <h3>🤖 AI Review</h3>
-  <p id="signalAIReview">Tap the button below for an AI second opinion.</p>
-  <button class="primary" onclick="reviewSignalAI()">Review Setup With AI</button>
+  <p id="signalAIReview">
+    AI review is currently unavailable.
+    Rule-based signals and alerts still work.
+  </p>
+  <button
+    class="primary"
+    type="button"
+    disabled
+    style="opacity:0.55;cursor:not-allowed;"
+  >
+    AI Review Unavailable
+  </button>
 </div>
+
   </div>
 </section>
 
