@@ -576,22 +576,32 @@ module.exports=async(
             )
           );
 
+        
         const ig=
           await fetchIG(requestedEpic,historyPoints);
-        if(rebuildHistory){
+        const contractChanged=
+          ig.epic!==cache.igHistoryEpic;
+
+        if(contractChanged){
+          if(rebuildHistory && ig.epic!==requestedEpic){
+            throw Error('Unexpected IG contract during rebuild');
+          }
+          if(!rebuildHistory && ig.rolloverUsed!==true){
+            throw Error('Unexpected IG contract change');
+          }
           if(ig.bars.length<100){
             throw Error('Insufficient IG history for rebuild');
           }
-
           bars=normalizeBars(ig.bars);
-        }else if(ig.epic!==cache.igHistoryEpic){
-          throw Error('IG contract changed; history rebuild required');
+        }else if(rebuildHistory){
+          throw Error('Requested IG contract was not selected');
         }else{
           bars=normalizeBars([
             ...bars,
             ...ig.bars
           ]);
         }
+
 
         cache.igHistoryEpic=ig.epic;
         cache.igHistoryUpdatedAt=new Date(now).toISOString();
