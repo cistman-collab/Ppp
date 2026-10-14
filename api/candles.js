@@ -347,9 +347,15 @@ const rolloverNeeded=
   }catch{}
 }
   
+ 
+  if(rolloverNeeded && !rolloverUsed){
+    throw Error('IG contract expired; no verified rollover contract');
+  }
+
   const priceHistoryPoints=rolloverUsed
     ?4000
     :historyPoints;
+
   const response=await fetch(
     base+
     '/prices/'+
