@@ -327,12 +327,17 @@ const rolloverNeeded=
     }
   }catch{}
 }
+  
+  const priceHistoryPoints=rolloverUsed
+    ?4000
+    :historyPoints;
   const response=await fetch(
     base+
     '/prices/'+
     encodeURIComponent(epic)+
-       '?resolution=MINUTE_5&max='+historyPoints+
-    '&pageSize='+historyPoints,
+       '?resolution=MINUTE_5&max='+priceHistoryPoints+
+    '&pageSize='+priceHistoryPoints,
+
     {
       headers:{
         'Accept':'application/json',
