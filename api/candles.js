@@ -349,14 +349,49 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
               expiryRank(b.expiry)
           )[0];
 
+      
       if(nextContract?.epic){
+        const nextResponse=await fetch(
+          base+'/markets/'+encodeURIComponent(nextContract.epic),
+          {
+            headers:{
+              'Accept':'application/json',
+              'X-IG-API-KEY':apiKey,
+              'CST':cst,
+              'X-SECURITY-TOKEN':securityToken,
+              'VERSION':'3'
+            }
+          }
+        );
+        if(!nextResponse.ok){
+          throw Error('New IG contract details unavailable');
+        }
+
+        const nextData=await nextResponse.json();
+        const nextExpiry=nextData.instrument?.expiry;
+        const nextText=String(
+          nextData.instrument?.expiryDetails?.lastDealingDate||''
+        ).trim();
+        const nextValid=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?$/i
+          .test(nextText);
+        const nextZoned=/(?:Z|[+-]\d{2}:\d{2})$/i.test(nextText);
+        const nextMs=nextValid
+          ?Date.parse(nextZoned?nextText:nextText+'Z')
+          :NaN;
+        if(
+          nextExpiry!==nextContract.expiry ||
+          !Number.isFinite(nextMs) ||
+          nextMs<=Date.now()
+        ){
+          throw Error('New IG contract expiry not verified');
+        }
+
         epic=nextContract.epic;
-        contractExpiry=
-          nextContract.expiry||
-          null;
-        contractLastDealingAt=null;
+        contractExpiry=nextExpiry;
+        contractLastDealingAt=new Date(nextMs).toISOString();
         rolloverUsed=true;
       }
+
     }
   }catch{}
 }
