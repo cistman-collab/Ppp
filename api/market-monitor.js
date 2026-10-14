@@ -3009,16 +3009,21 @@ await sendPushWithRetry(
       );
     }
 
+   
     if(
-      oldDirection===null ||
+      !contractChanged &&
       (
-  oldDirection===activeDirection &&
-  (
-    previous?.setupType==null ||
-    previous.setupType===setupType
-  )
-)
+        oldDirection===null ||
+        (
+          oldDirection===activeDirection &&
+          (
+            previous?.setupType==null ||
+            previous.setupType===setupType
+          )
+        )
+      )
     ){
+
       return res.status(200).json({
           ok:true,
           direction:activeDirection,
