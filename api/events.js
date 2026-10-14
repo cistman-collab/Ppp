@@ -158,21 +158,34 @@ export function getEventRisk(now=Date.now()){
   const activeEvent=
     detailed.find(x=>x.active)||null;
 
+  
   const nextEvent=
     detailed.find(
       x=>Date.parse(x.startsAt)>now
     )||null;
 
+  const coverageEndsAt=EVENTS.reduce(
+    (latest,event)=>Math.max(latest,event.at+event.afterMinutes*M),
+    -Infinity
+  );
+  const calendarExpired=now>coverageEndsAt;
+
   return{
-    blocked:Boolean(activeEvent),
+    blocked:Boolean(activeEvent)||calendarExpired,
 
     status:activeEvent
       ?'HIGH IMPACT EVENT'
+      :calendarExpired
+      ?'CALENDAR EXPIRED'
       :'CLEAR',
 
     activeEvent,
 
     nextEvent,
+    coverageEndsAt:Number.isFinite(coverageEndsAt)
+      ?new Date(coverageEndsAt).toISOString()
+      :null,
+
 
     upcoming:detailed
       .filter(
