@@ -2982,16 +2982,21 @@ await sendPushWithRetry(
     }
   }
 }
+    
     if(
-      oldDirection===null ||
+      !contractChanged &&
       (
-        oldDirection===activeDirection &&
+        oldDirection===null ||
         (
-          previous?.setupType==null ||
-          previous.setupType===setupType
+          oldDirection===activeDirection &&
+          (
+            previous?.setupType==null ||
+            previous.setupType===setupType
+          )
         )
       )
     ){
+
       await saveBlob(
         'push/monitor-state.json',
         {
