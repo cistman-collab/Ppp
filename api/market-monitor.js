@@ -3040,7 +3040,9 @@ await sendPushWithRetry(
     {
       direction:activeDirection,
       setupType,
+      contractEpic:data.epic,
       checkedAt:new Date().toISOString()
+
     }
   );
       return res
