@@ -24,9 +24,27 @@ async function readCache() {
   }
 }
 
+
 async function writeCache(data) {
   try {
     const { put } = await import('./storage.js');
+    const previous=await readCache();
+    if(!previous.available) return false;
+
+    const old=previous.data;
+    if(old?.igHistoryEpic && old.igHistoryEpic!==data?.igHistoryEpic){
+      if(
+        !data?.igHistoryEpic ||
+        !Array.isArray(old.bars) ||
+        old.bars.length===0
+      ) return false;
+
+      await put(
+        'ig-history/backups/'+old.igHistoryEpic+'.json',
+        JSON.stringify(old),
+        {addRandomSuffix:true}
+      );
+    }
 
     await put(CACHE_PATH, JSON.stringify(data), {
       allowOverwrite: true
@@ -37,6 +55,7 @@ async function writeCache(data) {
     return false;
   }
 }
+
 
 
 function normalizeBars(input){
