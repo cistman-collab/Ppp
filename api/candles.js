@@ -418,10 +418,15 @@ const rolloverNeeded=
         }))
     );
 
+  
   if(!bars.length){
     throw Error(
       'No completed IG candles'
     );
+  }
+
+  if(rolloverUsed && bars.length<100){
+    throw Error('Insufficient new IG contract history for rollover');
   }
 
   return{
