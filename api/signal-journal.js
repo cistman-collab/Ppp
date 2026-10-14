@@ -518,12 +518,25 @@ export async function updateSignalJournal({
   contractEpic
 }){
 
+  
+  const currentContractEpic=
+    typeof contractEpic==='string'
+      ?contractEpic.trim()
+      :'';
+  if(!currentContractEpic){
+    throw new Error('Missing IG contract epic for signal journal');
+  }
+
   const journal=await readJournal();
   const signals=journal.signals;
   let changed=false;
   const events=[];
   for(const signal of signals){
+    if(signal.contractEpic!==currentContractEpic){
+      continue;
+    }
     const previousStatus=signal.status;
+
     const previousTp1HitAt=signal.tp1HitAt||null;
     if(processSignal(signal,bars)){
       changed=true;
