@@ -287,8 +287,17 @@ async function fetchIG(preferredEpic, historyPoints=2){
   contractLastDealingAt=null;
 }
 
+
+if(
+  !Number.isFinite(expiryRank(contractExpiry)) ||
+  !Number.isFinite(Date.parse(contractLastDealingAt||''))
+){
+  throw Error('IG contract expiry metadata unavailable');
+}
+
 const lastDealingMs=
   Date.parse(contractLastDealingAt||'');
+
 
 const rolloverNeeded=
   Number.isFinite(lastDealingMs) &&
