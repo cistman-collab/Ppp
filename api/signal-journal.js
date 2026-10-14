@@ -577,12 +577,18 @@ if(
     confirmation?.dataFresh &&
     confirmation?.lastCandleClosedAt
   ){
+    
     const next=makeSignal({
       direction,
       setupType,
       prices,
       confirmation
     });
+    if(typeof contractEpic!=='string' || !contractEpic.trim()){
+      throw new Error('Missing IG contract epic for new signal');
+    }
+    next.contractEpic=contractEpic.trim();
+
 
     if(!signals.some(x=>x.id===next.id)){
       signals.push(next);
