@@ -2995,9 +2995,11 @@ await sendPushWithRetry(
       await saveBlob(
         'push/monitor-state.json',
         {
-          direction:activeDirection,
+           direction:activeDirection,
           setupType,
+          contractEpic:data.epic,
           checkedAt:new Date().toISOString()
+
         }
       );
     }
