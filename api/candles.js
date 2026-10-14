@@ -557,8 +557,14 @@ module.exports=async(
         igBucket;
 
       try{
-                       const requestedEpic=
-          process.env.IG_EPIC||cache.igEpic;
+                       
+        const configuredEpic=process.env.IG_EPIC||null;
+        const requestedEpic=
+          configuredEpic &&
+          cache.igConfiguredEpic &&
+          configuredEpic!==cache.igConfiguredEpic
+            ? configuredEpic
+            : (cache.igEpic||configuredEpic);
 
         const rebuildHistory=
           cache.igHistoryEpic!==requestedEpic;
