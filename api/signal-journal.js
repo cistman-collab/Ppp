@@ -600,7 +600,10 @@ if(
     if(typeof contractEpic!=='string' || !contractEpic.trim()){
       throw new Error('Missing IG contract epic for new signal');
     }
+   
     next.contractEpic=contractEpic.trim();
+    next.id=next.id+'|'+next.contractEpic;
+
 
 
     if(!signals.some(x=>x.id===next.id)){
