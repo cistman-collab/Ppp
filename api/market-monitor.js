@@ -2927,6 +2927,7 @@ const isNewSignal=
     oldSetupType!==setupType
   );
 
+
 const journalUpdate=
   await updateSignalJournal({
   bars,
@@ -2934,8 +2935,10 @@ const journalUpdate=
   setupType,
   prices,
   confirmation,
-  isNewSignal
+  isNewSignal,
+  contractEpic:data.epic
 });
+
    const journalEvents=
   journalUpdate?.events||[]; 
     if(journalEvents.length){
