@@ -798,15 +798,23 @@ export default async function handler(req,res){
 
     const data=await new Response(stored.stream).json();
 
-    const configuredEpic=process.env.IG_EPIC;
+    
+    const configuredEpic=process.env.IG_EPIC||null;
+    const selectedEpic=
+      configuredEpic &&
+      data.igConfiguredEpic &&
+      configuredEpic!==data.igConfiguredEpic
+        ? configuredEpic
+        : (data.igEpic||configuredEpic);
 
     if(
-      !configuredEpic ||
-      data.igHistoryEpic!==configuredEpic ||
-      data.igEpic!==configuredEpic
+      !selectedEpic ||
+      data.igHistoryEpic!==selectedEpic ||
+      data.igEpic!==selectedEpic
     ){
       throw new Error('Selected IG contract history is not ready');
     }
+
 
     const now=Date.now();
 
