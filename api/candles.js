@@ -302,9 +302,9 @@ const rolloverNeeded=
       const nextContract=
         (searchData.markets||[])
           .filter(m=>
-            String(m.epic||'')
-              .startsWith('EN.D.CL.') &&
-            Number.isFinite(
+           String(m.epic||'')
+          .startsWith('EN.D.CL.FWS') &&
+              Number.isFinite(
               expiryRank(m.expiry)
             ) &&
             expiryRank(m.expiry)>
