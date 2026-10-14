@@ -655,16 +655,22 @@ cache.rolloverUsed=
       }
     }
     
-    const configuredEpic=
-      process.env.IG_EPIC||cache.igEpic;
+     const configuredEpic=process.env.IG_EPIC||null;
+    const selectedEpic=
+      configuredEpic &&
+      cache.igConfiguredEpic &&
+      configuredEpic!==cache.igConfiguredEpic
+        ? configuredEpic
+        : (cache.igEpic||configuredEpic);
 
     if(
-      !configuredEpic ||
-      cache.igHistoryEpic!==configuredEpic ||
-      cache.igEpic!==configuredEpic
+      !selectedEpic ||
+      cache.igHistoryEpic!==selectedEpic ||
+      cache.igEpic!==selectedEpic
     ){
       throw Error('Selected IG contract history is not ready');
     }
+
     
     if(bars.length<40){
       throw Error(
