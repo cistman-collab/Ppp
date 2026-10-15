@@ -797,7 +797,7 @@ const M=60000;
     }
 
     status.textContent=
-      '✅ Test alert sent. Check your notifications.';
+      data.scheduled?'Test alert scheduled in '+data.delaySeconds+' seconds. Close the app now to check background delivery.':'✅ Test alert sent. Check your notifications.';
 
   }catch(e){
     status.textContent=
@@ -875,7 +875,12 @@ if(subscription){
     );
 
   if(!keyMatches){
+    if(document.documentElement.dataset.preview==='synthetic'){
+      if(!await subscription.unsubscribe())throw new Error('Could not refresh this test subscription');
+      subscription=null;
+    }else{
     throw new Error('Server push key differs. Your existing subscription has been preserved; restore the matching server key before enabling alerts.');
+    }
   }
 }
 

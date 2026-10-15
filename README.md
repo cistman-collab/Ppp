@@ -55,3 +55,17 @@ The static event calendar, best-effort RSS news and technical-only backtest rema
 limited research inputs. Backtest development outcomes stop before validation starts;
 news/event risk is not replayed, overlapping simulations are not a portfolio return,
 and simulated statistics must not be presented as proven profitability.
+
+## Approved isolated iPhone preview
+
+The separate free service starts with `node tests/preview.mjs`, never `npm start`.
+It removes IG/OpenAI/monitor credentials, forces a separate ephemeral test directory,
+creates its own test VAPID keys, disables background monitoring, refreshes synthetic
+history and labels the page and Home Screen installation as a test preview.
+Scenario buttons demonstrate PREPARE/ENTER in both directions; they are screen fixtures,
+not signals. Test Alert schedules a labeled synthetic notification after 10 seconds.
+No original service, environment group or persistent disk should be cloned or attached.
+Test data and notification registration can reset on free-service replacement; enable
+alerts again only in the preview if needed. The existing app's subscription is untouched.
+`render-preview.yaml` records the equivalent configuration; direct service creation
+uses the same free plan, branch and commands with automatic deploys disabled.

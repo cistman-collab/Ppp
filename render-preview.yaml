@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: wti-pro-iphone-preview
+    runtime: node
+    plan: free
+    repo: https://github.com/cistman-collab/Ppp
+    branch: wti-quality-audit-2026-10-14
+    buildCommand: npm ci --omit=dev --ignore-scripts
+    startCommand: node tests/preview.mjs
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_VERSION
+        value: 22.23.3
+      - key: WTI_MONITOR_ENABLED
+        value: "false"
+      - key: WTI_PREVIEW_MODE
+        value: synthetic

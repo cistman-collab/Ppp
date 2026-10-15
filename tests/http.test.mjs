@@ -22,8 +22,13 @@ test('real HTTP serves the mobile shell, verified setup, journal, icons and back
   try{
     const root='http://127.0.0.1:10000';
     for(const route of ['/simple.html','/manifest.webmanifest','/icon-192.png','/icon-512.png','/apple-touch-icon.png','/sw.js'])assert.equal((await fetch(root+route)).status,200,route);
+    assert.match(await (await fetch(root+'/simple.html')).text(),/TEST PREVIEW · SYNTHETIC PRICES/);
+    const scenario=await fetch(root+'/api/preview-scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage:'PREPARE',direction:'SHORT'})});
+    assert.equal(scenario.status,200);
     const monitor=await (await fetch(root+'/api/market-monitor?view=1')).json();
     assert.equal(monitor.ok,true);assert.equal(monitor.confirmation.alertStage,'PREPARE');
+    assert.equal(monitor.confirmation.prepareDirection,'SHORT');
+    assert.equal((await fetch(root+'/api/push-config')).status,200);
     const journal=await (await fetch(root+'/api/signal-journal')).json();assert.equal(journal.stats.totalSignals,0);
     const backtest=await (await fetch(root+'/api/backtest')).json();assert.equal(backtest.ok,true);assert.equal(backtest.mode,'TECHNICAL_ONLY_REPLAY');
     assert.equal((await fetch(root+'/api/storage')).status,404);
@@ -40,5 +45,6 @@ test('real HTTP private access protects APIs, signs in and retains health access
     const login=await fetch(root+'/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'access=synthetic-access-code',redirect:'manual'});assert.equal(login.status,303);
     const cookie=login.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/SameSite=Strict/);
     const response=await fetch(root+'/api/signal-journal',{headers:{Cookie:cookie.split(';')[0]}});assert.equal(response.status,200);
+    assert.equal((await fetch(root+'/api/preview-scenario',{method:'POST',headers:{Cookie:cookie.split(';')[0],'Content-Type':'application/json'},body:'{"stage":"ENTER","direction":"LONG"}'})).status,404);
   }finally{child.kill();fs.rmSync(dir,{recursive:true,force:true});}
 });
