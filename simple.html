@@ -3820,7 +3820,7 @@ async function loadJournal(){
         :stats.stopBeforeTp1Rate+'%';
 
     const memory=stats.performance;
-    $('learningStatus').textContent=memory?Object.entries(memory.bySetup||{}).map(([name,b])=>name+': '+b.evaluated+' evaluated · '+b.averageNetR+' average net R · '+b.evidence).join(' | ')||'Insufficient evaluated outcomes. Performance memory never creates a trade or changes strategy automatically.':'Performance memory unavailable.';
+    $('learningStatus').textContent=memory?Object.entries(memory.bySetupDirection||memory.bySetup||{}).map(([name,b])=>name+': '+b.evaluated+' evaluated · '+b.averageNetR+' average net R · '+b.evidence).join(' | ')||'Insufficient evaluated outcomes. Performance memory never creates a trade or changes strategy automatically.':'Performance memory unavailable.';
     const recent=
       Array.isArray(data.recent)
         ?data.recent

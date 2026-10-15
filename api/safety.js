@@ -28,13 +28,20 @@ export function internalOrigin() {
 }
 
 export function validAIReview(answer, setup) {
+  if(typeof answer!=='string') return false;
+  if((answer.match(/^AI REVIEW:/gim)||[]).length!==1) return false;
   const verdict=answer.match(/^AI REVIEW:\s*(VALIDATE|REJECT|WAIT)\s*$/im)?.[1]?.toUpperCase();
   if(!verdict) return false;
-  if(verdict!=='VALIDATE') return true;
-  if(!validPrices(setup.direction,setup) || !new RegExp('^DIRECTION:\\s*'+setup.direction+'\\s*$','im').test(answer))return false;
+  if(!validPrices(setup?.direction,setup)) return false;
+  const directionFields=answer.match(/^DIRECTION:.*$/gim)||[];
+  if(directionFields.length!==1) return false;
+  if(verdict!=='VALIDATE' && !new RegExp('^DIRECTION:\\s*('+setup.direction+'|WAIT)\\s*$','im').test(answer)) return false;
+  if(verdict==='VALIDATE' && !new RegExp('^DIRECTION:\\s*'+setup.direction+'\\s*$','im').test(answer))return false;
   const fields={ENTRY:[setup.entryLow,setup.entryHigh],STOP:[setup.stop],TP1:[setup.tp1],TP2:[setup.tp2]};
   return Object.entries(fields).every(([field,values])=>{
+    if((answer.match(new RegExp('^'+field+':','gim'))||[]).length>1) return false;
     const text=answer.match(new RegExp('^'+field+':([^\\n]*)','im'))?.[1];
+    if(verdict!=='VALIDATE' && (!text || /^\s*N\/A\s*$/i.test(text)))return true;
     const numbers=text?.match(/\d+(?:\.\d+)?/g)?.map(Number)||[];
     return !/^\s*-/.test(text||'') && numbers.length===values.length && numbers.every((number,i)=>number===Number(values[i].toFixed(2)));
   });

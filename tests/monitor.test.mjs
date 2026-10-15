@@ -91,3 +91,25 @@ test('AI cannot validate a forged browser setup when the server is WAIT',async()
   assert.equal(response.code,200);assert.match(response.result.answer,/AI REVIEW: WAIT/);assert.equal(paidCalls,0);
   delete process.env.OPENAI_API_KEY;
 });
+
+test('AI uses server indicators and excludes forged browser bars and headline instructions',async()=>{
+  process.env.OPENAI_API_KEY='synthetic';let sent;
+  const source=bars.map(b=>({...b}));
+  source.at(-2).o=source.at(-2).c+.002;
+  source.at(-1).o=source.at(-1).c-.004;
+  source.at(-1).l=source.at(-2).l-.001;
+  global.fetch=async (url,options)=>{
+    if(url.includes('openai.com')){
+      sent=JSON.parse(options.body);
+      return Response.json({choices:[{message:{content:'AI REVIEW: WAIT\nDIRECTION: WAIT\nWHY: Insufficient evidence.'}}]});
+    }
+    return url.endsWith('/api/news')?Response.json({items:[]}):Response.json({...feed,bars:source});
+  };
+  try{
+    const response=await call(ai,{method:'POST',headers:{host:'example.com',origin:'https://example.com'},body:{question:'Explain setup',market:{indicators:{forged:'BROWSER_FORGED'},bars:[{c:'BROWSER_FORGED'}],headlines:[{title:'BROWSER_FORGED'}]}}});
+    assert.equal(response.code,200);assert.ok(sent);
+    const context=sent.messages.at(-1).content;
+    assert.ok(context.includes('serverConfirmation'));
+    assert.equal(context.includes('BROWSER_FORGED'),false);
+  }finally{delete process.env.OPENAI_API_KEY;}
+});

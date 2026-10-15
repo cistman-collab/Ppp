@@ -28,3 +28,23 @@ test('learning is cost adjusted, requires samples, and excludes ambiguous outcom
   assert.deepEqual(performanceMemory([{...signal,status:'AMBIGUOUS'}]).bySetup,{});
   assert.equal(memory.automaticallyChangesStrategy,false);
 });
+
+test('learning separates directions, ignores duplicate journal IDs and rejects invalid costs',()=>{
+  const long={id:'one',direction:'LONG',entryLow:70,entryHigh:71,stop:69,tp1:73,tp2:75,setupType:'BREAKOUT',status:'TP2'};
+  const short={id:'two',direction:'SHORT',entryLow:70,entryHigh:71,stop:72,tp1:68,tp2:66,setupType:'BREAKOUT',status:'STOP'};
+  const memory=performanceMemory([long,long,short]);
+  assert.equal(memory.bySetup.BREAKOUT.evaluated,2);
+  assert.equal(memory.bySetupDirection['BREAKOUT | LONG'].evaluated,1);
+  assert.ok(memory.bySetupDirection['BREAKOUT | LONG'].averageNetR>0);
+  assert.ok(memory.bySetupDirection['BREAKOUT | SHORT'].averageNetR<0);
+  for(const cost of [-1,NaN,Infinity])assert.throws(()=>performanceMemory([long],cost));
+});
+
+test('WAIT and REJECT cannot carry invented trade prices or contradictory duplicate fields',()=>{
+  const setup={direction:'LONG',entryLow:70,entryHigh:71,stop:69,tp1:73,tp2:75};
+  assert.ok(validAIReview('AI REVIEW: WAIT\nDIRECTION: WAIT',setup));
+  assert.equal(validAIReview('AI REVIEW: WAIT\nDIRECTION: WAIT\nSTOP: 99.00',setup),false);
+  assert.equal(validAIReview('AI REVIEW: REJECT\nDIRECTION: SHORT',setup),false);
+  assert.equal(validAIReview('AI REVIEW: WAIT\nAI REVIEW: VALIDATE\nDIRECTION: WAIT',setup),false);
+  assert.equal(validAIReview('AI REVIEW: WAIT\nDIRECTION: WAIT\nSTOP: 69.00\nSTOP: 99.00',setup),false);
+});
