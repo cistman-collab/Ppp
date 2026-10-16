@@ -1,3 +1,4 @@
+import {renderAIControls} from './api/ai-controls.js';
 import fs from 'node:fs';
 import {previewBanner,previewScenario} from './api/preview.js';
 import {accessGate} from './access.mjs';
@@ -53,8 +54,9 @@ for (const file of publicFiles) {
         .replace('IG selected contract · No fallback','Synthetic test prices · No live feed')
         .replace('Market data uses the selected IG crude oil contract without Yahoo fallback.','This preview uses synthetic prices and does not connect to IG.')
         .replace('WTI Crude Oil · ', 'Synthetic WTI · ');
-      return res.type('html').send(html);
+      return res.type('html').send(renderAIControls(html,false));
     }
+    if(file==='simple.html')return res.type('html').send(renderAIControls(fs.readFileSync(path.join(root,file),'utf8'),Boolean(process.env.OPENAI_API_KEY)));
     res.sendFile(path.join(root, file));
   });
 }
