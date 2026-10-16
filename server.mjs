@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import {previewBanner,previewScenario} from './api/preview.js';
+import {accessGate} from './access.mjs';
 
 import express from 'express';
 import path from 'node:path';
@@ -7,10 +10,18 @@ const app = express();
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 app.disable('x-powered-by');
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/') || req.path === '/sw.js') res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'same-origin');
+  next();
+});
 app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({extended:false,limit:'4kb'}));
+accessGate(app);
 
 app.get('/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, preview:process.env.WTI_PREVIEW_MODE==='synthetic' });
 });
 
 app.get('/', (req, res) => {
@@ -22,11 +33,28 @@ const publicFiles = [
   'index.html',
   'sw.js',
   'manifest.webmanifest',
-  'icon.svg'
+  'icon.svg',
+  'icon-192.png',
+  'icon-512.png',
+  'apple-touch-icon.png'
 ];
 
 for (const file of publicFiles) {
   app.get(`/${file}`, (req, res) => {
+    if(process.env.WTI_PREVIEW_MODE==='synthetic' && file==='manifest.webmanifest'){
+      const manifest=JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
+      return res.json({...manifest,name:'WTI Pro Test Preview',short_name:'WTI Test'});
+    }
+    if(process.env.WTI_PREVIEW_MODE==='synthetic' && file==='simple.html'){
+      const html=fs.readFileSync(path.join(root,file),'utf8')
+        .replace('<body>','<body>'+previewBanner())
+        .replace('<html lang="en">','<html lang="en" data-preview="synthetic">')
+        .replace('<title>WTI Pro</title>','<title>WTI Pro Test Preview</title>')
+        .replace('IG selected contract · No fallback','Synthetic test prices · No live feed')
+        .replace('Market data uses the selected IG crude oil contract without Yahoo fallback.','This preview uses synthetic prices and does not connect to IG.')
+        .replace('WTI Crude Oil · ', 'Synthetic WTI · ');
+      return res.type('html').send(html);
+    }
     res.sendFile(path.join(root, file));
   });
 }
@@ -41,9 +69,31 @@ const apiNames = new Set([
   'news',
   'push-subscribe',
   'push-test',
+  'push-config',
   'signal-journal'
 ]);
 
+let selectedPreviewScenario=null;
+app.post('/api/preview-scenario',(req,res)=>{
+  if(process.env.WTI_PREVIEW_MODE!=='synthetic')return res.sendStatus(404);
+  const {stage,direction}=req.body||{};
+  if(!['PREPARE','ENTER'].includes(stage)||!['LONG','SHORT'].includes(direction))return res.status(400).json({error:'Invalid preview scenario'});
+  selectedPreviewScenario={stage,direction};return res.json({ok:true,synthetic:true});
+});
+app.get('/api/market-monitor',(req,res,next)=>{
+  if(process.env.WTI_PREVIEW_MODE!=='synthetic'||req.query.view!=='1'||!selectedPreviewScenario)return next();
+  const data=JSON.parse(fs.readFileSync(path.join(process.env.WTI_DATA_DIR,'wti-ig-candles-cache.json'),'utf8'));
+  return res.json(previewScenario(selectedPreviewScenario.stage,selectedPreviewScenario.direction,data.bars.at(-1).c,new Date(data.bars.at(-1).t+300000).toISOString()));
+});
+let monitorRunning=false;
+app.use('/api/market-monitor',(req,res,next)=>{
+  if(req.query.view==='1') return next();
+  if(monitorRunning) return res.status(409).json({error:'Monitor check already running'});
+  monitorRunning=true;
+  const release=()=>{monitorRunning=false;};
+  res.once('finish',release);res.once('close',release);
+  next();
+});
 app.all('/api/:name', async (req, res) => {
   const name = req.params.name;
 
@@ -81,6 +131,7 @@ const port = Number(process.env.PORT || 10000);
 function startRenderMonitor() {
   const secret = process.env.WTI_MONITOR_SECRET;
 
+  if (process.env.WTI_MONITOR_ENABLED === 'false') return;
   if (!secret) {
     console.error('Render monitor disabled: secret missing');
     return;
@@ -101,7 +152,7 @@ function startRenderMonitor() {
   async function runCheck() {
     try {
       const response = await fetch(
-        'https://wti-pro-render-test.onrender.com/api/market-monitor',
+        `http://127.0.0.1:${port}/api/market-monitor`,
         {
           headers: {
             Authorization: 'Bearer ' + secret

@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>WTI Pro</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#06111f">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
@@ -374,8 +378,9 @@ canvas{width:100%;height:400px;display:block}
   <div class="row"><span>Prev Week High</span><strong id="prevWeekHigh">—</strong></div>
   <div class="row"><span>Prev Week Low</span><strong id="prevWeekLow">—</strong></div>
 </div>
+  <div id="contractStatus" class="notice" aria-live="polite">Selected contract: loading…</div>
   <div class="notice">
-    Research only. Market data uses the selected IG NOV-26 crude oil contract without Yahoo fallback. Prices may differ from TradingView CL1! because they track different contracts.
+    Research only. Market data uses the selected IG crude oil contract without Yahoo fallback. Prices may differ from TradingView CL1! because they track different contracts.
   </div>
 </section>
 
@@ -521,7 +526,7 @@ canvas{width:100%;height:400px;display:block}
 </div>
     
 <div class="row">
-  <span>Signal confidence</span>
+  <span>Setup checklist score (not win probability)</span>
   <strong id="signalConfidence" class="wait">—</strong>
 </div>
     
@@ -704,6 +709,7 @@ canvas{width:100%;height:400px;display:block}
     <strong id="journalStop" class="wait">—</strong>
   </div>
 
+  <div id="learningStatus" class="notice">Performance memory: waiting for journal…</div>
   <div id="journalRecent" class="notice" style="margin-top:10px">
     Waiting for signal history…
   </div>
@@ -791,7 +797,7 @@ const M=60000;
     }
 
     status.textContent=
-      '✅ Test alert sent. Check your notifications.';
+      data.scheduled?'Test alert scheduled in '+data.delaySeconds+' seconds. Close the app now to check background delivery.':'✅ Test alert sent. Check your notifications.';
 
   }catch(e){
     status.textContent=
@@ -804,10 +810,10 @@ async function enableAlerts(){
 
   if(
     !('Notification' in window) ||
-    !('serviceWorker' in navigator)
+    !('serviceWorker' in navigator) || !('PushManager' in window)
   ){
     status.textContent=
-      'Push notifications are not supported here.';
+      'On iPhone (iOS 16.4+), add WTI Pro to your Home Screen from Safari, then open it there to enable alerts.';
     return;
   }
 
@@ -829,8 +835,9 @@ async function enableAlerts(){
 const registration=
   await navigator.serviceWorker.ready;
 
-const publicKey=
-  'BLx-0y5umlP1V3t2szfBbWNyiAqxtrBCGL2-Fyc0aHCoN74Q_hnXFDRWmjuP8s8OiSeEE9PZWrG0HztkoggeZbM';
+const configResponse=await fetch('/api/push-config',{cache:'no-store'});
+if(!configResponse.ok) throw new Error('Background notifications are not configured');
+const {publicKey}=await configResponse.json();
     
 const padding=
   '='.repeat((4-publicKey.length%4)%4);
@@ -868,13 +875,12 @@ if(subscription){
     );
 
   if(!keyMatches){
-    const unsubscribed=await subscription.unsubscribe();
-
-    if(!unsubscribed){
-      throw new Error('Could not replace old push subscription');
+    if(document.documentElement.dataset.preview==='synthetic'){
+      if(!await subscription.unsubscribe())throw new Error('Could not refresh this test subscription');
+      subscription=null;
+    }else{
+    throw new Error('Server push key differs. Your existing subscription has been preserved; restore the matching server key before enabling alerts.');
     }
-
-    subscription=null;
   }
 }
 
@@ -899,9 +905,8 @@ if(!subscription){
   });
 
 if(!response.ok){
-  throw new Error(
-    'Could not save push subscription'
-  );
+  const failure=await response.json().catch(()=>({}));
+  throw new Error(failure.error||'Could not save push subscription');
 }
 
 status.textContent=
@@ -1552,7 +1557,9 @@ const bearishMomentum=
   setup={
     direction:'WAIT',
 
-    waitReason:c.eventBlocked
+    waitReason:c.alertStage==='PREPARE'
+  ?'PREPARE '+c.prepareDirection+' — setup forming; wait for the completed 5m trigger.'
+  :c.eventBlocked
   ?'WAIT — '+c.activeEvent?.name+
    ' · HIGH IMPACT EVENT.'
   :!fresh
@@ -1564,7 +1571,9 @@ const bearishMomentum=
   ?result.formingPattern.type+' forming — not confirmed.'
   :c.waitReason || 'The monitor has no active setup.',
 
-    waitConfirm:c.eventBlocked
+    waitConfirm:c.alertStage==='PREPARE'
+  ?c.entryTriggerText
+  :c.eventBlocked
   ?'New trade setups are blocked until '+
    new Date(
      c.activeEvent.blockUntil
@@ -1639,7 +1648,7 @@ const bearishMomentum=
     ?'wait'
     :monitorLong?'good':'bad';
 
-  $('overall').textContent=setup.direction;
+  $('overall').textContent=setup.monitorConfirmation?.alertStage==='PREPARE'?'PREPARE '+setup.monitorConfirmation.prepareDirection:setup.direction==='WAIT'?'WAIT':'ENTER '+setup.direction;
   $('overall').className='signalTitle '+monitorClass;
   $('bigArrow').textContent=monitorWait
     ?'→'
@@ -3423,6 +3432,7 @@ async function loadCandles(){
      d.activeProvider==='IG' &&
      d.fallbackUsed===false &&
      d.contractVerified===true;
+    $('contractStatus').textContent='Contract '+(d.contractExpiry||'UNKNOWN')+' · '+(d.epic||'UNKNOWN')+' · '+(d.marketStatus||'UNKNOWN')+' · Last dealing '+(d.contractLastDealingAt?new Date(d.contractLastDealingAt).toLocaleString():'UNKNOWN');
     const now=Date.now();
 
     bars=(d.bars||[])
@@ -3454,6 +3464,7 @@ chartFeedVerified=
 await render();
 
   }catch(e){
+    $('contractStatus').textContent='IG contract data unavailable — signals blocked.';
         chartFeedVerified=false;
     setup={
       direction:'WAIT',
@@ -3808,19 +3819,17 @@ async function loadJournal(){
         ?'—'
         :stats.stopBeforeTp1Rate+'%';
 
+    const memory=stats.performance;
+    $('learningStatus').textContent=memory?Object.entries(memory.bySetupDirection||memory.bySetup||{}).map(([name,b])=>name+': '+b.evaluated+' evaluated · '+b.averageNetR+' average net R · '+b.evidence).join(' | ')||'Insufficient evaluated outcomes. Performance memory never creates a trade or changes strategy automatically.':'Performance memory unavailable.';
     const recent=
       Array.isArray(data.recent)
         ?data.recent
         :[];
 
+    $('journalRecent').style.whiteSpace='pre-line';
     $('journalRecent').textContent=
       recent.length
-        ?'Latest: '+
-          recent[0].direction+
-          ' · '+
-          recent[0].setupType+
-          ' · '+
-          recent[0].status
+        ?recent.map(signal=>new Date(signal.signalCandleClosedAt).toLocaleString()+' · '+signal.direction+' · '+signal.setupType+' · '+signal.status+'\nContract '+(signal.contractEpic||'UNKNOWN')+' · Entry '+fmt(signal.entryLow)+'–'+fmt(signal.entryHigh)+' · Stop '+fmt(signal.stop)+' · TP1 '+fmt(signal.tp1)+' · TP2 '+fmt(signal.tp2)).join('\n\n')
         :'No tracked signals yet.';
   }catch(e){
     $('journalRecent').textContent=

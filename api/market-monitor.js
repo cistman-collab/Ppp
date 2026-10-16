@@ -3,6 +3,7 @@ import webpush from 'web-push';
 import { updateSignalJournal, acknowledgeSignalEvent } from './signal-journal.js';
 import { getEventRisk } from './events.js';
 
+import { validPrices, entryTrigger, signalStage, internalOrigin } from './safety.js';
 const M=60000;
 
 async function sendPushWithRetry(subscription,payload){
@@ -47,6 +48,7 @@ function aggregate(input,min){
 
   const size=min*M;
   const out=[];
+  input=[...new Map(input.map(b=>[b.t,b])).values()].sort((a,b)=>a.t-b.t);
 
   for(const b of input){
     const t=
@@ -62,7 +64,9 @@ function aggregate(input,min){
     l:b.l,
     c:b.c,
     v:Number.isFinite(b.v)?b.v:0,
-    n:0
+    n:0,
+    lastT:b.t-5*M,
+    contiguous:true
   };
 
   out.push(x);
@@ -74,11 +78,13 @@ function aggregate(input,min){
   x.v+=Number.isFinite(b.v)?b.v:0;
 }
 
+x.contiguous=x.contiguous && b.t===x.lastT+5*M;
+x.lastT=b.t;
 x.n++;
   }
 
   return out.filter(
-    x=>x.n===min/5
+    x=>x.n===min/5 && x.contiguous
   );
 }
 
@@ -121,7 +127,7 @@ function indicators(b){
 
   const rsi=
     loss===0
-    ?100
+    ?(gain===0?50:100)
     :100-100/(1+gain/loss);
 
   const volumes=b
@@ -2177,12 +2183,6 @@ async function getNewsContext(req){
     recent:0
   };
 
-  const host=
-    req.headers['x-forwarded-host']||
-    req.headers.host;
-
-  if(!host)return fallback;
-
   const controller=
     new AbortController();
 
@@ -2193,21 +2193,14 @@ async function getNewsContext(req){
     );
 
   try{
-    const proto=
-      String(
-        req.headers['x-forwarded-proto']||
-        'https'
-      )
-      .split(',')[0]
-      .trim();
-
     const response=
       await fetch(
-        proto+'://'+host+'/api/news',
+        internalOrigin()+'/api/news',
         {
           signal:controller.signal,
           headers:{
-            Accept:'application/json'
+            Accept:'application/json',
+            'X-WTI-Internal':process.env.WTI_MONITOR_SECRET||''
           }
         }
       );
@@ -2328,6 +2321,8 @@ export default async function handler(
   req,
   res
 ){
+    res.setHeader('Cache-Control','no-store');
+    if(req.method!=='GET') return res.status(405).json({error:'GET only'});
     if(req.query?.view!=='1'){
     const monitorSecret=process.env.WTI_MONITOR_SECRET;
     const authorization=req.headers.authorization;
@@ -2366,35 +2361,16 @@ export default async function handler(
     });
   }
 }
-    const host=
-  req.headers['x-forwarded-host']||
-  req.headers.host;
-
-if(!host){
-  throw new Error(
-    'No request host'
-  );
-}
-
-const proto=
-  String(
-    req.headers['x-forwarded-proto']||
-    'https'
-  )
-    .split(',')[0]
-    .trim();
-
 const response=
   await fetch(
-    proto+
-    '://'+
-    host+
-    '/api/candles',
+    internalOrigin()+'/api/candles',
     {
       cache:'no-store',
       headers:{
-        'Accept':'application/json'
-      }
+        'Accept':'application/json',
+        'X-WTI-Internal':process.env.WTI_MONITOR_SECRET||''
+      },
+      signal:AbortSignal.timeout(90000)
     }
   );
 
@@ -2446,11 +2422,14 @@ const bars=
         b.l>0
         &&
         b.c>0
+        && b.h>=Math.max(b.o,b.c) && b.l<=Math.min(b.o,b.c) && b.h>=b.l
         &&
         b.t%(5*M)===0
         &&
         b.t+5*M<=now
     )
+    .sort((a,b)=>a.t-b.t)
+    .filter((b,i,a)=>i===0 || b.t!==a[i-1].t)
     .slice(-4000);
 
 if(bars.length<40){
@@ -2734,42 +2713,22 @@ let activeDirection=
   data.activeProvider!=='IG' ||
   data.fallbackUsed!==false ||
   data.contractVerified!==true ||
+  data.marketStatus!=='TRADEABLE' || data.delayTime!==0 ||
   eventRisk.blocked ||
   newsConflict
     ?'WAIT'
     :technicalDirection;
 
 
-  const latest5=
-  bars.at(-1);
-
-const previous5=
-  bars.at(-2);
-
-const previousMid=
-  previous5
-    ?(previous5.o+previous5.c)/2
-    :null;
-
-const entryTriggered=
-  !!latest5 &&
-  !!previous5 &&
-  (
-    (
-      activeDirection==='LONG' &&
-      previous5.c<previous5.o &&
-      latest5.c>latest5.o &&
-      latest5.l<=previous5.l &&
-      latest5.c>previousMid
-    ) ||
-    (
-      activeDirection==='SHORT' &&
-      previous5.c>previous5.o &&
-      latest5.c<latest5.o &&
-      latest5.h>=previous5.h &&
-      latest5.c<previousMid
-    )
-  );
+const candidateDirection=activeDirection;
+const candidatePrices=candidateDirection==='WAIT'?null:(levelSetup||makeSetupPrices(candidateDirection,b15,bars));
+const entryTriggered=entryTrigger(candidateDirection,bars);
+const stage=signalStage(candidateDirection,entryTriggered,candidatePrices);
+const prepareDirection=stage==='PREPARE'?candidateDirection:'WAIT';
+const preparePrices=stage==='PREPARE'?candidatePrices:null;
+confirmation.alertStage=stage;
+confirmation.prepareDirection=prepareDirection;
+confirmation.preparePrices=preparePrices;
 
 confirmation.entryTriggered=
   entryTriggered;
@@ -2831,6 +2790,8 @@ confirmation.nextEvent=
 confirmation.technicalDirection=
   technicalDirection;
 
+confirmation.marketStatus=data.marketStatus;
+confirmation.contractEpic=data.epic;
 confirmation.waitReason=
   activeDirection!=='WAIT'
   ?null
@@ -2838,6 +2799,10 @@ confirmation.waitReason=
    data.fallbackUsed!==false ||
    data.contractVerified!==true
   ?'IG feed unverified: trading signals blocked.'
+  :data.marketStatus!=='TRADEABLE' || data.delayTime!==0
+  ?'IG market is closed, delayed or unavailable.'
+  :stage==='PREPARE'
+  ?confirmation.entryTriggerText
   :eventRisk.blocked
   ?'High-impact event block is active.'
   :newsConflict
@@ -2864,6 +2829,7 @@ confirmation.waitReason=
    i15.hist<=0
   ?'Bullish structure, but 15m momentum has not confirmed LONG.'
   :'No fully confirmed setup yet.';
+if(stage==='WAIT') activeDirection='WAIT';
 const prices=
   activeDirection==='WAIT'
     ?null
@@ -2946,219 +2912,45 @@ const journalUpdate=
   contractEpic:data.epic
 });
 
-   const journalEvents=
-  journalUpdate?.events||[]; 
-    if(journalEvents.length){
-  const eventStored=
-    await readBlob('push/subscription.json');
-
-  if(eventStored?.subscription){
-    webpush.setVapidDetails(
-      process.env.VAPID_SUBJECT,
-      process.env.VAPID_PUBLIC_KEY,
-      process.env.VAPID_PRIVATE_KEY
-    );
-
-    for(const event of journalEvents){
-      const label=
-        event.type==='STOP_AFTER_TP1'
-          ?'STOP AFTER TP1'
-          :event.type;
-
-      
-await sendPushWithRetry(
-
-        eventStored.subscription,
-        JSON.stringify({
-          title:'WTI Pro · '+label,
-          body:
-            event.direction+' · '+
-            event.setupType+' · '+
-            label+' '+Number(event.price).toFixed(2),
-          url:'/simple.html'
-        })
-      );
-            await acknowledgeSignalEvent(event.id);
-    }
-  }
-}
-    
-    if(
-      !contractChanged &&
-      (
-        oldDirection===null ||
-        (
-          oldDirection===activeDirection &&
-          (
-            previous?.setupType==null ||
-            previous.setupType===setupType
-          )
-        )
-      )
-    ){
-
-      await saveBlob(
-        'push/monitor-state.json',
-        {
-           direction:activeDirection,
-          setupType,
-          contractEpic:data.epic,
-          checkedAt:new Date().toISOString()
-
-        }
-      );
-    }
-
-   
-    if(
-      !contractChanged &&
-      (
-        oldDirection===null ||
-        (
-          oldDirection===activeDirection &&
-          (
-            previous?.setupType==null ||
-            previous.setupType===setupType
-          )
-        )
-      )
-    ){
-
-      return res.status(200).json({
-          ok:true,
-          direction:activeDirection,
-          prices,
-          levels,
-          levelZones,
-          nearestZone,
-          zoneStatus,
-          setupType,
-          formingPattern,
-          confirmation,
-          changed:false
-        });
-    }
-
-    const stored=
-      await readBlob(
-        'push/subscription.json'
-      );
-
-    if(!stored?.subscription){
-        await saveBlob(
-    'push/monitor-state.json',
-    {
-      direction:activeDirection,
-      setupType,
-      contractEpic:data.epic,
-      checkedAt:new Date().toISOString()
-
-    }
-  );
-      return res
-        .status(200)
-        .json({
-          ok:true,
-          direction:activeDirection,
-          levels,
-          levelZones,
-          nearestZone,
-          zoneStatus,
-          setupType,
-          formingPattern,
-          confirmation,
-          changed:true,
-          push:false
-        });
-    }
-
-    webpush.setVapidDetails(
-      process.env.VAPID_SUBJECT,
-      process.env.VAPID_PUBLIC_KEY,
-      process.env.VAPID_PRIVATE_KEY
-    );
-
-    let body='';
-
-    if(activeDirection==='LONG'){
-  body=
-   'LONG · '+setupType+' · '+zoneStatus+' · Entry '+
-    prices.entryLow.toFixed(2)+'–'+
-    prices.entryHigh.toFixed(2)+
-    ' · Stop '+prices.stop.toFixed(2)+
-    ' · TP1 '+prices.tp1.toFixed(2)+
-    ' · TP2 '+prices.tp2.toFixed(2);
-}
-
-else if(activeDirection==='SHORT'){
-  body=
-    'SHORT · '+setupType+' · '+zoneStatus+' · Entry '+
-    prices.entryLow.toFixed(2)+'–'+
-    prices.entryHigh.toFixed(2)+
-    ' · Stop '+prices.stop.toFixed(2)+
-    ' · TP1 '+prices.tp1.toFixed(2)+
-    ' · TP2 '+prices.tp2.toFixed(2);
-}
-
-    else{
-  body=
-    'WAIT · '+
-    zoneStatus+
-    ' · 5m '+confirmation.fiveMinTrend+
-    ' · 15m '+confirmation.fifteenMinTrend+
-    ' · 5m RSI '+confirmation.fiveMinRsi.toFixed(0)+
-    ' · 15m RSI '+confirmation.fifteenMinRsi.toFixed(0)+
-    ' · Candle '+confirmation.latestCandle;
-}
-
-    
-await sendPushWithRetry(
-
-      stored.subscription,
-      JSON.stringify({
-        title:
-          'WTI Pro · Setup Change',
-        body,
-        url:'/simple.html'
-      })
-    );
-
-        await saveBlob(
-      'push/monitor-state.json',
-      {
-        direction:activeDirection,
-        setupType,
-        contractEpic:data.epic,
-        checkedAt:new Date().toISOString()
-
+    const journalEvents=journalUpdate?.events||[];
+    const stored=await readBlob('push/subscription.json');
+    const alertDirection=stage==='PREPARE'?prepareDirection:activeDirection;
+    const alertPrices=stage==='PREPARE'?preparePrices:prices;
+    const alertSetupType=stage==='PREPARE'?(levelSetup?.type||('TREND '+prepareDirection)):setupType;
+    const alertKey=[data.epic,stage,alertDirection,alertSetupType].join('|');
+    const previousKey=previous?.alertKey || [previous?.contractEpic,previous?.direction==='WAIT'?'WAIT':'ENTER',previous?.direction,previous?.setupType].join('|');
+    const changed=alertKey!==previousKey;
+    let pushed=false;
+    if(stored?.subscription && (journalEvents.length || (changed && stage!=='WAIT'))){
+      webpush.setVapidDetails(process.env.VAPID_SUBJECT,process.env.VAPID_PUBLIC_KEY,process.env.VAPID_PRIVATE_KEY);
+      for(const event of journalEvents){
+        await sendPushWithRetry(stored.subscription,JSON.stringify({
+          title:'WTI Pro · '+event.type,
+          body:event.direction+' · '+event.setupType+' · '+Number(event.price).toFixed(2),
+          tag:event.id,url:'/simple.html'
+        }));
+        await acknowledgeSignalEvent(event.id);
       }
-    );
-    
-    return res
-      .status(200)
-      .json({
-        ok:true,
-        previous:
-          oldDirection,
-        direction:
-          activeDirection,
-          prices,
-          levels,
-        levelZones,
-        nearestZone,
-        zoneStatus,
-        setupType,
-        formingPattern,
-        confirmation,
-        changed:true,
-        push:true
-      });
+      if(changed && stage!=='WAIT'){
+        await sendPushWithRetry(stored.subscription,JSON.stringify({
+          title:'WTI Pro · '+stage+' '+alertDirection,
+          body:alertSetupType+' · Entry '+alertPrices.entryLow.toFixed(2)+'–'+alertPrices.entryHigh.toFixed(2)+
+            ' · Stop '+alertPrices.stop.toFixed(2)+' · TP1 '+alertPrices.tp1.toFixed(2)+' · TP2 '+alertPrices.tp2.toFixed(2)+
+            (stage==='PREPARE'?' · Wait for completed 5m trigger.':' · Confirmed candle setup; no trade executed.'),
+          tag:alertKey+'|'+confirmation.lastCandleClosedAt,url:'/simple.html'
+        }));
+        pushed=true;
+      }
+    }
+    await saveBlob('push/monitor-state.json',{
+      direction:activeDirection,setupType,contractEpic:data.epic,alertKey,
+      checkedAt:new Date().toISOString()
+    });
+    return res.status(200).json({ok:true,direction:activeDirection,prices,levels,levelZones,
+      nearestZone,zoneStatus,setupType,formingPattern,confidence,confirmation,changed,push:pushed});
 
   }catch(e){
-    console.error(
-      'WTI monitor failed:',
-      e
-    );
+    console.error('WTI monitor failed; status:',Number(e?.statusCode)||'processing');
 
     return res
       .status(500)

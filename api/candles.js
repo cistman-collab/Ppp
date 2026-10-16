@@ -46,6 +46,13 @@ async function writeCache(data) {
       );
     }
 
+    if(old?.igHistoryEpic===data?.igHistoryEpic && Array.isArray(old?.bars) && data?.bars?.length){
+      const firstKept=data.bars[0].t;
+      const pruned=old.bars.filter(b=>b.t<firstKept);
+      if(pruned.length){
+        await put('ig-history/archives/'+old.igHistoryEpic+'.json',JSON.stringify({epic:old.igHistoryEpic,archivedAt:new Date().toISOString(),bars:pruned}),{addRandomSuffix:true});
+      }
+    }
     await put(CACHE_PATH, JSON.stringify(data), {
       allowOverwrite: true
     });
@@ -90,6 +97,7 @@ function normalizeBars(input){
   x.h>0 &&
   x.l>0 &&
   x.c>0 &&
+  x.h>=Math.max(x.o,x.c) && x.l<=Math.min(x.o,x.c) && x.h>=x.l &&
   x.t%(5*M)===0 &&
   x.t+5*M<=now
 ){
@@ -100,66 +108,6 @@ function normalizeBars(input){
   return [...map.values()]
     .sort((a,b)=>a.t-b.t)
     .slice(-4000);
-}
-
-async function fetchYahoo(){
-  const controller=new AbortController();
-  const timer=setTimeout(
-    ()=>controller.abort(),
-    9000
-  );
-
-  try{
-    const response=await fetch(
-      'https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?interval=5m&range=30d',
-      {
-        signal:controller.signal,
-        headers:{
-          'User-Agent':'Mozilla/5.0',
-          'Accept':'application/json'
-        }
-      }
-    );
-
-    if(!response.ok){
-      throw Error(
-        'Yahoo HTTP '+response.status
-      );
-    }
-
-    const data=await response.json();
-
-    const result=
-      data.chart?.result?.[0];
-
-    const quote=
-      result?.indicators?.quote?.[0];
-
-    if(
-      !result?.timestamp ||
-      !quote
-    ){
-      throw Error(
-        'No Yahoo candle data'
-      );
-    }
-
-    return normalizeBars(
-      result.timestamp.map(
-        (t,i)=>({
-          t:t*1000,
-          o:quote.open[i],
-          h:quote.high[i],
-          l:quote.low[i],
-          c:quote.close[i],
-          v:quote.volume?.[i]??0
-        })
-      )
-    );
-
-  }finally{
-    clearTimeout(timer);
-  }
 }
 
 function expiryRank(expiry){
@@ -186,6 +134,11 @@ function expiryRank(expiry){
   );
 }
 async function fetchIG(preferredEpic, historyPoints=2){
+  const igFetch=(url,options={})=>fetch(url,{...options,redirect:'error',signal:AbortSignal.timeout(15000)});
+  const priceDivisor=Number(process.env.IG_PRICE_DIVISOR||100);
+  if(!Number.isFinite(priceDivisor)||priceDivisor<=0) throw Error('Invalid IG price divisor');
+  let marketStatus=null;
+  let delayTime=null;
   const base=
     process.env.IG_BASE_URL;
 
@@ -218,7 +171,7 @@ async function fetchIG(preferredEpic, historyPoints=2){
     );
   }
 
-  const login=await fetch(
+  const login=await igFetch(
     base+'/session',
     {
       method:'POST',
@@ -257,7 +210,7 @@ async function fetchIG(preferredEpic, historyPoints=2){
   }
 
   try{
-  const marketResponse=await fetch(
+  const marketResponse=await igFetch(
     base+'/markets/'+encodeURIComponent(epic),
     {
       headers:{
@@ -274,6 +227,8 @@ async function fetchIG(preferredEpic, historyPoints=2){
     const marketData=
       await marketResponse.json();
 
+    marketStatus=marketData.snapshot?.marketStatus||null;
+    delayTime=marketData.snapshot?.delayTime??null;
     contractExpiry=
       marketData.instrument?.expiry||
       null;
@@ -310,7 +265,7 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
 
   if(rolloverNeeded){
   try{
-    const searchResponse=await fetch(
+    const searchResponse=await igFetch(
       base+
       '/markets?searchTerm='+
       encodeURIComponent('Oil - US Crude'),
@@ -351,7 +306,7 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
 
       
       if(nextContract?.epic){
-        const nextResponse=await fetch(
+        const nextResponse=await igFetch(
           base+'/markets/'+encodeURIComponent(nextContract.epic),
           {
             headers:{
@@ -368,6 +323,8 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
         }
 
         const nextData=await nextResponse.json();
+        marketStatus=nextData.snapshot?.marketStatus||null;
+        delayTime=nextData.snapshot?.delayTime??null;
         const nextExpiry=nextData.instrument?.expiry;
         const nextText=String(
           nextData.instrument?.expiryDetails?.lastDealingDate||''
@@ -405,7 +362,7 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
     ?4000
     :historyPoints;
 
-  const response=await fetch(
+  const response=await igFetch(
     base+
     '/prices/'+
     encodeURIComponent(epic)+
@@ -444,8 +401,8 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
     }
 
     return(
-      (p.bid+p.ask)/2
-    )/100;
+      (Number(p.bid)+Number(p.ask))/2
+    )/priceDivisor;
   };
 
   const bars=
@@ -453,7 +410,8 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
       (data.prices||[])
         .map(p=>({
           t:Date.parse(
-            p.snapshotTimeUTC
+            /(?:Z|[+-]\d{2}:\d{2})$/i.test(p.snapshotTimeUTC||'')
+              ?p.snapshotTimeUTC:String(p.snapshotTimeUTC||'').replace(/\//g,'-').replace(' ','T')+'Z'
           ),
           o:midpoint(
             p.openPrice
@@ -488,6 +446,7 @@ const rolloverNeeded=Date.now()>=lastDealingMs;
     bars,
     epic,
     rolloverUsed,
+    marketStatus,delayTime,priceDivisor,
     contractExpiry,
     contractLastDealingAt,
     allowance:
@@ -506,7 +465,7 @@ function send(
     symbol:'WTI',
 
     source:
-      'IG primary with Yahoo historical seed/fallback',
+      'IG selected-contract completed 5m candles',
 
     verifiedRealTime:false,
 
@@ -524,10 +483,10 @@ function send(
   });
 }
 
-module.exports=async(
+async function handler(
   req,
   res
-)=>{
+){
   res.setHeader(
     'Cache-Control',
     'no-store'
@@ -644,7 +603,7 @@ module.exports=async(
           ig.epic!==cache.igHistoryEpic;
 
         if(contractChanged){
-          if(rebuildHistory && ig.epic!==requestedEpic){
+          if(rebuildHistory && ig.epic!==requestedEpic && !ig.rolloverUsed){
             throw Error('Unexpected IG contract during rebuild');
           }
           if(!rebuildHistory && ig.rolloverUsed!==true){
@@ -677,6 +636,9 @@ module.exports=async(
           cache.igConfiguredEpic=configuredEpic;
         }
 
+cache.marketStatus=ig.marketStatus;
+cache.delayTime=ig.delayTime;
+cache.priceDivisor=ig.priceDivisor;
 cache.contractExpiry=
   ig.contractExpiry;
 
@@ -747,7 +709,10 @@ cache.rolloverUsed=
         igError,
 
         contractVerified:
-          provider==='IG',
+          provider==='IG' && Date.parse(cache.contractLastDealingAt)>now &&
+          now-(bars.at(-1).t+5*M)<=15*M && cache.priceDivisor===Number(process.env.IG_PRICE_DIVISOR||100),
+        marketStatus:cache.marketStatus||'UNKNOWN',
+        delayTime:cache.delayTime??null,
 
         epic:
   cache.igEpic||
@@ -776,7 +741,7 @@ allowance
         error:e.message,
 
         source:
-          'IG primary with Yahoo fallback',
+          'IG selected-contract completed 5m candles',
 
         fallbackUsed:true,
 
@@ -784,3 +749,21 @@ allowance
       });
   }
 };
+
+// Browser refreshes and the monitor share one IG request and one cache write.
+let inFlight;
+export default async function candles(req,res){
+  res.setHeader('Cache-Control','no-store');
+  if(req.method!=='GET') return res.status(405).json({error:'GET only'});
+  if(!inFlight){
+    const work=(async()=>{
+      let code=200,payload;
+      await handler(req,{setHeader(){},status(value){code=value;return this;},json(value){payload=value;return this;}});
+      return {code,payload};
+    })();
+    inFlight=work;
+    work.finally(()=>{if(inFlight===work)inFlight=null;}).catch(()=>{});
+  }
+  const {code,payload}=await inFlight;
+  return res.status(code).json(payload);
+}

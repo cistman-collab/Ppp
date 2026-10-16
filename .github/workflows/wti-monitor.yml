@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   monitor:
+    if: github.ref == 'refs/heads/wti-render-test'
     runs-on: ubuntu-latest
     timeout-minutes: 3
 

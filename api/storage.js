@@ -76,8 +76,8 @@ export async function put(key, body, options = {}) {
   }
 
   if (
-    options.ifMatch &&
-    (!previous || checksum(previous) !== options.ifMatch)
+    Object.hasOwn(options, 'ifMatch') &&
+    (options.ifMatch === null ? previous !== null : !previous || checksum(previous) !== options.ifMatch)
   ) {
     throw new Error('Storage version conflict');
   }

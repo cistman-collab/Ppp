@@ -72,14 +72,18 @@ if(
       });
     }
 
-    await webpush.sendNotification(
-      stored.subscription,
-      JSON.stringify({
-        title:'WTI Pro ✅',
-        body:'Background alerts are working on your iPhone.',
-        url:'/simple.html'
-      })
-    );
+    const synthetic=process.env.WTI_PREVIEW_MODE==='synthetic';
+    const payload=JSON.stringify({
+      title:synthetic?'WTI Pro · TEST notification':'WTI Pro ✅',
+      body:synthetic?'Synthetic preview test. No live signal or trade. Tap to open the test app.':'Test notification from WTI Pro. Confirm receipt on your device.',
+      tag:synthetic?'wti-synthetic-test':undefined,url:'/simple.html'
+    });
+    if(synthetic){
+      setTimeout(()=>webpush.sendNotification(stored.subscription,payload,{TTL:60,timeout:10000})
+        .catch(error=>console.error('Synthetic test notification failed; status:',Number(error?.statusCode)||'delivery')),10000).unref();
+      return res.status(200).json({ok:true,scheduled:true,delaySeconds:10,message:'Test scheduled. Close the app to check background receipt.'});
+    }
+    await webpush.sendNotification(stored.subscription,payload);
 
     return res.status(200).json({
       ok:true,

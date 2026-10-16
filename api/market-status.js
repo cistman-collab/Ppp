@@ -1,5 +1,5 @@
 // Indicative weekly schedule only; exchange holidays and halts NOT verified.
-module.exports=(req,res)=>{
+export default (req,res)=>{
  res.setHeader('Cache-Control','no-store');
  const d=new Date(),parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',
   {timeZone:'America/New_York',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})

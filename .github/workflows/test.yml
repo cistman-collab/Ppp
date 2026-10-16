@@ -1,0 +1,20 @@
+name: WTI isolated regression tests
+on:
+  push:
+    branches: ['wti-quality-audit-2026-10-14']
+  pull_request:
+    branches: ['wti-render-test']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
