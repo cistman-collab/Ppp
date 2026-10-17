@@ -21,7 +21,7 @@ test('real HTTP serves the mobile shell, verified setup, journal, icons and back
   const child=await start('tests/preview.mjs',10000);
   try{
     const root='http://127.0.0.1:10000';
-    for(const route of ['/simple.html','/automatic-plan.js','/manifest.webmanifest','/icon-192.png','/icon-512.png','/apple-touch-icon.png','/sw.js'])assert.equal((await fetch(root+route)).status,200,route);
+    for(const route of ['/simple.html','/automatic-plan.js','/chart-studies.js','/manifest.webmanifest','/icon-192.png','/icon-512.png','/apple-touch-icon.png','/sw.js'])assert.equal((await fetch(root+route)).status,200,route);
     assert.match(await (await fetch(root+'/simple.html')).text(),/TEST PREVIEW · SYNTHETIC PRICES/);
     const scenario=await fetch(root+'/api/preview-scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage:'PREPARE',direction:'SHORT'})});
     assert.equal(scenario.status,200);
