@@ -582,7 +582,7 @@ canvas{width:100%;height:400px;display:block}
   <button
     class="primary"
     type="button"
-    disabled
+    data-ai-control onclick="reviewSignalAI()" disabled
     style="opacity:0.55;cursor:not-allowed;"
   >
     AI Review Unavailable
@@ -644,10 +644,10 @@ canvas{width:100%;height:400px;display:block}
   </p>
 
   <div class="aiGrid">
-    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">📈 Explain market</button>
-    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">🎯 Explain setup</button>
-    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">⚠️ Explain risks</button>
-    <button class="aiBtn" type="button" disabled style="opacity:0.55;cursor:not-allowed;">📰 Why is oil moving?</button>
+    <button class="aiBtn" type="button" data-ai-control onclick="askAI('Explain the current market setup.')" disabled style="opacity:0.55;cursor:not-allowed;">📈 Explain market</button>
+    <button class="aiBtn" type="button" data-ai-control onclick="askAI('Explain the current entry setup.')" disabled style="opacity:0.55;cursor:not-allowed;">🎯 Explain setup</button>
+    <button class="aiBtn" type="button" data-ai-control onclick="askAI('Explain the risks in the current setup.')" disabled style="opacity:0.55;cursor:not-allowed;">⚠️ Explain risks</button>
+    <button class="aiBtn" type="button" data-ai-control onclick="askAI('Explain the available oil-market context and distinguish known facts from unknown news risk.')" disabled style="opacity:0.55;cursor:not-allowed;">📰 Why is oil moving?</button>
   </div>
 
   <div id="aiAnswer" class="aiAnswer">
