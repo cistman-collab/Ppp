@@ -1,0 +1,78 @@
+(function(root){
+  'use strict';
+  // The model explains an existing server plan; it never supplies executable prices.
+  function build(result,now=Date.now(),preview=false){
+    const c=result?.confirmation;
+    const closed=Date.parse(c?.lastCandleClosedAt||'');
+    const age=(now-closed)/60000;
+    const wait=reason=>({stage:'WAIT',direction:'WAIT',reason,key:'WAIT'});
+    if(!result?.ok || !c)return wait('Market check unavailable. Waiting for a successful server check.');
+    if(c.dataFresh!==true || !Number.isFinite(age) || age<0 || age>15)return wait('Candle data is stale or unverified. Waiting for fresh completed candles.');
+    const synthetic=preview && result.synthetic===true && c.marketStatus==='SYNTHETIC';
+    if((c.marketStatus!=='TRADEABLE' && !synthetic) || c.eventBlocked || c.newsConflict)return wait(c.waitReason||'Market closed or a risk block is active.');
+    const stage=c.alertStage;
+    const direction=stage==='PREPARE'?c.prepareDirection:result.direction;
+    const p=stage==='PREPARE'?c.preparePrices:result.prices;
+    if(!['PREPARE','ENTER'].includes(stage) || !['LONG','SHORT'].includes(direction))return wait(c.waitReason||'No confirmed directional setup.');
+    if(stage==='ENTER' && c.entryTriggered!==true)return wait('Completed 5m entry trigger is not confirmed.');
+    if(!p || ![p.entryLow,p.entryHigh,p.stop,p.tp1,p.tp2].every(n=>Number.isFinite(n)&&n>0))return wait('Setup prices are missing or invalid.');
+    const long=direction==='LONG';
+    if(p.entryLow>p.entryHigh || !(long?p.stop<p.entryLow&&p.tp1>p.entryHigh&&p.tp2>p.tp1:p.stop>p.entryHigh&&p.tp1<p.entryLow&&p.tp2<p.tp1))return wait('Entry, stop and target ordering needs checking.');
+    const entry=long?p.entryHigh:p.entryLow;
+    const risk=Math.abs(entry-p.stop);
+    const rr1=Math.abs(p.tp1-entry)/risk,rr2=Math.abs(p.tp2-entry)/risk;
+    if(![risk,rr1,rr2].every(Number.isFinite))return wait('Risk/reward cannot be calculated.');
+    return {stage,direction,synthetic,prices:p,rr1,rr2,risk,closedAt:c.lastCandleClosedAt,contract:c.contractEpic||'IG selected contract',
+      reason:stage==='PREPARE'?(c.entryTriggerText||'Wait for a completed 5m entry trigger.'):'Completed 5m entry trigger confirmed. AI review is separate below.',
+      key:JSON.stringify([c.contractEpic,c.lastCandleClosedAt,stage,direction,p])};
+  }
+  let current=null,currentKey='WAIT';
+  const reviewed=new Map();
+  function update(result){
+    current=result;
+    const plan=build(result,Date.now(),root.document?.documentElement.dataset.preview==='synthetic');
+    currentKey=plan.key;
+    const doc=root.document;
+    if(!doc)return plan;
+    const stage=doc.getElementById('botPlanStage'),details=doc.getElementById('botPlanDetails');
+    if(!stage||!details)return plan;
+    stage.textContent=(plan.synthetic?'TEST ':'')+plan.stage+(plan.direction==='WAIT'?'':' '+plan.direction);
+    stage.className=plan.stage==='WAIT'?'wait':plan.direction==='LONG'?'good':'bad';
+    if(plan.stage==='WAIT'){
+      details.textContent=plan.reason;
+      const review=doc.getElementById('signalAIReview');
+      if(review)review.textContent='AI REVIEW: WAIT — '+plan.reason;
+      return plan;
+    }
+    const p=plan.prices,price=n=>'$'+n.toFixed(2);
+    details.textContent=['Entry zone: '+price(p.entryLow)+'–'+price(p.entryHigh),'Stop: '+price(p.stop),
+      'Target 1: '+price(p.tp1)+' · gross reward/risk '+plan.rr1.toFixed(2)+':1',
+      'Target 2: '+price(p.tp2)+' · gross reward/risk '+plan.rr2.toFixed(2)+':1',
+      'Risk per barrel at the worst entry: '+price(plan.risk),
+      'Setup: '+(result.setupType||'Server technical setup'),
+      'Trend 5m / 15m / 1H / 4H: '+['fiveMinTrend','fifteenMinTrend','oneHourTrend','fourHourTrend'].map(field=>result.confirmation[field]||'UNKNOWN').join(' / '),plan.reason,
+      'Invalidation: price reaches the stop, a risk block appears, or the setup changes.',
+      'Contract: '+plan.contract+' · Candle close: '+plan.closedAt].join('\n');
+    if(plan.stage==='PREPARE'){
+      doc.getElementById('signalAIReview').textContent='AI REVIEW: WAIT — provisional plan. Wait for the completed 5m trigger.';
+    }else if(!reviewed.has(plan.key)){
+      const button=doc.querySelector('[data-ai-control][onclick="reviewSignalAI()"]');
+      if(button && !button.disabled && typeof root.reviewSignalAI==='function'){
+        reviewed.set(plan.key,'Thinking…');
+        if(reviewed.size>100)reviewed.delete(reviewed.keys().next().value);
+        root.reviewSignalAI();
+      }
+    }else{
+      doc.getElementById('signalAIReview').textContent=reviewed.get(plan.key);
+    }
+    return plan;
+  }
+  function reviewedAnswer(key,text){
+    if(key!==currentKey)return;
+    reviewed.set(key,text);
+    const output=root.document?.getElementById('signalAIReview');
+    if(output)output.textContent=text;
+  }
+  root.WTIAutomaticPlan={build,update,key:()=>currentKey,reviewedAnswer};
+  if(root.document)root.setInterval(()=>{if(current)update(current);},10000);
+})(globalThis);
