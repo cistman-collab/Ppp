@@ -64,12 +64,14 @@ test('4H chart shows labelled IG candle prices, real study warmup and working ti
   assert.match(d.getElementById('chartFeedInfo').textContent,/IG TEST-26/);
   assert.match(d.getElementById('chartPriceBasis').textContent,/4H completed candle midpoint/);
   assert.match(d.getElementById('chartHistoryNote').textContent,/SMA 200 needs 200 candles/);
+  assert.equal(d.getElementById('chartScenarioGuide').style.display,'none');
   assert.ok(plots.some(p=>p.options.color==='#309cfa'&&p.data.length));
   assert.ok(!plots.some(p=>p.options.color==='#ffffff'));
   assert.doesNotMatch(d.getElementById('stochValue').textContent,/Unavailable/);
   assert.doesNotMatch(d.getElementById('rsiValue').textContent,/Unavailable/);
   d.querySelector('.chartTabs [data-tf="15"]').click();
   assert.match(d.getElementById('chartPriceBasis').textContent,/15m completed candle midpoint/);
+  assert.equal(d.getElementById('chartScenarioGuide').style.display,'grid');
   assert.ok(plots.some(p=>p.options.color==='#ffffff'&&p.data.length));
   assert.equal(d.getElementById('overall').textContent,'ENTER LONG');assert.deepEqual(errors,[]);
  }finally{dom.window.close();}

@@ -2085,9 +2085,9 @@ const chartMeta=$('chartMeta');
 
 if(chartMeta){
   chartMeta.textContent=
-    'WTI Crude Oil · '+
+    (document.documentElement.dataset.preview==='synthetic'?'Synthetic WTI · ':'WTI Crude Oil · ')+
     tfLabel+
-    ' · IG';
+    (document.documentElement.dataset.preview==='synthetic'?' · TEST':' · IG');
 }
   const sourceBars=currentTF===5?bars:aggregate(bars,currentTF);
   const visibleBars=sourceBars.slice(-80);
@@ -2097,6 +2097,7 @@ if(chartMeta){
     ?tfLabel+' completed candle midpoint · '+new Date(lastChartBar.t+currentTF*M).toISOString()+' · Not an executable Trading 212 quote.'
     :'Not enough completed '+tfLabel+' candles. No price is substituted.';
   $('chartHistoryNote').textContent=sourceBars.length+' completed '+tfLabel+' candles available.'+(sourceBars.length<200?' SMA 200 needs 200 candles and is not shown.':'');
+  $('chartScenarioGuide').style.display=currentTF===15?'grid':'none';
   const container=$('chart');
 
   if(
@@ -2453,7 +2454,7 @@ function placeZone(el,low,high){
 function updateZones(){
   const z=setup?.levelZones;
 
-  if(!z){
+  if(!z || currentTF!==15){
     hideZone(resistanceZone);
     hideZone(supportZone);
     return;
@@ -2495,6 +2496,7 @@ function updatePatternBadges(){
   }
 
   const forming=setup?.formingPattern;
+  if(currentTF!==15)return;
 
   if(
     setup?.direction==='WAIT' &&
@@ -2791,6 +2793,7 @@ if(bullTrigger){
   if(!svg || !data?.length)return;
 
   svg.replaceChildren();
+  if(currentTF!==15)return;
 
   const w=svg.clientWidth;
   const h=svg.clientHeight;
