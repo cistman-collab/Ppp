@@ -7,6 +7,7 @@ import ai from '../api/ai.js';
 import subscribe from '../api/push-subscribe.js';
 import webpush from 'web-push';
 import {get,put} from '../api/storage.js';
+import {resetInventoryCache} from '../api/inventories.js';
 let dir;
 const now=Date.UTC(2026,9,13,15,0,45), originalNow=Date.now,originalFetch=global.fetch,originalPush=webpush.sendNotification;
 const bars=Array.from({length:4000},(_,i)=>{
@@ -14,13 +15,15 @@ const bars=Array.from({length:4000},(_,i)=>{
   return {t:now-45000-(4000-i)*300000,o:c-.002,h:c+.01,l:c-.01,c,v:100};
 });
 const feed={activeProvider:'IG',fallbackUsed:false,contractVerified:true,marketStatus:'TRADEABLE',delayTime:0,epic:'EN.D.CL.FWS1',bars};
-function mockFeed(value){global.fetch=async(url)=>url.endsWith('/api/news')?Response.json({items:[]}):Response.json(value);}
+function inventoryFixture(){return {metadata:{source:'U.S. Energy Information Administration',periodicity:'Weekly',release_date:'2026-10-08'},data:{'U.S.':{sourcekey:'WCESTUS1',units:'thousand barrels',time_series:[{date:'2026-09-25',value:405000,suppression_flag:null},{date:'2026-10-02',value:400000,suppression_flag:null}]}}};}
+function mockFeed(value){global.fetch=async(url)=>url.includes('ir.eia.gov')?Response.json(inventoryFixture()):url.endsWith('/api/news')?Response.json({items:[]}):Response.json(value);}
 async function call(handler,req){let code,result;await handler(req,{setHeader(){},status(n){code=n;return this;},json(value){result=value;return this;}});return {code,result};}
 test.beforeEach(()=>{
   fs.mkdirSync('test-data',{recursive:true});dir=fs.mkdtempSync(path.resolve('test-data','monitor-'));
   Object.assign(process.env,{WTI_DATA_DIR:dir,WTI_MONITOR_SECRET:'synthetic-secret',VAPID_SUBJECT:'mailto:test@example.com'});
   const keys=webpush.generateVAPIDKeys();Object.assign(process.env,{VAPID_PUBLIC_KEY:keys.publicKey,VAPID_PRIVATE_KEY:keys.privateKey});
   Date.now=()=>now;mockFeed(feed);
+  resetInventoryCache();
 });
 test.afterEach(()=>{global.fetch=originalFetch;Date.now=originalNow;webpush.sendNotification=originalPush;fs.rmSync(dir,{recursive:true,force:true});});
 test('PREPARE is visible but never enters the journal; read-only view preserves alert state',async()=>{
@@ -103,6 +106,7 @@ test('AI uses server indicators and excludes forged browser bars and headline in
       sent=JSON.parse(options.body);
       return Response.json({choices:[{message:{content:'AI REVIEW: WAIT\nDIRECTION: WAIT\nWHY: Insufficient evidence.'}}]});
     }
+    if(url.includes('ir.eia.gov'))return Response.json(inventoryFixture());
     return url.endsWith('/api/news')?Response.json({items:[]}):Response.json({...feed,bars:source});
   };
   try{
@@ -110,6 +114,7 @@ test('AI uses server indicators and excludes forged browser bars and headline in
     assert.equal(response.code,200);assert.ok(sent);
     const context=sent.messages.at(-1).content;
     assert.ok(context.includes('serverConfirmation'));
+    assert.ok(context.includes('inventoryContext'));assert.ok(context.includes('"stocksMillionBarrels":400'));
     assert.equal(context.includes('BROWSER_FORGED'),false);
   }finally{delete process.env.OPENAI_API_KEY;}
 });

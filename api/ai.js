@@ -91,6 +91,7 @@ if(
       lastCompletedCandleUTC: String(market.lastCompletedCandleUTC || 'unknown').slice(0, 40),
       marketSession:marketSession(market.lastCompletedCandleUTC),
       indicators: market.indicators || {},
+      inventoryContext:trusted.confirmation.inventory||{status:'UNAVAILABLE'},
       ruleBasedSetup: market.ruleBasedSetup || { direction: 'WAIT' },
       levels: market.levels || {},
       majorLevels: market.majorLevels || {},
@@ -137,6 +138,7 @@ The market input uses verified IG contract candles. No fallback data is accepted
 Review the supplied 5m, 15m, 1H and 4H indicators and the ruleBasedSetup.
 
 Your job is to VALIDATE, REJECT or WAIT on the rule-based setup.
+Combine technical confirmation, news/event risk, inventoryContext and descriptive performance memory in the review. Inventory data is server-fetched official weekly US commercial crude stocks excluding SPR, not global stocks. Include INVENTORIES in the answer: report week, release date, stock level and week-on-week change in million barrels when status is AVAILABLE. If status is STALE or UNAVAILABLE, say so and never use the numbers as confirmation. No analyst consensus is supplied: never invent an expected change or call the result a surprise, beat or miss. A build or draw alone cannot create an entry, override a price/risk gate, predict price direction or require an exit. Treat weekly figures as background context, not a live trigger. Stops and targets remain the supplied values. Distinguish a proposed exit level from an executed or connected broker position.
 Use ruleBasedSetup.monitorConfirmation.candlestickPattern as candlestick context when available, but never let a candlestick pattern create or override a LONG or SHORT setup by itself.
 When ruleBasedSetup.monitorConfirmation.candlestickPattern is available, explicitly name that pattern in CONFIRMATION; when it is unavailable or null, say "No candlestick pattern detected."
 Use learningStats as historical performance memory. learningStats.performance is descriptive simulated cost-adjusted expectancy, not executed trades. State its sample count, average net R, cost assumption and evidence label for the matching setup. A non-positive net R supports caution or rejection. Never call positive expectancy proven or validated, and never change strategy or thresholds automatically.

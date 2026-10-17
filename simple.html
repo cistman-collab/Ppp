@@ -476,7 +476,8 @@ canvas{width:100%;height:400px;display:block}
     </div>
   </div>
 
-  <div class="card setupCard">
+  <details class="card setupCard">
+    <summary>Technical checks and historical evidence</summary>
     <div class="setupTop">
       <div id="chartSetupTitle" class="setupTitle wait">WAIT</div>
       <div class="badge">Research</div>
@@ -487,7 +488,7 @@ canvas{width:100%;height:400px;display:block}
     <div class="row"><span>TP1</span><strong id="chartTP1" class="good">—</strong></div>
     <div class="row"><span>TP2</span><strong id="chartTP2" class="blue">—</strong></div>
     <div class="row"><span>Risk : Reward</span><strong id="chartRR">—</strong></div>
-  </div>
+  </details>
 </section>
 
 <section id="signalsPage" class="page">
@@ -503,10 +504,31 @@ canvas{width:100%;height:400px;display:block}
   </div>
 
   <div class="card" id="automaticPlan">
-    <h2>🤖 Bot's trade plan</h2>
-    <p class="notice">The bot calculates the direction, entry, stop and targets from server-checked IG candles. AI reviews confirmed setups automatically. No prices to enter.</p>
+    <h2>🤖 Bot's decision</h2>
+    <p class="notice">The bot calculates the direction, entry, stop and targets from server-checked IG candles. News, inventory figures, event risk and performance memory are shown together. AI reviews confirmed setups automatically. No prices to enter.</p>
     <strong id="botPlanStage" class="wait" role="status">WAIT — checking market data</strong>
     <div id="botPlanDetails" class="notice" style="white-space:pre-line;overflow-wrap:anywhere" aria-live="polite">Waiting for a verified setup…</div>
+    <div id="botEvidence" class="notice" style="white-space:pre-line">News and event checks loading…</div>
+    <div class="subcard">
+      <h3>Crude inventories · EIA</h3>
+      <p id="botInventory" class="notice" style="white-space:pre-line" aria-live="polite">Checking official weekly US figures…</p>
+      <a class="notice blue" href="https://www.eia.gov/petroleum/supply/weekly/" target="_blank" rel="noopener noreferrer">Official EIA report ↗</a>
+    </div>
+    <div class="subcard">
+  <h3>🤖 AI Review</h3>
+  <p id="signalAIReview">
+    AI review is currently unavailable.
+    Rule-based signals and alerts still work.
+  </p>
+  <button
+    class="primary"
+    type="button"
+    data-ai-control onclick="reviewSignalAI()" disabled
+    style="opacity:0.55;cursor:not-allowed;"
+  >
+    AI Review Unavailable
+  </button>
+</div>
     <p class="notice">IG contract research. Trading 212 prices and contracts may differ. Risk/reward excludes spread, fees and slippage. No trade is placed.</p>
   </div>
   <div class="card setupCard">
@@ -582,21 +604,7 @@ canvas{width:100%;height:400px;display:block}
   </p>
 </div>
    
-<div class="subcard">
-  <h3>🤖 AI Review</h3>
-  <p id="signalAIReview">
-    AI review is currently unavailable.
-    Rule-based signals and alerts still work.
-  </p>
-  <button
-    class="primary"
-    type="button"
-    data-ai-control onclick="reviewSignalAI()" disabled
-    style="opacity:0.55;cursor:not-allowed;"
-  >
-    AI Review Unavailable
-  </button>
-</div>
+
 
   </div>
 </section>
