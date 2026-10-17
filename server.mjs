@@ -33,6 +33,7 @@ const publicFiles = [
   'simple.html',
   'automatic-plan.js',
   'chart-studies.js',
+  'signal-indicator.js',
   'index.html',
   'sw.js',
   'manifest.webmanifest',

@@ -101,6 +101,7 @@ small,.muted{color:var(--muted)}
 }
 .primary{border:1px solid #3f91ff;background:linear-gradient(180deg,#1888ff,#0b5fd8)}
 .secondary{border:1px solid #49627b;background:#17314a}
+.indicatorLevels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.indicatorLevels strong{display:block;font-size:15px;overflow-wrap:anywhere}
 .chartTabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
 .chartTabs button{
   padding:10px;border-radius:11px;
@@ -399,6 +400,20 @@ canvas{width:100%;height:400px;display:block}
     <div class="mode">Chart</div>
   </div>
 
+  <div class="card" id="wtiSignalIndicator">
+    <h2>WTI Signal Indicator</h2>
+    <div id="chartSetupTitle" class="setupTitle wait" role="status" aria-live="polite">WAIT</div>
+    <p id="indicatorReason" class="notice">Checking the server signal…</p>
+    <div class="indicatorLevels">
+      <div><small>Entry zone</small><strong id="chartEntry">—</strong></div>
+      <div><small>Stop</small><strong id="chartStop" class="bad">—</strong></div>
+      <div><small>Target 1</small><strong id="chartTP1" class="good">—</strong></div>
+      <div><small>Target 2</small><strong id="chartTP2" class="blue">—</strong></div>
+    </div>
+    <p class="notice">Gross reward/risk · <strong id="chartRR">—</strong> · Costs excluded.</p>
+    <p id="indicatorChecks" class="notice" style="white-space:pre-line;overflow-wrap:anywhere">Checks loading…</p>
+    <p id="indicatorSource" class="notice">Uses the bot's server signal and existing PREPARE/ENTER alerts. No trade is placed.</p>
+  </div>
   <div class="card">
     <div id="chartFeedInfo" class="notice">IG selected contract · checking data…</div>
     <div class="price" id="chartPrice" style="font-size:30px">—</div>
@@ -479,18 +494,6 @@ canvas{width:100%;height:400px;display:block}
     </div>
   </div>
 
-  <div class="card setupCard">
-    <div class="setupTop">
-      <div id="chartSetupTitle" class="setupTitle wait">WAIT</div>
-      <div class="badge">Research</div>
-    </div>
-
-    <div class="row"><span>Entry zone</span><strong id="chartEntry" class="wait">—</strong></div>
-    <div class="row"><span>Stop</span><strong id="chartStop" class="bad">—</strong></div>
-    <div class="row"><span>TP1</span><strong id="chartTP1" class="good">—</strong></div>
-    <div class="row"><span>TP2</span><strong id="chartTP2" class="blue">—</strong></div>
-    <div class="row"><span>Risk : Reward</span><strong id="chartRR">—</strong></div>
-  </div>
 </section>
 
 <section id="signalsPage" class="page">
@@ -793,6 +796,7 @@ canvas{width:100%;height:400px;display:block}
 
 <script src="/automatic-plan.js"></script>
 <script src="/chart-studies.js"></script>
+<script src="/signal-indicator.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const M=60000;
@@ -1867,8 +1871,7 @@ $('patternStatus').textContent=
     $('setupBadge').textContent='WAIT';
 
     [
-      'entryZone','stopLoss','tp1','tp2','rr',
-      'chartEntry','chartStop','chartTP1','chartTP2','chartRR'
+      'entryZone','stopLoss','tp1','tp2','rr'
     ].forEach(id=>$(id).textContent='—');
 
     $('setupWhy').textContent=
@@ -1882,8 +1885,6 @@ $('confirmation').textContent=
     $('invalidateText').textContent=
       'No setup is active.';
 
-    $('chartSetupTitle').textContent='WAIT';
-    $('chartSetupTitle').className='setupTitle wait';
 
     return;
   }
@@ -1915,14 +1916,7 @@ $('confirmation').textContent=
     fmt(s.stop)+
     ', the setup is invalidated.';
 
-  $('chartSetupTitle').textContent=s.direction+' SETUP';
-  $('chartSetupTitle').className='setupTitle '+(long?'good':'bad');
 
-  $('chartEntry').textContent=fmt(s.entryLow)+' – '+fmt(s.entryHigh);
-  $('chartStop').textContent=fmt(s.stop);
-  $('chartTP1').textContent=fmt(s.tp1);
-  $('chartTP2').textContent=fmt(s.tp2);
-  $('chartRR').textContent='1 : '+s.rr.toFixed(1);
 }
 let setupHistoryCache=null;
 let setupValidationCache=null;
@@ -2358,52 +2352,6 @@ if(chartMeta){
 
 drawPatternGeometry();
 
-  function drawPatternConfirmationMarker(){
-  if(
-    currentTF!==15 ||
-    setup?.direction==='WAIT' ||
-    !setup?.geometry?.confirmTime
-  )return;
-
-  const target=
-    setup.geometry.confirmTime;
-
-  const nearest=
-    data.reduce(
-      (best,b)=>
-        Math.abs(b.t-target)<
-        Math.abs(best.t-target)
-          ?b
-          :best,
-      data[0]
-    );
-
-  if(!nearest)return;
-
-  const long=
-    setup.direction==='LONG';
-
-  candles.setMarkers([
-    {
-      time:Math.floor(nearest.t/1000),
-      position:long
-        ?'belowBar'
-        :'aboveBar',
-      color:long
-        ?'#2fe0a7'
-        :'#ff5964',
-      shape:long
-        ?'arrowUp'
-        :'arrowDown',
-      text:long
-        ?'BREAKOUT'
-        :'BREAKDOWN'
-    }
-  ]);
-}
-
-drawPatternConfirmationMarker();
-
   const resistanceZone=$('resistanceZone');
 const supportZone=$('supportZone');
 
@@ -2597,7 +2545,8 @@ addStudy(studies.bollinger.upper,'#309cfa');addStudy(studies.bollinger.middle,'#
   price,
   title,
   color,
-  showLabel=true
+  showLabel=true,
+  provisional=true
 ){
   if(!Number.isFinite(price))return;
 
@@ -2606,7 +2555,7 @@ addStudy(studies.bollinger.upper,'#309cfa');addStudy(studies.bollinger.middle,'#
     color,
     lineWidth:1,
     lineStyle:
-      LightweightCharts.LineStyle.Dashed,
+      provisional?LightweightCharts.LineStyle.Dashed:LightweightCharts.LineStyle.Solid,
     axisLabelVisible:showLabel,
     title:showLabel?title:''
   });
@@ -2757,34 +2706,9 @@ if(bullTrigger){
     for(const [key,label] of [['pivot','P'],['r1','R1'],['r2','R2'],['s1','S1'],['s2','S2']])priceLine(major[key],label,key==='pivot'?'#ffd15f':'#39df74',true);
   }
 
-  if(
-    setup &&
-    setup.direction!=='WAIT'
-  ){
-    priceLine(
-      (setup.entryLow+setup.entryHigh)/2,
-      'ENTRY',
-      '#ffd15f'
-    );
-
-    priceLine(
-      setup.stop,
-      'SL',
-      '#ff5964'
-    );
-
-    priceLine(
-      setup.tp1,
-      'TP1',
-      '#2fe0a7'
-    );
-
-    priceLine(
-      setup.tp2,
-      'TP2',
-      '#4e9fff'
-    );
-  }
+  const signalOverlay=window.WTISignalIndicator.overlay(data,currentTF);
+  for(const line of signalOverlay.lines)priceLine(line.price,line.title,line.color,line.label,signalOverlay.plan.stage==='PREPARE');
+  candles.setMarkers(signalOverlay.markers);
 
   chart.timeScale().fitContent();
   
@@ -3381,6 +3305,7 @@ async function loadCandles(){
      d.activeProvider==='IG' &&
      d.fallbackUsed===false &&
      d.contractVerified===true;
+    window.WTISignalIndicator.setContract(d.epic);
     $('chartFeedInfo').textContent=(document.documentElement.dataset.preview==='synthetic'?'SYNTHETIC TEST DATA':'IG '+(d.contractExpiry||'UNKNOWN'))+' · '+(d.epic||'UNKNOWN')+' · '+(d.marketStatus||'UNKNOWN')+' · Trading 212 contract match unverified';
     $('contractStatus').textContent='Contract '+(d.contractExpiry||'UNKNOWN')+' · '+(d.epic||'UNKNOWN')+' · '+(d.marketStatus||'UNKNOWN')+' · Last dealing '+(d.contractLastDealingAt?new Date(d.contractLastDealingAt).toLocaleString():'UNKNOWN');
     const now=Date.now();
@@ -3414,6 +3339,7 @@ chartFeedVerified=
 await render();
 
   }catch(e){
+    window.WTIAutomaticPlan.update(null);
     $('contractStatus').textContent='IG contract data unavailable — signals blocked.';
         chartFeedVerified=false;
     setup={

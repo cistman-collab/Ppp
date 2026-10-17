@@ -4,13 +4,14 @@ import fs from 'node:fs';
 import {JSDOM,VirtualConsole} from 'jsdom';
 const source=fs.readFileSync(new URL('../simple.html',import.meta.url),'utf8')
  .replace('<script src="/automatic-plan.js"></script>',()=>'<script>'+fs.readFileSync(new URL('../automatic-plan.js',import.meta.url),'utf8')+'</script>')
- .replace('<script src="/chart-studies.js"></script>',()=>'<script>'+fs.readFileSync(new URL('../chart-studies.js',import.meta.url),'utf8')+'</script>');
+ .replace('<script src="/chart-studies.js"></script>',()=>'<script>'+fs.readFileSync(new URL('../chart-studies.js',import.meta.url),'utf8')+'</script>')
+ .replace('<script src="/signal-indicator.js"></script>',()=>'<script>'+fs.readFileSync(new URL('../signal-indicator.js',import.meta.url),'utf8')+'</script>');
 const now=Date.now(),end=Math.floor(now/300000)*300000;
 const bars=Array.from({length:4000},(_,i)=>{
   const c=70+i*.001+i*i*.0000001;
   return {t:end-(4000-i)*300000,o:c-.002,h:c+.01,l:c-.01,c,v:100};
 });
-const fresh={dataFresh:true,marketStatus:'TRADEABLE',entryTriggered:true,preparePrices:{entryLow:70,entryHigh:71,stop:69,tp1:73,tp2:75},lastCandleClosedAt:new Date(end).toISOString(),alertStage:'PREPARE',prepareDirection:'LONG',entryTriggerText:'Wait for completed 5m trigger.',waitReason:'Preparation only.'};
+const fresh={dataFresh:true,contractEpic:'EN.D.CL.FWS.TEST',marketStatus:'TRADEABLE',entryTriggered:true,preparePrices:{entryLow:70,entryHigh:71,stop:69,tp1:73,tp2:75},lastCandleClosedAt:new Date(end).toISOString(),alertStage:'PREPARE',prepareDirection:'LONG',entryTriggerText:'Wait for completed 5m trigger.',waitReason:'Preparation only.'};
 function page(stage='PREPARE',withChart=false){
   const errors=[];
   const plots=[];
@@ -22,7 +23,7 @@ function page(stage='PREPARE',withChart=false){
       window.HTMLCanvasElement.prototype.getBoundingClientRect=()=>({width:375,height:120});
       window.HTMLCanvasElement.prototype.getContext=()=>({scale(){},clearRect(){},fillRect(){},setLineDash(){},beginPath(){},moveTo(){},lineTo(){},stroke(){}});
       window.LightweightCharts={ColorType:{Solid:0},CrosshairMode:{Normal:0},LineStyle:{Solid:0,Dashed:2},createChart(){
-        const series=(kind,options)=>{const plot={kind,options};plots.push(plot);return {setData(data){plot.data=data;},createPriceLine(){},setMarkers(){},priceToCoordinate(){return null;}};};
+        const series=(kind,options)=>{const plot={kind,options,priceLines:[]};plots.push(plot);return {setData(data){plot.data=data;},createPriceLine(line){plot.priceLines.push(line);},setMarkers(markers){plot.markers=markers;},priceToCoordinate(){return null;}};};
         return {remove(){},addCandlestickSeries(options){return series('candles',options);},addLineSeries(options){return series('line',options);},subscribeCrosshairMove(){},timeScale(){return {fitContent(){},subscribeVisibleLogicalRangeChange(){},timeToCoordinate(){return 0;}};}};
       }};
     }
@@ -50,11 +51,25 @@ test('iPhone shell has install metadata and PREPARE is distinct from entry',asyn
     const document=dom.window.document;
     assert.equal(document.getElementById('overall').textContent,'PREPARE LONG');
     assert.equal(document.getElementById('botPlanStage').textContent,'PREPARE LONG');
+    assert.equal(document.getElementById('chartSetupTitle').textContent,'PREPARE LONG');
+    assert.match(document.getElementById('chartEntry').textContent,/70.00/);
     assert.equal(document.getElementById('nextTarget').textContent,'—');
     assert.match(document.getElementById('contractStatus').textContent,/TEST-26/);
     assert.equal(document.querySelector('link[rel="manifest"]').getAttribute('href'),'/manifest.webmanifest');
     assert.deepEqual(errors,[]);
   }finally{dom.window.close();}
+});
+
+test('indicator levels and bot agree; a failed market refresh removes actionable chart levels',async()=>{
+ const {dom,plots}=page('ENTER',true);try{
+  await settled(dom);const w=dom.window,d=w.document;
+  assert.equal(d.getElementById('chartSetupTitle').textContent,d.getElementById('botPlanStage').textContent);
+  assert.ok(plots.filter(p=>p.kind==='candles').at(-1).priceLines.some(line=>line.title==='SL'));
+  const original=w.fetch;w.fetch=async url=>url.includes('/api/candles')?new Response('{}',{status:503}):original(url);
+  await w.loadCandles();
+  assert.equal(d.getElementById('chartSetupTitle').textContent,'WAIT');assert.equal(d.getElementById('chartStop').textContent,'—');
+  assert.ok(!plots.filter(p=>p.kind==='candles').at(-1).priceLines.some(line=>line.title==='SL'));
+ }finally{dom.window.close();}
 });
 
 test('4H chart shows labelled IG candle prices, real study warmup and working timeframe changes',async()=>{

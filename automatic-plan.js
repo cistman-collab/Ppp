@@ -67,6 +67,7 @@
     current=result;
     const plan=build(result,Date.now(),root.document?.documentElement.dataset.preview==='synthetic');
     currentKey=plan.key;
+    root.WTISignalIndicator?.update(plan,result);
     const doc=root.document;
     if(!doc)return plan;
     renderEvidence(result);
