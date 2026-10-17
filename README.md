@@ -69,3 +69,6 @@ Test data and notification registration can reset on free-service replacement; e
 alerts again only in the preview if needed. The existing app's subscription is untouched.
 `render-preview.yaml` records the equivalent configuration; direct service creation
 uses the same free plan, branch and commands with automatic deploys disabled.
+
+## Local trade planner
+Signals includes a browser-only planner for manual Trading 212 contract/quotes, chosen account risk, unit value/FX, broker quantity increments and costs. Quotes expire after two minutes and edits invalidate the previous plan. Size is rounded down to the broker step within estimated stop risk. Net target results assume all units exit at that target, with the entered round-trip costs; they are not a split-exit strategy. Prices are mid-price assumptions. Gaps can exceed the estimate; no margin or execution guarantee is made. Account inputs are not saved or sent to any API. IG status remains separate; a calculation never creates ENTER or verifies a Trading 212 contract match.
