@@ -43,6 +43,8 @@ test('automatic UI reviews once per confirmed candle, clears stale replies and h
   assert.match(w.document.getElementById('botInventory').textContent,/400.000 million barrels/);
   assert.match(w.document.getElementById('botEvidence').textContent,/News: MIXED/);
   assert.equal(w.document.querySelector('#automaticPlan #signalAIReview')!==null,true);
+  assert.equal(w.document.querySelector('#signalsPage details.setupCard').open,false);
+  assert.equal(w.document.querySelector('#chartPage details.setupCard'),null);
   assert.equal(count,2); // New verified inventory/news context deserves a new review.
  }finally{dom.window.close();}
 });
