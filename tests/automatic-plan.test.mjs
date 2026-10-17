@@ -38,6 +38,14 @@ test('automatic UI reviews once per confirmed candle, clears stale replies and h
   assert.equal(w.document.getElementById('riskPlanForm'),null);
   w.WTIAutomaticPlan.reviewedAnswer(old,'late stale reply');assert.doesNotMatch(w.document.getElementById('signalAIReview').textContent,/late stale reply/);
   w.WTIAutomaticPlan.update(base);assert.equal(count,1);assert.equal(w.document.getElementById('signalAIReview').textContent,'AI REVIEW: VALIDATE');
+  const inventory={status:'AVAILABLE',releaseDate:'2026-10-15',weekEnding:'2026-10-09',stocksMillionBarrels:400,changeMillionBarrels:-5,movement:'DRAW'};
+  w.WTIAutomaticPlan.update({...base,confirmation:{...base.confirmation,inventory,newsAvailable:true,newsBias:'MIXED',eventStatus:'CLEAR'}});
+  assert.match(w.document.getElementById('botInventory').textContent,/400.000 million barrels/);
+  assert.match(w.document.getElementById('botEvidence').textContent,/News: MIXED/);
+  assert.equal(w.document.querySelector('#automaticPlan #signalAIReview')!==null,true);
+  assert.equal(w.document.querySelector('#signalsPage details.setupCard').open,false);
+  assert.equal(w.document.querySelector('#chartPage details.setupCard'),null);
+  assert.equal(count,2); // New verified inventory/news context deserves a new review.
  }finally{dom.window.close();}
 });
 test('synthetic plans require both an isolated preview and synthetic server metadata',()=>{

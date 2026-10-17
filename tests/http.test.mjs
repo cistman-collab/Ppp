@@ -29,6 +29,7 @@ test('real HTTP serves the mobile shell, verified setup, journal, icons and back
     assert.equal(monitor.ok,true);assert.equal(monitor.confirmation.alertStage,'PREPARE');
     assert.equal(monitor.confirmation.prepareDirection,'SHORT');
     assert.equal((await fetch(root+'/api/push-config')).status,200);
+    const inventory=await (await fetch(root+'/api/inventories')).json();assert.equal(inventory.status,'UNAVAILABLE');assert.match(inventory.note,/isolated synthetic preview/);
     const journal=await (await fetch(root+'/api/signal-journal')).json();assert.equal(journal.stats.totalSignals,0);
     const backtest=await (await fetch(root+'/api/backtest')).json();assert.equal(backtest.ok,true);assert.equal(backtest.mode,'TECHNICAL_ONLY_REPLAY');
     assert.equal((await fetch(root+'/api/storage')).status,404);

@@ -2,6 +2,7 @@ import { get, put } from './storage.js';
 import webpush from 'web-push';
 import { updateSignalJournal, acknowledgeSignalEvent } from './signal-journal.js';
 import { getEventRisk } from './events.js';
+import {getInventories} from './inventories.js';
 
 import { validPrices, entryTrigger, signalStage, internalOrigin } from './safety.js';
 const M=60000;
@@ -2692,6 +2693,9 @@ const eventRisk=
     
 const newsContext=
   await getNewsContext(req);
+const inventoryContext=await getInventories();
+confirmation.inventory=inventoryContext;
+confirmation.newsFetchedAt=newsContext.fetchedAt;
 
 const newsConflict=
   technicalDirection!=='WAIT' &&

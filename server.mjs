@@ -63,6 +63,7 @@ for (const file of publicFiles) {
 }
 
 const apiNames = new Set([
+  'inventories',
   'ai',
   'backtest',
   'candles',
