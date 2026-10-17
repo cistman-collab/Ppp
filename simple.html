@@ -282,7 +282,7 @@ canvas{width:100%;height:400px;display:block}
 .nav.active{color:#3f9dff}
 .notice{font-size:11px;color:#8ea7be;line-height:1.45;margin-top:10px}
 
-.plannerGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.plannerGrid label{font-size:13px;color:#adc4d5;min-width:0}.plannerGrid input,.plannerGrid select{display:block;width:100%;box-sizing:border-box;min-width:0;margin-top:5px;padding:12px;border:1px solid #38516a;border-radius:10px;background:#091b2b;color:#fff;font-size:16px}#tradePlanner button{margin-top:12px;width:100%}#riskPlanResult{white-space:pre-line;overflow-wrap:anywhere}@media(max-width:360px){.plannerGrid{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -502,37 +502,12 @@ canvas{width:100%;height:400px;display:block}
     <div class="mode">Signals</div>
   </div>
 
-  <div class="card" id="tradePlanner">
-    <h2>Plan my trade</h2>
-    <p class="notice">IG signals are research. Trading 212 quotes and contracts may differ. This calculator never confirms an entry or places a trade. Inputs stay on this page and reset when reloaded.</p>
-    <form id="riskPlanForm">
-    <div class="plannerGrid">
-      <label>Account currency <select name="currency"><option>GBP</option><option>EUR</option><option>USD</option></select></label>
-      <label>Account equity <input name="equity" type="number" min="0" step="any" required></label>
-      <label>Chosen risk (%) <input name="riskPercent" type="number" min="0" max="100" step="any" required></label>
-      <label>Direction <select name="direction"><option>LONG</option><option>SHORT</option></select></label>
-      <label>Planned mid-price (USD) <input name="entry" type="number" min="0" step="any" required></label>
-      <label>Stop (USD) <input name="stop" type="number" min="0" step="any" required></label>
-      <label>Target 1 (USD) <input name="tp1" type="number" min="0" step="any" required></label>
-      <label>Target 2 (USD) <input name="tp2" type="number" min="0" step="any" required></label>
-      <label>USD value of $1 move per unit <input name="pointValue" type="number" min="0" step="any" required></label>
-      <label>Account currency per USD <input name="fx" type="number" min="0" step="any" required></label>
-      <label>Broker quantity step <input name="quantityStep" type="number" min="0" step="any" required></label>
-      <label>Broker minimum quantity <input name="minimumQuantity" type="number" min="0" step="any" required></label>
-      <label>Trading 212 contract name <input name="brokerContract" maxlength="100" required autocomplete="off"></label>
-      <label>Trading 212 sell quote <input name="bid" type="number" min="0" step="any" required></label>
-      <label>Trading 212 buy quote <input name="ask" type="number" min="0" step="any" required></label>
-      <label>Estimated round-trip slippage (USD price) <input name="slippage" type="number" min="0" step="any" value="0" required></label>
-      <label>Round-trip fees per unit (account currency) <input name="fees" type="number" min="0" step="any" value="0" required></label>
-      <label>Financing estimate per unit (account currency) <input name="financing" type="number" min="0" step="any" value="0" required></label>
-    </div>
-    <p class="notice">Copy point value, quantity rules and conversion from your broker. For USD accounts, conversion is 1. Zero cost estimates mean those costs are excluded. Risk uses stop distance plus spread and estimated costs; gaps can exceed this estimate.</p>
-    <label><input name="verified" type="checkbox" required> I checked this contract, its expiry, quotes and unit specifications in Trading 212.</label>
-    <button type="button" class="secondary" id="quoteStamp">I just checked these quotes</button>
-    <p id="quoteAge" class="notice">Quote time not recorded. Quotes must be rechecked within 2 minutes.</p>
-    <button class="primary" type="submit">Calculate trade plan</button>
-    </form>
-    <div id="riskPlanResult" class="notice" role="status" aria-live="polite">Enter your broker details to calculate. No size is assumed.</div>
+  <div class="card" id="automaticPlan">
+    <h2>🤖 Bot's trade plan</h2>
+    <p class="notice">The bot calculates the direction, entry, stop and targets from server-checked IG candles. AI reviews confirmed setups automatically. No prices to enter.</p>
+    <strong id="botPlanStage" class="wait" role="status">WAIT — checking market data</strong>
+    <div id="botPlanDetails" class="notice" style="white-space:pre-line;overflow-wrap:anywhere" aria-live="polite">Waiting for a verified setup…</div>
+    <p class="notice">IG contract research. Trading 212 prices and contracts may differ. Risk/reward excludes spread, fees and slippage. No trade is placed.</p>
   </div>
   <div class="card setupCard">
     <div class="setupTop">
@@ -805,7 +780,7 @@ canvas{width:100%;height:400px;display:block}
   <div class="nav" data-page="more"><b>•••</b>More</div>
 </nav>
 
-<script src="/trade-planner.js"></script>
+<script src="/automatic-plan.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const M=60000;
@@ -1573,6 +1548,7 @@ const bearishMomentum=
     }
 
     const result=await response.json();
+    window.WTIAutomaticPlan.update(result);
     const c=result.confirmation;
     const closedAt=Date.parse(c?.lastCandleClosedAt||'');
     const age=(Date.now()-closedAt)/M;
@@ -1670,6 +1646,7 @@ const bearishMomentum=
       };
     }
   }catch(e){
+    window.WTIAutomaticPlan.update(null);
     setup={
       direction:'WAIT',
       waitReason:e.message,
@@ -3761,6 +3738,7 @@ async function askAI(question){
 }
 
 async function reviewSignalAI(){
+  const planKey=window.WTIAutomaticPlan.key();
   const out=$('signalAIReview');
 
   out.textContent='Thinking…';
@@ -3809,10 +3787,11 @@ async function reviewSignalAI(){
 
     if(!r.ok)throw Error(d.error||'AI unavailable');
 
-    out.textContent=d.answer||'No AI review returned.';
+    if(planKey!==window.WTIAutomaticPlan.key())return;
+    window.WTIAutomaticPlan.reviewedAnswer(planKey,d.answer||'No AI review returned.');
 
 }catch(e){
-  out.textContent=e.message;
+  if(planKey===window.WTIAutomaticPlan.key())window.WTIAutomaticPlan.reviewedAnswer(planKey,e.message);
 }
 }
 

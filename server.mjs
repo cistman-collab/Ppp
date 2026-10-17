@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 
 const publicFiles = [
   'simple.html',
-  'trade-planner.js',
+  'automatic-plan.js',
   'index.html',
   'sw.js',
   'manifest.webmanifest',

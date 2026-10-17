@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {JSDOM,VirtualConsole} from 'jsdom';
-const source=fs.readFileSync(new URL('../simple.html',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../simple.html',import.meta.url),'utf8').replace('<script src="/automatic-plan.js"></script>',()=>'<script>'+fs.readFileSync(new URL('../automatic-plan.js',import.meta.url),'utf8')+'</script>');
 const now=Date.now(),end=Math.floor(now/300000)*300000;
 const bars=Array.from({length:4000},(_,i)=>{
   const c=70+i*.001+i*i*.0000001;
   return {t:end-(4000-i)*300000,o:c-.002,h:c+.01,l:c-.01,c,v:100};
 });
-const fresh={dataFresh:true,lastCandleClosedAt:new Date(end).toISOString(),alertStage:'PREPARE',prepareDirection:'LONG',entryTriggerText:'Wait for completed 5m trigger.',waitReason:'Preparation only.'};
+const fresh={dataFresh:true,marketStatus:'TRADEABLE',entryTriggered:true,preparePrices:{entryLow:70,entryHigh:71,stop:69,tp1:73,tp2:75},lastCandleClosedAt:new Date(end).toISOString(),alertStage:'PREPARE',prepareDirection:'LONG',entryTriggerText:'Wait for completed 5m trigger.',waitReason:'Preparation only.'};
 function page(stage='PREPARE'){
   const errors=[];
   const virtualConsole=new VirtualConsole();virtualConsole.on('jsdomError',error=>{if(!error.message.includes('Not implemented'))errors.push(error.message);});
@@ -37,6 +37,7 @@ test('iPhone shell has install metadata and PREPARE is distinct from entry',asyn
     await settled(dom);
     const document=dom.window.document;
     assert.equal(document.getElementById('overall').textContent,'PREPARE LONG');
+    assert.equal(document.getElementById('botPlanStage').textContent,'PREPARE LONG');
     assert.equal(document.getElementById('nextTarget').textContent,'—');
     assert.match(document.getElementById('contractStatus').textContent,/TEST-26/);
     assert.equal(document.querySelector('link[rel="manifest"]').getAttribute('href'),'/manifest.webmanifest');
@@ -47,6 +48,7 @@ test('ENTER shows confirmed targets; all five navigation pages switch correctly'
   const {dom,errors}=page('ENTER');try{
     await settled(dom);const document=dom.window.document;
     assert.equal(document.getElementById('overall').textContent,'ENTER LONG');assert.equal(document.getElementById('nextTarget').textContent,'73.00');
+    assert.equal(document.getElementById('botPlanStage').textContent,'ENTER LONG');
     for(const name of ['chart','signals','news','more','home']){
       document.querySelector(`.nav[data-page="${name}"]`).click();
       assert.ok(document.getElementById(name+'Page').classList.contains('active'));
