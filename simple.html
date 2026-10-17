@@ -303,6 +303,7 @@ canvas{width:100%;height:400px;display:block}
 
   <div class="priceRow">
     <div>
+      <div class="notice">IG completed 5m candle close</div>
       <div id="homePrice" class="price">—</div>
       <div id="homeChange" class="change wait">Loading…</div>
     </div>
@@ -392,24 +393,29 @@ canvas{width:100%;height:400px;display:block}
       <div class="logo">📈</div>
       <div>
         <h1>WTI Chart</h1>
-        <small>Candles + levels</small>
+        <small>Completed candles · IG contract</small>
       </div>
     </div>
     <div class="mode">Chart</div>
   </div>
 
   <div class="card">
+    <div id="chartFeedInfo" class="notice">IG selected contract · checking data…</div>
+    <div class="price" id="chartPrice" style="font-size:30px">—</div>
+    <p id="chartPriceBasis" class="notice">Completed candle midpoint. Not a Trading 212 buy/sell quote.</p>
     <div class="chartTabs">
       <button data-tf="5">5m</button>
-      <button data-tf="15" class="active">15m</button>
+      <button data-tf="15">15m</button>
       <button data-tf="30">30m</button>
       <button data-tf="60">1H</button>
-      <button data-tf="240">4H</button>
+      <button data-tf="240" class="active">4H</button>
     </div>
 
+    <p class="notice">EMA 9 (green) / 21 (red) · SMA 50 (yellow) / 200 (white) · Bollinger 20, 2σ (blue). These are display studies; entry rules are unchanged.</p>
+    <p id="chartHistoryNote" class="notice"></p>
     <div class="chartbox">
     <div id="chartMeta" class="chartMeta">
-  WTI Crude Oil · 15m · IG
+  WTI Crude Oil · 4H · IG
 </div>
   
     <div id="chartOhlc" class="chartOhlc">
@@ -454,16 +460,13 @@ canvas{width:100%;height:400px;display:block}
   </div>
 </div>
 
-    <div class="indicatorBox">
-  <div class="indicatorTitle">
-  MACD (12,26,9) · <span id="macdValue">—</span>
+<div class="indicatorBox">
+  <div class="indicatorTitle">Stochastic (14,3,3) · <span id="stochValue">—</span></div>
+  <canvas id="stochChart"></canvas>
 </div>
-  <canvas id="macdChart"></canvas>
-</div>
-
 <div class="indicatorBox">
   <div class="indicatorTitle">
-  RSI (14) · <span id="rsiValue">—</span>
+  RSI (Wilder 14) + SMA 14 · <span id="rsiValue">—</span>
 </div>
   <canvas id="rsiChart"></canvas>
 </div>
@@ -789,6 +792,7 @@ canvas{width:100%;height:400px;display:block}
 </nav>
 
 <script src="/automatic-plan.js"></script>
+<script src="/chart-studies.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const M=60000;
@@ -938,7 +942,7 @@ status.textContent=
 
 
 let bars=[];
-let currentTF=15;
+let currentTF=240;
 let setup=null;
 let newsItems=[];
 let newsFetchedAt=null;
@@ -2085,6 +2089,14 @@ if(chartMeta){
     tfLabel+
     ' · IG';
 }
+  const sourceBars=currentTF===5?bars:aggregate(bars,currentTF);
+  const visibleBars=sourceBars.slice(-80);
+  const lastChartBar=visibleBars.at(-1);
+  $('chartPrice').textContent=lastChartBar?'$'+lastChartBar.c.toFixed(2):'Unavailable';
+  $('chartPriceBasis').textContent=lastChartBar
+    ?tfLabel+' completed candle midpoint · '+new Date(lastChartBar.t+currentTF*M).toISOString()+' · Not an executable Trading 212 quote.'
+    :'Not enough completed '+tfLabel+' candles. No price is substituted.';
+  $('chartHistoryNote').textContent=sourceBars.length+' completed '+tfLabel+' candles available.'+(sourceBars.length<200?' SMA 200 needs 200 candles and is not shown.':'');
   const container=$('chart');
 
   if(
@@ -2105,12 +2117,8 @@ if(chartMeta){
 
   container.innerHTML='';
 
-  const src=
-    currentTF===5
-      ?bars
-      :aggregate(bars,currentTF);
-
-  const data=src.slice(-80);
+  const src=sourceBars;
+  const data=visibleBars;
 
   if(data.length<5)return;
 
@@ -2124,7 +2132,7 @@ if(chartMeta){
         layout:{
           background:{
             type:LightweightCharts.ColorType.Solid,
-            color:'#06131f'
+            color:'#050909'
           },
           textColor:'#9fb3c8',
           fontFamily:'system-ui'
@@ -2180,12 +2188,12 @@ if(chartMeta){
 
   const candles=
     chart.addCandlestickSeries({
-      upColor:'#2fe0a7',
-      downColor:'#ff5964',
-      wickUpColor:'#2fe0a7',
-      wickDownColor:'#ff5964',
-      borderUpColor:'#2fe0a7',
-      borderDownColor:'#ff5964',
+      upColor:'#13d668',
+      downColor:'#f34851',
+      wickUpColor:'#13d668',
+      wickDownColor:'#f34851',
+      borderUpColor:'#13d668',
+      borderDownColor:'#f34851',
 
       priceFormat:{
         type:'price',
@@ -2572,45 +2580,16 @@ chart.subscribeCrosshairMove(param=>{
 const start=
   src.length-data.length;
 
-if(src.length>=50){
-  const ema50=
-    emaSeries(closes,50);
-
-  const ema50Line=
-    chart.addLineSeries({
-      color:'#2f80ed',
-      lineWidth:2,
-      priceLineVisible:false,
-      lastValueVisible:false
-    });
-
-  ema50Line.setData(
-    data.map((b,i)=>({
-      time:Math.floor(b.t/1000),
-      value:ema50[start+i]
-    }))
-  );
+const studies=window.WTIChartStudies.calculate(src);
+function addStudy(values,color,width=1){
+  const points=data.map((bar,i)=>({time:Math.floor(bar.t/1000),value:values[start+i]})).filter(p=>Number.isFinite(p.value));
+  if(!points.length)return;
+  const line=chart.addLineSeries({color,lineWidth:width,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
+  line.setData(points);
 }
-
-if(src.length>=200){
-  const ema200=
-    emaSeries(closes,200);
-
-  const ema200Line=
-    chart.addLineSeries({
-      color:'#ff4057',
-      lineWidth:2,
-      priceLineVisible:false,
-      lastValueVisible:false
-    });
-
-  ema200Line.setData(
-    data.map((b,i)=>({
-      time:Math.floor(b.t/1000),
-      value:ema200[start+i]
-    }))
-  );
-}
+addStudy(studies.ema9,'#35db72');addStudy(studies.ema21,'#ff565f');
+addStudy(studies.sma50,'#f4e833',2);addStudy(studies.sma200,'#ffffff',2);
+addStudy(studies.bollinger.upper,'#309cfa');addStudy(studies.bollinger.middle,'#dcad45');addStudy(studies.bollinger.lower,'#309cfa');
 
   function priceLine(
   price,
@@ -2773,13 +2752,8 @@ if(bullTrigger){
 );
 
   if(major){
-  priceLine(
-    major.pivot,
-    'PIVOT',
-    '#ffd15f',
-    false
-  );
-}
+    for(const [key,label] of [['pivot','P'],['r1','R1'],['r2','R2'],['s1','S1'],['s2','S2']])priceLine(major[key],label,key==='pivot'?'#ffd15f':'#39df74',true);
+  }
 
   if(
     setup &&
@@ -2981,7 +2955,7 @@ chart.timeScale().subscribeVisibleLogicalRangeChange(
 );
 
   drawMACD(data);
-  drawRSI(data);
+  drawRSI(src);
 
   return;
 }
@@ -3369,74 +3343,26 @@ hist.forEach((v,i)=>{
 }
 
 function drawRSI(data){
-  const canvas=$('rsiChart');
-  if(!canvas||data.length<15)return;
-
-  const rect=canvas.getBoundingClientRect();
-  const dpr=window.devicePixelRatio||1;
-
-  canvas.width=rect.width*dpr;
-  canvas.height=rect.height*dpr;
-
-  const ctx=canvas.getContext('2d');
-  ctx.scale(dpr,dpr);
-
-  const w=rect.width;
-  const h=rect.height;
-
-  ctx.clearRect(0,0,w,h);
-
-  const closes=data.map(b=>b.c);
-  const values=[];
-
-  for(let i=14;i<closes.length;i++){
-    let gains=0;
-    let losses=0;
-
-    for(let j=i-13;j<=i;j++){
-      const change=closes[j]-closes[j-1];
-      if(change>0)gains+=change;
-      else losses-=change;
-    }
-
-    const avgGain=gains/14;
-    const avgLoss=losses/14;
-
-    values.push(
-      avgLoss===0 ? 100 :
-      100-(100/(1+(avgGain/avgLoss)))
-    );
-  }
- 
-  $('rsiValue').textContent=
-  values.at(-1).toFixed(1);
-  
-  const X=i=>i/(values.length-1)*w;
-  const Y=v=>h-(v/100)*h;
-
-  ctx.setLineDash([5,5]);
-  ctx.strokeStyle='#52657a';
-
-  [30,70].forEach(level=>{
-    ctx.beginPath();
-    ctx.moveTo(0,Y(level));
-    ctx.lineTo(w,Y(level));
-    ctx.stroke();
-  });
-
+  const studies=window.WTIChartStudies.calculate(data);
+  drawOscillator('rsiChart',[studies.rsi,studies.rsiMA],['#55dc70','#ff5c63'],[30,50,70]);
+  drawOscillator('stochChart',[studies.stochastic.k,studies.stochastic.d],['#55dc70','#ff5c63'],[20,80]);
+  const last=values=>Number.isFinite(values.at(-1))?values.at(-1).toFixed(1):'Unavailable';
+  $('rsiValue').textContent=last(studies.rsi)+' / MA '+last(studies.rsiMA);
+  $('stochValue').textContent=last(studies.stochastic.k)+' / '+last(studies.stochastic.d);
+}
+function drawOscillator(id,series,colors,levels){
+  const canvas=$(id);if(!canvas)return;
+  const rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const w=rect.width,h=rect.height,arrays=series.map(values=>values.slice(-80));
+  const count=arrays[0].length,X=i=>i/Math.max(1,count-1)*w,Y=v=>h-(v/100)*h;
+  ctx.clearRect(0,0,w,h);ctx.fillStyle='#10232c';ctx.fillRect(0,Y(levels.at(-1)),w,Y(levels[0])-Y(levels.at(-1)));
+  ctx.setLineDash([4,4]);ctx.strokeStyle='#52657a';
+  for(const level of levels){ctx.beginPath();ctx.moveTo(0,Y(level));ctx.lineTo(w,Y(level));ctx.stroke();}
   ctx.setLineDash([]);
-
-  ctx.beginPath();
-  ctx.strokeStyle='#b56cff';
-  ctx.lineWidth=1.5;
-
-  values.forEach((v,i)=>{
-    const x=X(i),y=Y(v);
-    if(i===0)ctx.moveTo(x,y);
-    else ctx.lineTo(x,y);
-  });
-
-  ctx.stroke();
+  arrays.forEach((values,index)=>{ctx.beginPath();ctx.strokeStyle=colors[index];ctx.lineWidth=1.5;let started=false;
+    values.forEach((value,i)=>{if(!Number.isFinite(value)){started=false;return;}if(started)ctx.lineTo(X(i),Y(value));else ctx.moveTo(X(i),Y(value));started=true;});ctx.stroke();});
 }
 
 async function loadCandles(){
@@ -3452,6 +3378,7 @@ async function loadCandles(){
      d.activeProvider==='IG' &&
      d.fallbackUsed===false &&
      d.contractVerified===true;
+    $('chartFeedInfo').textContent=(document.documentElement.dataset.preview==='synthetic'?'SYNTHETIC TEST DATA':'IG '+(d.contractExpiry||'UNKNOWN'))+' · '+(d.epic||'UNKNOWN')+' · '+(d.marketStatus||'UNKNOWN')+' · Trading 212 contract match unverified';
     $('contractStatus').textContent='Contract '+(d.contractExpiry||'UNKNOWN')+' · '+(d.epic||'UNKNOWN')+' · '+(d.marketStatus||'UNKNOWN')+' · Last dealing '+(d.contractLastDealingAt?new Date(d.contractLastDealingAt).toLocaleString():'UNKNOWN');
     const now=Date.now();
 

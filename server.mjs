@@ -32,6 +32,7 @@ app.get('/', (req, res) => {
 const publicFiles = [
   'simple.html',
   'automatic-plan.js',
+  'chart-studies.js',
   'index.html',
   'sw.js',
   'manifest.webmanifest',
@@ -53,6 +54,7 @@ for (const file of publicFiles) {
         .replace('<html lang="en">','<html lang="en" data-preview="synthetic">')
         .replace('<title>WTI Pro</title>','<title>WTI Pro Test Preview</title>')
         .replace('IG selected contract · No fallback','Synthetic test prices · No live feed')
+        .replace('IG completed 5m candle close','Synthetic test candle close')
         .replace('Market data uses the selected IG crude oil contract without Yahoo fallback.','This preview uses synthetic prices and does not connect to IG.')
         .replace('WTI Crude Oil · ', 'Synthetic WTI · ');
       return res.type('html').send(renderAIControls(html,false));
